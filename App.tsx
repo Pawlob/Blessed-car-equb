@@ -4,6 +4,7 @@ import LandingPage from './components/LandingPage';
 import LoginView from './components/LoginView';
 import DashboardView from './components/DashboardView';
 import AdminView from './components/AdminView';
+import PrizesView from './components/PrizesView';
 import Footer from './components/Footer';
 import { User, ViewState, Language, AppSettings } from './types';
 
@@ -24,7 +25,11 @@ const App: React.FC = () => {
     trustScore: 100,
     prizeName: 'Toyota Corolla Cross 2025',
     prizeValue: 'ETB 4.5M',
-    prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif'
+    prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
+    recentWinners: [
+      { id: 1, name: "Dawit M.", prize: "Toyota Vitz", cycle: "Tir (Jan)", location: "Addis Ababa" },
+      { id: 2, name: "Sara T.", prize: "Hyundai i10", cycle: "Tahsas (Dec)", location: "Adama" }
+    ]
   });
 
   // Handle URL hash for Admin routing
@@ -93,6 +98,14 @@ const App: React.FC = () => {
             language={language} 
             settings={appSettings}
           />
+        )}
+
+        {view === 'prizes' && (
+            <PrizesView 
+                language={language}
+                settings={appSettings}
+                setView={setView}
+            />
         )}
       </main>
 

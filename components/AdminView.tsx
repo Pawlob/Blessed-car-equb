@@ -667,6 +667,72 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                </div>
 
                <div className="pb-4 border-b border-stone-100">
+                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Trophy className="w-5 h-5 mr-2 text-amber-500"/> Winner Spotlight</h3>
+                   
+                   <div className="space-y-4">
+                      {settings.recentWinners.map((winner, index) => (
+                        <div key={winner.id} className="bg-stone-50 p-4 rounded-lg border border-stone-200 relative">
+                           <div className="absolute top-2 right-2 text-xs font-bold text-stone-300">#{index + 1}</div>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                  <label className="block text-xs font-bold text-stone-500 mb-1">Winner Name</label>
+                                  <input 
+                                    type="text" 
+                                    value={winner.name}
+                                    onChange={(e) => {
+                                      const newWinners = [...settings.recentWinners];
+                                      newWinners[index] = { ...winner, name: e.target.value };
+                                      setSettings({ ...settings, recentWinners: newWinners });
+                                    }}
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-stone-500 mb-1">Prize Won</label>
+                                  <input 
+                                    type="text" 
+                                    value={winner.prize}
+                                    onChange={(e) => {
+                                      const newWinners = [...settings.recentWinners];
+                                      newWinners[index] = { ...winner, prize: e.target.value };
+                                      setSettings({ ...settings, recentWinners: newWinners });
+                                    }}
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-stone-500 mb-1">Cycle/Month</label>
+                                  <input 
+                                    type="text" 
+                                    value={winner.cycle}
+                                    onChange={(e) => {
+                                      const newWinners = [...settings.recentWinners];
+                                      newWinners[index] = { ...winner, cycle: e.target.value };
+                                      setSettings({ ...settings, recentWinners: newWinners });
+                                    }}
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-stone-500 mb-1">Location</label>
+                                  <input 
+                                    type="text" 
+                                    value={winner.location}
+                                    onChange={(e) => {
+                                      const newWinners = [...settings.recentWinners];
+                                      newWinners[index] = { ...winner, location: e.target.value };
+                                      setSettings({ ...settings, recentWinners: newWinners });
+                                    }}
+                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                  />
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+               </div>
+
+               <div className="pb-4 border-b border-stone-100">
                    <h3 className="font-bold text-stone-800 flex items-center mb-4"><Trophy className="w-5 h-5 mr-2 text-amber-500"/> Prize Configuration</h3>
                    
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,7 +1,15 @@
 import React from 'react';
 
 export type Language = 'en' | 'am';
-export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin';
+export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin' | 'prizes';
+
+export interface Winner {
+  id: number;
+  name: string;
+  prize: string;
+  cycle: string;
+  location: string;
+}
 
 export interface AppSettings {
   nextDrawDateEn: string;
@@ -15,6 +23,7 @@ export interface AppSettings {
   prizeName: string;
   prizeValue: string;
   prizeImage: string;
+  recentWinners: Winner[];
 }
 
 export interface User {

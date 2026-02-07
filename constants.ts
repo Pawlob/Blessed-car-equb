@@ -1,3 +1,4 @@
+
 export const TRANSLATIONS = {
   en: {
     nav: { home: "Home", how: "How It Works", prizes: "Prizes", join: "Join Now", login: "Login", logout: "Logout", dashboard: "Dashboard", secure: "Secure Session", profile: "Profile" },
@@ -24,6 +25,17 @@ export const TRANSLATIONS = {
         heading: "Ready to Drive Your Dream Car?",
         desc: "Join 2,150+ members who are securing their financial future with Blessed.",
         btn: "Join the Waitlist"
+    },
+    prizes_page: {
+        title: "Monthly Grand Prizes",
+        subtitle: "Every month, one lucky member drives away in a brand new car.",
+        current_prize: "This Month's Grand Prize",
+        value: "Value",
+        draw_date: "Draw Date",
+        past_winners: "Recent Winners",
+        upcoming: "Upcoming Prizes",
+        cta_title: "Want to be next?",
+        cta_btn: "Join the Equb Now"
     },
     login: {
         heading: "Member Access",
@@ -98,6 +110,17 @@ export const TRANSLATIONS = {
         heading: "የህልም መኪናዎን ለመንዳት ዝግጁ ነዎት?",
         desc: "የፋይናንስ ነጻነታቸውን እያረጋገጡ ያሉ ከ2,150 በላይ አባላትን ይቀላቀሉ።",
         btn: "አሁኑኑ ይመዝገቡ"
+    },
+    prizes_page: {
+        title: "ወራዊ የሽልማት ዝርዝር",
+        subtitle: "በየወሩ አንድ እድለኛ አባል አዲስ መኪና ይረከባል።",
+        current_prize: "የዚህ ወር ዋና ሽልማት",
+        value: "ዋጋ",
+        draw_date: "የእጣ ቀን",
+        past_winners: "የቅርብ ጊዜ አሸናፊዎች",
+        upcoming: "ቀጣይ ሽልማቶች",
+        cta_title: "ቀጣዩ አሸናፊ መሆን ይፈልጋሉ?",
+        cta_btn: "አሁኑኑ ይቀላቀሉ"
     },
     login: {
         heading: "ወደ መለያ ይግቡ",

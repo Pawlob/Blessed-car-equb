@@ -21,7 +21,7 @@ const Navbar: React.FC<NavProps> = ({ view, setView, language, setLanguage, user
   }, []);
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || view === 'dashboard' ? 'bg-emerald-900/95 shadow-lg py-3 backdrop-blur-sm' : 'bg-transparent py-5'}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled || view === 'dashboard' || view === 'prizes' ? 'bg-emerald-900/95 shadow-lg py-3 backdrop-blur-sm' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Logo */}
         <div 
@@ -38,11 +38,25 @@ const Navbar: React.FC<NavProps> = ({ view, setView, language, setLanguage, user
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-8">
-          {view === 'landing' ? (
+          {view === 'landing' || view === 'prizes' ? (
             <>
-              <a href="#home" className="text-stone-200 hover:text-amber-400 font-medium transition-colors">{t.home}</a>
-              <a href="#how-it-works" className="text-stone-200 hover:text-amber-400 font-medium transition-colors">{t.how}</a>
-              <a href="#prizes" className="text-stone-200 hover:text-amber-400 font-medium transition-colors">{t.prizes}</a>
+              <button onClick={() => setView('landing')} className="text-stone-200 hover:text-amber-400 font-medium transition-colors">{t.home}</button>
+              <button 
+                onClick={() => {
+                  if (view !== 'landing') setView('landing');
+                  // Give it a tick to render landing before scrolling
+                  setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
+                }} 
+                className="text-stone-200 hover:text-amber-400 font-medium transition-colors"
+              >
+                {t.how}
+              </button>
+              <button 
+                onClick={() => setView('prizes')} 
+                className={`text-stone-200 hover:text-amber-400 font-medium transition-colors ${view === 'prizes' ? 'text-amber-400 font-bold' : ''}`}
+              >
+                {t.prizes}
+              </button>
             </>
           ) : (
             <span className="text-emerald-200 font-medium flex items-center">
@@ -102,10 +116,10 @@ const Navbar: React.FC<NavProps> = ({ view, setView, language, setLanguage, user
       {isOpen && (
         <div className="md:hidden bg-emerald-950 absolute w-full border-t border-emerald-800">
           <div className="px-4 pt-2 pb-6 space-y-2">
-            {view === 'landing' && (
+            {(view === 'landing' || view === 'prizes') && (
               <>
-                <a onClick={() => setIsOpen(false)} href="#home" className="block px-3 py-3 text-stone-200 hover:bg-emerald-800 rounded-md">{t.home}</a>
-                <a onClick={() => setIsOpen(false)} href="#how-it-works" className="block px-3 py-3 text-stone-200 hover:bg-emerald-800 rounded-md">{t.how}</a>
+                <button onClick={() => { setView('landing'); setIsOpen(false); }} className="block w-full text-left px-3 py-3 text-stone-200 hover:bg-emerald-800 rounded-md">{t.home}</button>
+                <button onClick={() => { setView('prizes'); setIsOpen(false); }} className="block w-full text-left px-3 py-3 text-stone-200 hover:bg-emerald-800 rounded-md">{t.prizes}</button>
               </>
             )}
             
