@@ -33,31 +33,67 @@ const App: React.FC = () => {
     ]
   });
 
-  // Handle URL hash for Admin routing
+  // Handle History and Back Button
   useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash === '#admin') {
-        setView('admin');
-      }
+    const getInitialView = (): ViewState => {
+       try {
+         const hash = window.location.hash.replace('#', '');
+         const validViews: ViewState[] = ['landing', 'login', 'dashboard', 'admin', 'prizes', 'terms'];
+         return validViews.includes(hash as ViewState) ? (hash as ViewState) : 'landing';
+       } catch (e) {
+         return 'landing';
+       }
     };
 
-    // Check on initial load
-    handleHashChange();
+    // Set initial view based on URL hash
+    const currentView = getInitialView();
+    setView(currentView);
+    
+    // Ensure we have a history state for the initial load
+    try {
+      if (!window.history.state) {
+        window.history.replaceState({ view: currentView }, '', `#${currentView}`);
+      }
+    } catch (e) {
+      console.error("History API not available", e);
+    }
 
-    // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    const handlePopState = (event: PopStateEvent) => {
+        if (event.state && event.state.view) {
+            setView(event.state.view);
+        } else {
+            // Fallback for scenarios where state might be lost or manual hash change
+            setView(getInitialView());
+        }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Custom navigator that syncs with browser history
+  const handleSetView = (newView: ViewState) => {
+    // Prevent pushing duplicate states
+    if (view === newView) return;
+    
+    setView(newView);
+    try {
+      window.history.pushState({ view: newView }, '', `#${newView}`);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      console.error("Failed to push state", e);
+    }
+  };
 
   const logout = () => {
     setUser(null);
-    setView('landing');
+    handleSetView('landing');
   };
 
   if (view === 'admin') {
     return (
       <AdminView 
-        setView={setView} 
+        setView={handleSetView} 
         settings={appSettings} 
         setSettings={setAppSettings} 
       />
@@ -68,7 +104,7 @@ const App: React.FC = () => {
     <div className="font-sans text-stone-800 bg-stone-50 min-h-screen flex flex-col">
       <Navbar 
         view={view} 
-        setView={setView} 
+        setView={handleSetView} 
         language={language} 
         setLanguage={setLanguage} 
         user={user} 
@@ -79,14 +115,14 @@ const App: React.FC = () => {
         {view === 'landing' && (
           <LandingPage 
             language={language} 
-            setView={setView} 
+            setView={handleSetView} 
             settings={appSettings}
           />
         )}
 
         {view === 'login' && (
           <LoginView 
-            setView={setView} 
+            setView={handleSetView} 
             setUser={setUser} 
             language={language} 
           />
@@ -105,19 +141,19 @@ const App: React.FC = () => {
             <PrizesView 
                 language={language}
                 settings={appSettings}
-                setView={setView}
+                setView={handleSetView}
             />
         )}
 
         {view === 'terms' && (
             <TermsView 
                 language={language}
-                setView={setView}
+                setView={handleSetView}
             />
         )}
       </main>
 
-      <Footer language={language} setView={setView} />
+      <Footer language={language} setView={handleSetView} />
     </div>
   );
 };
