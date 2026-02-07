@@ -59,7 +59,13 @@ export const TRANSLATIONS = {
         action_bonus: "Won Daily Bonus",
         status_card_title: "My Status",
         payment_due: "Payment Due",
-        btn_processing: "Processing..."
+        btn_processing: "Processing...",
+        select_ticket: "Select Lucky Number",
+        select_ticket_desc: "Choose an available number for the upcoming draw.",
+        confirm_ticket: "Confirm Number",
+        my_ticket: "My Ticket #",
+        ticket_saved: "Ticket Saved!",
+        ticket_instruction: "Green numbers are available. Grey are taken."
     },
     footer: {
         desc: "Transforming traditional Ethiopian savings into modern digital assets.",
@@ -128,7 +134,13 @@ export const TRANSLATIONS = {
         action_bonus: "ቦነስ አሸንፏል",
         status_card_title: "የኔ ሁኔታ",
         payment_due: "የክፍያ ቀን",
-        btn_processing: "በማስኬድ ላይ..."
+        btn_processing: "በማስኬድ ላይ...",
+        select_ticket: "እድለኛ ቁጥር ይምረጡ",
+        select_ticket_desc: "ለቀጣዩ እጣ የሚሆን ቁጥር ይምረጡ።",
+        confirm_ticket: "ቁጥሩን አረጋግጥ",
+        my_ticket: "የእኔ ቁጥር",
+        ticket_saved: "ቁጥሩ ተመዝግቧል!",
+        ticket_instruction: "አረንጓዴ ቁጥሮች ክፍት ናቸው።"
     },
     footer: {
         desc: "ባህላዊውን የኢትዮጵያ እቁብ ወደ ዘመናዊ ዲጂታል ንብረትነት ቀይረነዋል።",

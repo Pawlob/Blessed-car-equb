@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
@@ -9,6 +9,63 @@ interface LandingPageProps {
   language: Language;
   setView: (view: ViewState) => void;
 }
+
+const CountUp = ({ end, duration = 2000, prefix = "", suffix = "" }: { end: number, duration?: number, prefix?: string, suffix?: string }) => {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const elementRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime: number | null = null;
+    let animationFrameId: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const percentage = Math.min(progress / duration, 1);
+      
+      const easeOut = (x: number): number => {
+        return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+      };
+
+      setCount(Math.floor(easeOut(percentage) * end));
+
+      if (progress < duration) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        setCount(end);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isVisible, end, duration]);
+
+  return (
+    <span ref={elementRef}>{prefix}{count.toLocaleString()}{suffix}</span>
+  );
+};
 
 const LandingPage: React.FC<LandingPageProps> = ({ language, setView }) => {
   const t = TRANSLATIONS[language];
@@ -26,7 +83,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView }) => {
           <div className="space-y-6 text-center md:text-left">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-800/30 border border-emerald-700/50 text-emerald-300 text-sm font-semibold mb-2">
               <Trophy className="w-4 h-4 mr-2 text-amber-400" />
-              {t.hero.subtitle} 14 Days
+              {t.hero.subtitle} {language === 'en' ? '14 Days' : '14 ቀናት'}
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight">
@@ -109,16 +166,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: t.stats.members, value: "2,150+", icon: Users },
-              { label: t.stats.cars, value: "142", icon: Car },
-              { label: t.stats.pot, value: "ETB 50M+", icon: Trophy },
-              { label: t.stats.trust, value: "100%", icon: ShieldCheck },
+              { label: t.stats.members, end: 2150, suffix: "+", icon: Users },
+              { label: t.stats.cars, end: 142, icon: Car },
+              { label: t.stats.pot, end: 50, prefix: "ETB ", suffix: "M+", icon: Trophy },
+              { label: t.stats.trust, end: 100, suffix: "%", icon: ShieldCheck },
             ].map((stat, index) => (
               <div key={index} className="flex flex-col items-center text-center group">
                 <div className="bg-amber-800 p-3 rounded-full mb-3 group-hover:bg-amber-700 transition-colors">
                   <stat.icon className="w-6 h-6 text-amber-200" />
                 </div>
-                <h4 className="text-3xl font-bold text-white mb-1">{stat.value}</h4>
+                <h4 className="text-3xl font-bold text-white mb-1">
+                  <CountUp end={stat.end} prefix={stat.prefix} suffix={stat.suffix} />
+                </h4>
                 <p className="text-amber-200/80 text-sm uppercase tracking-wider">{stat.label}</p>
               </div>
             ))}

@@ -8,6 +8,7 @@ export interface User {
   phone: string;
   status: 'PENDING' | 'VERIFIED';
   contribution: number;
+  prizeNumber?: number;
 }
 
 export interface NavProps {

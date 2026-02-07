@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Car } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Car, Ticket, X } from 'lucide-react';
 import { User, Language, FeedItem } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -23,6 +23,15 @@ const generateMockFeed = (t: any): FeedItem => {
 const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }) => {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
+  
+  // Mock available tickets (1-50, some taken)
+  const [tickets] = useState(() => Array.from({ length: 40 }, (_, i) => ({
+    number: i + 1,
+    taken: Math.random() > 0.7 // 30% taken
+  })));
+
   const t = TRANSLATIONS[language].dashboard;
 
   useEffect(() => {
@@ -43,18 +52,103 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
       setUploading(false);
       // Add self to feed
       setFeed(prev => [{ id: Math.random(), name: "You", action: t.action_verified, time: "Just now" }, ...prev.slice(0, 4)]);
+      
+      // Open ticket modal after success
+      setTimeout(() => setShowTicketModal(true), 500);
     }, 2000);
   };
 
+  const confirmTicket = () => {
+    if (selectedTempTicket && user) {
+        setUser({ ...user, prizeNumber: selectedTempTicket });
+        setShowTicketModal(false);
+    }
+  };
+
+  // Ethiopian Date Helpers
+  const paymentDueDate = language === 'en' ? 'Yekatit 21, 2018' : 'የካቲት 21፣ 2018';
+  const cycleText = language === 'en' ? 'Cycle 14' : 'ዙር 14';
+
+  const getHistoryDate = (offset: number) => {
+      const day = 12 - offset;
+      return language === 'en' ? `Tir ${day}, 2018` : `ጥር ${day}፣ 2018`;
+  };
+
+  const hallOfFame1 = language === 'en' 
+      ? { name: "Dawit M.", desc: "Won Toyota Vitz (Tir)" }
+      : { name: "ዳዊት መ.", desc: "ቶዮታ ቪትዝ አሸንፏል (ጥር)" };
+      
+  const hallOfFame2 = language === 'en'
+      ? { name: "Sara T.", desc: "Won Hyundai (Tahsas)" }
+      : { name: "ሳራ ት.", desc: "ሂዩንዳይ አሸንፏል (ታህሳስ)" };
+
   return (
-    <div className="min-h-screen bg-stone-50 pt-20 pb-12">
+    <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
+      
+      {/* Ticket Selection Modal */}
+      {showTicketModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+            <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-emerald-900 text-white">
+               <div>
+                  <h3 className="text-xl font-bold flex items-center">
+                    <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
+                  </h3>
+                  <p className="text-emerald-200 text-xs mt-1">{t.select_ticket_desc}</p>
+               </div>
+               <button onClick={() => setShowTicketModal(false)} className="text-emerald-200 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+               </button>
+            </div>
+            
+            <div className="p-6">
+                <p className="text-sm text-stone-500 mb-4">{t.ticket_instruction}</p>
+                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 mb-6">
+                    {tickets.map((ticket) => (
+                        <button
+                          key={ticket.number}
+                          disabled={ticket.taken}
+                          onClick={() => setSelectedTempTicket(ticket.number)}
+                          className={`
+                             aspect-square rounded-lg flex items-center justify-center text-sm font-bold transition-all
+                             ${ticket.taken 
+                                ? 'bg-stone-100 text-stone-300 cursor-not-allowed' 
+                                : selectedTempTicket === ticket.number 
+                                   ? 'bg-amber-500 text-white shadow-lg scale-110 ring-2 ring-amber-300' 
+                                   : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:scale-105'}
+                          `}
+                        >
+                           {ticket.number}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="bg-stone-50 p-4 rounded-xl flex items-center justify-between mb-4">
+                    <span className="text-stone-600 font-medium">{t.my_ticket}:</span>
+                    <span className="text-2xl font-bold text-amber-600">
+                        {selectedTempTicket ? `#${selectedTempTicket}` : '-'}
+                    </span>
+                </div>
+
+                <button 
+                  onClick={confirmTicket}
+                  disabled={!selectedTempTicket}
+                  className="w-full py-3 bg-emerald-900 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg"
+                >
+                    {t.confirm_ticket}
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 animate-fade-in-down">
            <div>
               <h1 className="text-2xl font-bold text-emerald-900">{t.welcome} {user.name}</h1>
-              <p className="text-stone-500">Member ID: #8291 • Cycle 14</p>
+              <p className="text-stone-500">Member ID: #8291 • {cycleText}</p>
            </div>
            <div className="mt-4 md:mt-0 flex space-x-3">
               <button className="p-2 bg-white rounded-full shadow hover:bg-stone-100 text-stone-600 relative transition-transform hover:scale-110">
@@ -76,10 +170,23 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
                   </span>
                   {user.status === 'VERIFIED' ? <CheckCircle className="w-8 h-8 text-emerald-500" /> : <Clock className="w-8 h-8 text-red-500" />}
                </div>
-               <div className="w-full bg-stone-100 rounded-full h-2 mb-2">
-                  <div className={`h-2 rounded-full ${user.status === 'VERIFIED' ? 'bg-emerald-500 w-full' : 'bg-red-400 w-[10%]'}`}></div>
-               </div>
-               <p className="text-xs text-stone-400">{t.payment_due}: Feb 28, 2026</p>
+               
+               {user.prizeNumber ? (
+                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex items-center justify-between animate-fade-in-down">
+                      <div className="flex items-center">
+                          <Ticket className="w-5 h-5 text-amber-600 mr-2" />
+                          <span className="text-amber-800 font-medium text-sm">{t.my_ticket}</span>
+                      </div>
+                      <span className="text-xl font-bold text-amber-600">#{user.prizeNumber}</span>
+                   </div>
+               ) : (
+                   <>
+                       <div className="w-full bg-stone-100 rounded-full h-2 mb-2">
+                          <div className={`h-2 rounded-full ${user.status === 'VERIFIED' ? 'bg-emerald-500 w-full' : 'bg-red-400 w-[10%]'}`}></div>
+                       </div>
+                       <p className="text-xs text-stone-400">{t.payment_due}: {paymentDueDate}</p>
+                   </>
+               )}
             </div>
 
             {/* Card 2: Contribution */}
@@ -125,21 +232,30 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
                            <p className="text-stone-300 max-w-sm mb-6">{t.win_desc}</p>
                            
                            <div className="flex flex-wrap gap-4">
-                              <button 
-                                onClick={handlePayment} 
-                                disabled={user.status === 'VERIFIED' || uploading}
-                                className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 active:scale-95 ${user.status === 'VERIFIED' 
-                                  ? 'bg-emerald-600 text-white cursor-default hover:scale-100' 
-                                  : 'bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20'}`}
-                              >
-                                {uploading ? (
-                                   <><span className="w-4 h-4 border-2 border-stone-800/30 border-t-stone-800 rounded-full animate-spin mr-2"></span> {t.btn_processing || 'Processing...'}</>
-                                ) : user.status === 'VERIFIED' ? (
-                                   <><CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}</>
-                                ) : (
-                                   <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
-                                )}
-                              </button>
+                              {user.status === 'VERIFIED' && !user.prizeNumber ? (
+                                  <button 
+                                    onClick={() => setShowTicketModal(true)}
+                                    className="flex items-center px-6 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
+                                  >
+                                     <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
+                                  </button>
+                              ) : (
+                                  <button 
+                                    onClick={handlePayment} 
+                                    disabled={user.status === 'VERIFIED' || uploading}
+                                    className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 active:scale-95 ${user.status === 'VERIFIED' 
+                                      ? 'bg-emerald-600 text-white cursor-default hover:scale-100' 
+                                      : 'bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20'}`}
+                                  >
+                                    {uploading ? (
+                                       <><span className="w-4 h-4 border-2 border-stone-800/30 border-t-stone-800 rounded-full animate-spin mr-2"></span> {t.btn_processing || 'Processing...'}</>
+                                    ) : user.status === 'VERIFIED' ? (
+                                       <><CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}</>
+                                    ) : (
+                                       <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
+                                    )}
+                                  </button>
+                              )}
                               
                               {user.status !== 'VERIFIED' && (
                                 <button className="flex items-center px-6 py-3 bg-transparent border border-stone-500 hover:border-white text-stone-300 hover:text-white rounded-lg font-medium transition-all hover:bg-white/5">
@@ -171,7 +287,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
                                  </div>
                                  <div>
                                     <p className="font-medium text-stone-800">Monthly Contribution</p>
-                                    <p className="text-xs text-stone-500">Jan {20 - i}, 2026</p>
+                                    <p className="text-xs text-stone-500">{getHistoryDate(i)}</p>
                                  </div>
                               </div>
                               <span className="font-bold text-stone-700">-10,000 ETB</span>
@@ -210,15 +326,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
                   <div className="flex items-center space-x-3 mb-3 p-2 hover:bg-amber-100 rounded-lg transition-colors cursor-default">
                       <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center text-amber-800 font-bold">D</div>
                       <div>
-                         <p className="text-sm font-bold text-amber-900">Dawit M.</p>
-                         <p className="text-xs text-amber-700">Won Toyota Vitz (Jan)</p>
+                         <p className="text-sm font-bold text-amber-900">{hallOfFame1.name}</p>
+                         <p className="text-xs text-amber-700">{hallOfFame1.desc}</p>
                       </div>
                   </div>
                   <div className="flex items-center space-x-3 p-2 hover:bg-amber-100 rounded-lg transition-colors cursor-default">
                       <div className="w-10 h-10 bg-stone-200 rounded-full flex items-center justify-center text-stone-600 font-bold">S</div>
                       <div>
-                         <p className="text-sm font-bold text-stone-800">Sara T.</p>
-                         <p className="text-xs text-stone-500">Won Hyundai (Dec)</p>
+                         <p className="text-sm font-bold text-stone-800">{hallOfFame2.name}</p>
+                         <p className="text-xs text-stone-500">{hallOfFame2.desc}</p>
                       </div>
                   </div>
                </div>
