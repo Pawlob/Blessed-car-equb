@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Car, Ticket, X } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -34,6 +34,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   })));
 
   const t = TRANSLATIONS[language].dashboard;
+  const heroT = TRANSLATIONS[language].hero;
 
   useEffect(() => {
     // Initialize some feed items
@@ -223,18 +224,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             <div className="lg:col-span-2 space-y-6">
                 
                 {/* Hero / Action */}
-                <div className="bg-gradient-to-r from-stone-800 to-stone-900 rounded-2xl p-6 md:p-10 text-white relative overflow-hidden shadow-xl opacity-0 animate-fade-in-up delay-[300ms]">
+                <div className="bg-gradient-to-r from-stone-800 to-stone-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl opacity-0 animate-fade-in-up delay-[300ms]">
                     <div className="absolute right-0 bottom-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mb-16"></div>
                     
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between">
-                        <div className="mb-6 md:mb-0">
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                        <div className="flex-1 text-center md:text-left">
                            <div className="inline-block bg-red-900/80 px-3 py-1 rounded text-xs font-bold mb-3 border border-red-700 animate-pulse">
                               {t.next_draw.replace('14', settings.daysRemaining.toString())}
                            </div>
                            <h2 className="text-3xl font-bold mb-2">{t.win_title}</h2>
-                           <p className="text-stone-300 max-w-sm mb-6">{t.win_desc}</p>
+                           <p className="text-stone-300 max-w-sm mb-6 mx-auto md:mx-0">{t.win_desc}</p>
                            
-                           <div className="flex flex-wrap gap-4">
+                           <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                               {user.status === 'VERIFIED' && !user.prizeNumber ? (
                                   <button 
                                     onClick={() => setShowTicketModal(true)}
@@ -267,11 +268,52 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                               )}
                            </div>
                         </div>
-                        <div className="w-48 md:w-64 relative group">
-                            <Car className="w-full h-auto text-stone-600 transition-transform duration-500 group-hover:scale-105" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-white/20 text-4xl font-black rotate-[-12deg] group-hover:rotate-0 transition-all duration-500">PRIZE</span>
+                        
+                        {/* Prize Card (Identical to Landing Page) */}
+                        <div className="relative w-full max-w-xs md:max-w-sm flex-shrink-0">
+                          <div className="relative z-10 bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
+                            <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group">
+                                <div className="h-48 md:h-56 bg-stone-700 flex items-center justify-center relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
+                                    
+                                    {/* Ribbon Overlay */}
+                                    <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
+                                              <img 
+                                                src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" 
+                                                alt="Ribbon" 
+                                                className="w-full h-full object-contain drop-shadow-2xl scale-[1.5]"
+                                              />
+                                        </div>
+                                    </div>
+
+                                    <img 
+                                      src={settings.prizeImage}
+                                      alt={settings.prizeName} 
+                                      className="absolute inset-0 w-full h-full object-cover z-0"
+                                    />
+                                    
+                                    <div className="absolute inset-0 flex items-end justify-end z-20 p-2">
+                                        <span className="text-stone-100 font-bold text-xs border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-2 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
+                                            {settings.prizeName}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="p-4">
+                                    <div className="flex justify-between items-end">
+                                        <div>
+                                            <p className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-1">{heroT.prize_label}</p>
+                                            <h3 className="text-lg font-bold text-white leading-tight">Luxury Package</h3>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-stone-400 text-xs">{heroT.prize_value}</p>
+                                            <p className="text-lg font-bold text-white">{settings.prizeValue}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                          </div>
                         </div>
                     </div>
                 </div>

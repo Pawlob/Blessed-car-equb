@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -98,6 +98,37 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   const handleRejectPayment = (reqId: number) => {
     setPaymentRequests(prev => prev.filter(req => req.id !== reqId));
     alert("Payment rejected. Notification sent to user.");
+  };
+
+  // Start New Cycle Logic
+  const handleStartNewCycle = () => {
+    const nextCycle = settings.cycle + 1;
+    const confirmed = window.confirm(
+      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n- Pot Value to 0\n- Member Contributions to 0\n- Member Status to Pending\n- Clear all Tickets & Requests`
+    );
+
+    if (confirmed) {
+      // 1. Reset Global Settings
+      setSettings(prev => ({
+        ...prev,
+        cycle: nextCycle,
+        potValue: 0,
+        daysRemaining: 30, // Reset timer to default 30 days
+      }));
+
+      // 2. Reset All Users
+      setUsers(prevUsers => prevUsers.map(u => ({
+        ...u,
+        status: 'PENDING',
+        contribution: 0,
+        prizeNumber: undefined // Clear tickets
+      })));
+
+      // 3. Clear Pending Requests
+      setPaymentRequests([]);
+
+      alert(`Cycle ${nextCycle} started successfully!`);
+    }
   };
 
   const filteredUsers = users.filter(u => 
@@ -480,12 +511,21 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                       <div>
                           <label className="block text-sm font-bold text-stone-700 mb-2">Current Cycle</label>
-                          <input 
-                            type="number" 
-                            value={settings.cycle}
-                            onChange={(e) => setSettings({...settings, cycle: parseInt(e.target.value)})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
+                          <div className="flex gap-2">
+                            <input 
+                              type="number" 
+                              value={settings.cycle}
+                              onChange={(e) => setSettings({...settings, cycle: parseInt(e.target.value)})}
+                              className="w-24 px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            />
+                            <button 
+                              onClick={handleStartNewCycle}
+                              className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg px-4 py-2 text-sm font-bold flex items-center justify-center transition-colors"
+                            >
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Start Cycle {settings.cycle + 1}
+                            </button>
+                          </div>
                       </div>
                       <div>
                           <label className="block text-sm font-bold text-stone-700 mb-2">Days Remaining</label>
