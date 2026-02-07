@@ -1,14 +1,25 @@
 import React from 'react';
 
 export type Language = 'en' | 'am';
-export type ViewState = 'landing' | 'login' | 'dashboard';
+export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin';
+
+export interface AppSettings {
+  nextDrawDateEn: string;
+  nextDrawDateAm: string;
+  potValue: number;
+  totalMembers: number;
+  cycle: number;
+  daysRemaining: number;
+}
 
 export interface User {
+  id?: number;
   name: string;
   phone: string;
   status: 'PENDING' | 'VERIFIED';
   contribution: number;
   prizeNumber?: number;
+  joinedDate?: string;
 }
 
 export interface NavProps {

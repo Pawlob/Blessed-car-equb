@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User as UserIcon } from 'lucide-react';
+import { User as UserIcon, Lock } from 'lucide-react';
 import { ViewState, User, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -99,8 +99,11 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
           </div>
 
         </form>
-        <div className="mt-6 text-center border-t border-stone-100 pt-4">
+        <div className="mt-6 text-center border-t border-stone-100 pt-4 flex justify-between items-center">
            <button onClick={() => setView('landing')} className="text-stone-400 text-sm hover:text-stone-600">{t.back}</button>
+           <button onClick={() => setView('admin')} className="flex items-center text-stone-300 hover:text-stone-500 text-xs transition-colors">
+              <Lock className="w-3 h-3 mr-1" /> Admin
+           </button>
         </div>
       </div>
     </div>

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Car, Ticket, X } from 'lucide-react';
-import { User, Language, FeedItem } from '../types';
+import { User, Language, FeedItem, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
 interface DashboardViewProps {
   user: User;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   language: Language;
+  settings: AppSettings;
 }
 
 const generateMockFeed = (t: any): FeedItem => {
@@ -20,7 +21,7 @@ const generateMockFeed = (t: any): FeedItem => {
   };
 };
 
-const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }) => {
+const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, settings }) => {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -65,9 +66,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
     }
   };
 
-  // Ethiopian Date Helpers
-  const paymentDueDate = language === 'en' ? 'Yekatit 21, 2018' : 'የካቲት 21፣ 2018';
-  const cycleText = language === 'en' ? 'Cycle 14' : 'ዙር 14';
+  // Dynamic Data from Settings
+  const paymentDueDate = language === 'en' ? settings.nextDrawDateEn : settings.nextDrawDateAm;
+  const cycleText = language === 'en' ? `Cycle ${settings.cycle}` : `ዙር ${settings.cycle}`;
+  const potFormatted = settings.potValue.toLocaleString();
+  const membersFormatted = settings.totalMembers.toLocaleString();
 
   const getHistoryDate = (offset: number) => {
       const day = 12 - offset;
@@ -205,10 +208,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
             <div className="bg-emerald-900 rounded-xl shadow-md p-6 text-white relative overflow-hidden opacity-0 animate-fade-in-up delay-[200ms] hover:shadow-lg transition-shadow duration-300 group">
                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700"><Trophy className="w-24 h-24" /></div>
                <h3 className="text-emerald-200 text-sm font-semibold uppercase mb-2">{t.pot}</h3>
-               <div className="text-3xl font-bold mb-1 animate-pulse-slow">50,450,000 ETB</div>
+               <div className="text-3xl font-bold mb-1 animate-pulse-slow">{potFormatted} ETB</div>
                <div className="text-sm text-emerald-300 mb-4">{t.pot_sub}</div>
                <div className="inline-flex items-center px-2 py-1 bg-emerald-800 rounded text-xs">
-                 <Users className="w-3 h-3 mr-1" /> 2,150 {t.pot_users}
+                 <Users className="w-3 h-3 mr-1" /> {membersFormatted} {t.pot_users}
                </div>
             </div>
         </div>
@@ -226,7 +229,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language }
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between">
                         <div className="mb-6 md:mb-0">
                            <div className="inline-block bg-red-900/80 px-3 py-1 rounded text-xs font-bold mb-3 border border-red-700 animate-pulse">
-                              {t.next_draw}
+                              {t.next_draw.replace('14', settings.daysRemaining.toString())}
                            </div>
                            <h2 className="text-3xl font-bold mb-2">{t.win_title}</h2>
                            <p className="text-stone-300 max-w-sm mb-6">{t.win_desc}</p>

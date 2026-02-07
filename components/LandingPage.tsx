@@ -3,11 +3,12 @@ import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck } from 'lucide-reac
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS } from '../constants';
-import { Language, ViewState } from '../types';
+import { Language, ViewState, AppSettings } from '../types';
 
 interface LandingPageProps {
   language: Language;
   setView: (view: ViewState) => void;
+  settings: AppSettings;
 }
 
 const CountUp = ({ end, duration = 2000, prefix = "", suffix = "" }: { end: number, duration?: number, prefix?: string, suffix?: string }) => {
@@ -67,7 +68,7 @@ const CountUp = ({ end, duration = 2000, prefix = "", suffix = "" }: { end: numb
   );
 };
 
-const LandingPage: React.FC<LandingPageProps> = ({ language, setView }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }) => {
   const t = TRANSLATIONS[language];
 
   return (
@@ -83,7 +84,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView }) => {
           <div className="space-y-6 text-center md:text-left">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-800/30 border border-emerald-700/50 text-emerald-300 text-sm font-semibold mb-2">
               <Trophy className="w-4 h-4 mr-2 text-amber-400" />
-              {t.hero.subtitle} {language === 'en' ? '14 Days' : '14 ቀናት'}
+              {t.hero.subtitle} {language === 'en' ? `${settings.daysRemaining} Days` : `${settings.daysRemaining} ቀናት`}
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight">
@@ -166,9 +167,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { label: t.stats.members, end: 2150, suffix: "+", icon: Users },
+              { label: t.stats.members, end: settings.totalMembers, suffix: "+", icon: Users },
               { label: t.stats.cars, end: 142, icon: Car },
-              { label: t.stats.pot, end: 50, prefix: "ETB ", suffix: "M+", icon: Trophy },
+              { label: t.stats.pot, end: settings.potValue / 1000000, prefix: "ETB ", suffix: "M+", icon: Trophy },
               { label: t.stats.trust, end: 100, suffix: "%", icon: ShieldCheck },
             ].map((stat, index) => (
               <div key={index} className="flex flex-col items-center text-center group">

@@ -1,20 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
 import LoginView from './components/LoginView';
 import DashboardView from './components/DashboardView';
+import AdminView from './components/AdminView';
 import Footer from './components/Footer';
-import { User, ViewState, Language } from './types';
+import { User, ViewState, Language, AppSettings } from './types';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
   const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState<Language>('en');
 
+  // Global Settings State to be controlled by Admin
+  const [appSettings, setAppSettings] = useState<AppSettings>({
+    nextDrawDateEn: 'Yekatit 21, 2018',
+    nextDrawDateAm: 'የካቲት 21፣ 2018',
+    potValue: 50450000,
+    totalMembers: 2150,
+    cycle: 14,
+    daysRemaining: 14
+  });
+
+  // Handle URL hash for Admin routing
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#admin') {
+        setView('admin');
+      }
+    };
+
+    // Check on initial load
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   const logout = () => {
     setUser(null);
     setView('landing');
   };
+
+  if (view === 'admin') {
+    return (
+      <AdminView 
+        setView={setView} 
+        settings={appSettings} 
+        setSettings={setAppSettings} 
+      />
+    );
+  }
 
   return (
     <div className="font-sans text-stone-800 bg-stone-50 min-h-screen flex flex-col">
@@ -29,15 +66,28 @@ const App: React.FC = () => {
       
       <main className="flex-grow">
         {view === 'landing' && (
-          <LandingPage language={language} setView={setView} />
+          <LandingPage 
+            language={language} 
+            setView={setView} 
+            settings={appSettings}
+          />
         )}
 
         {view === 'login' && (
-          <LoginView setView={setView} setUser={setUser} language={language} />
+          <LoginView 
+            setView={setView} 
+            setUser={setUser} 
+            language={language} 
+          />
         )}
 
         {view === 'dashboard' && user && (
-          <DashboardView user={user} setUser={setUser} language={language} />
+          <DashboardView 
+            user={user} 
+            setUser={setUser} 
+            language={language} 
+            settings={appSettings}
+          />
         )}
       </main>
 
