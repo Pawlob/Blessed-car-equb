@@ -278,7 +278,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                     
                                     {/* Ribbon Overlay */}
                                     <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
+                                        <div className="absolute top-42 left-42 -translate-x-12 -translate-y-12 w-48 h-48 flex items-center justify-center z-20">
                                               <img 
                                                 src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" 
                                                 alt="Ribbon" 
