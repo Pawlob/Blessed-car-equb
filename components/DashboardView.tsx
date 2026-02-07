@@ -11,7 +11,7 @@ interface DashboardViewProps {
 
 const generateMockFeed = (t: any): FeedItem => {
   const names = ["Abebe K.", "Tigist M.", "Dawit L.", "Sara B.", "Yonas T.", "Hanna G."];
-  const actions = [t.action_verified, t.action_joined, t.action_bonus];
+  const actions = [t.action_verified, t.action_joined];
   return {
     id: Math.random(),
     name: names[Math.floor(Math.random() * names.length)],
