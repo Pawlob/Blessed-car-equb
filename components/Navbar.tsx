@@ -89,7 +89,7 @@ const Navbar: React.FC<NavProps> = ({ view, setView, language, setLanguage, user
              </div>
           ) : (
             <button 
-              onClick={() => setView('login')}
+              onClick={() => view === 'login' ? setView('landing') : setView('login')}
               className="bg-red-900 hover:bg-red-800 text-white px-6 py-2.5 rounded-full font-bold transition-transform transform hover:scale-105 shadow-lg border border-red-800/50"
             >
               {view === 'login' ? t.home : t.join}
@@ -136,10 +136,14 @@ const Navbar: React.FC<NavProps> = ({ view, setView, language, setLanguage, user
                </>
             ) : (
               <button 
-                onClick={() => { setView('login'); setIsOpen(false); }}
+                onClick={() => { 
+                   if(view === 'login') setView('landing'); 
+                   else setView('login'); 
+                   setIsOpen(false); 
+                }}
                 className="w-full text-left px-3 py-3 text-amber-400 font-bold hover:bg-emerald-800 rounded-md"
               >
-                {t.join}
+                {view === 'login' ? t.home : t.join}
               </button>
             )}
           </div>
