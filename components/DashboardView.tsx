@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -223,62 +223,79 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             {/* Left: Action & History */}
             <div className="lg:col-span-2 space-y-6">
                 
-                {/* Hero / Action */}
+                {/* Hero / Action Section - REARRANGED */}
                 <div className="bg-gradient-to-r from-stone-800 to-stone-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl opacity-0 animate-fade-in-up delay-[300ms]">
                     <div className="absolute right-0 bottom-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mb-16"></div>
                     
-                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                        <div className="flex-1 text-center md:text-left">
-                           <div className="inline-block bg-red-900/80 px-3 py-1 rounded text-xs font-bold mb-3 border border-red-700 animate-pulse">
-                              {t.next_draw.replace('14', settings.daysRemaining.toString())}
+                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        
+                        {/* Left Column: Texts & Actions */}
+                        <div className="space-y-6">
+                           <div className="text-center md:text-left">
+                               <div className="inline-block bg-red-900/80 px-3 py-1 rounded text-xs font-bold mb-3 border border-red-700 animate-pulse">
+                                  {t.next_draw.replace('14', settings.daysRemaining.toString())}
+                               </div>
+                               <h2 className="text-3xl font-bold mb-2 leading-tight">{t.win_title}</h2>
+                               <p className="text-stone-300 text-sm md:text-base">{t.win_desc}</p>
                            </div>
-                           <h2 className="text-3xl font-bold mb-2">{t.win_title}</h2>
-                           <p className="text-stone-300 max-w-sm mb-6 mx-auto md:mx-0">{t.win_desc}</p>
-                           
-                           <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                              {user.status === 'VERIFIED' && !user.prizeNumber ? (
-                                  <button 
-                                    onClick={() => setShowTicketModal(true)}
-                                    className="flex items-center px-6 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
-                                  >
-                                     <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
-                                  </button>
-                              ) : (
-                                  <button 
-                                    onClick={handlePayment} 
-                                    disabled={user.status === 'VERIFIED' || uploading}
-                                    className={`flex items-center px-6 py-3 rounded-lg font-bold transition-all transform hover:scale-105 active:scale-95 ${user.status === 'VERIFIED' 
-                                      ? 'bg-emerald-600 text-white cursor-default hover:scale-100' 
-                                      : 'bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20'}`}
-                                  >
-                                    {uploading ? (
-                                       <><span className="w-4 h-4 border-2 border-stone-800/30 border-t-stone-800 rounded-full animate-spin mr-2"></span> {t.btn_processing || 'Processing...'}</>
-                                    ) : user.status === 'VERIFIED' ? (
-                                       <><CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}</>
-                                    ) : (
-                                       <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
-                                    )}
-                                  </button>
-                              )}
-                              
-                              {user.status !== 'VERIFIED' && (
-                                <button className="flex items-center px-6 py-3 bg-transparent border border-stone-500 hover:border-white text-stone-300 hover:text-white rounded-lg font-medium transition-all hover:bg-white/5">
-                                  <CreditCard className="w-5 h-5 mr-2" /> {t.pay_telebirr}
-                                </button>
-                              )}
+
+                           {/* Payment / Upload Section */}
+                           <div className="bg-white/5 rounded-xl p-5 border border-white/10 backdrop-blur-sm">
+                                <div className="flex items-center justify-between mb-4">
+                                     <h3 className="font-bold text-sm text-emerald-300 uppercase tracking-wide flex items-center">
+                                       {user.status === 'VERIFIED' ? <CheckCircle className="w-4 h-4 mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                                       {user.status === 'VERIFIED' ? t.status_verified : t.upload}
+                                     </h3>
+                                     <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${user.status === 'VERIFIED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                       {user.status === 'VERIFIED' ? 'Active' : 'Pending'}
+                                     </span>
+                                </div>
+                                
+                                <div className="flex flex-col gap-3">
+                                  {user.status === 'VERIFIED' && !user.prizeNumber ? (
+                                      <button 
+                                        onClick={() => setShowTicketModal(true)}
+                                        className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
+                                      >
+                                         <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
+                                      </button>
+                                  ) : (
+                                      <button 
+                                        onClick={handlePayment} 
+                                        disabled={user.status === 'VERIFIED' || uploading}
+                                        className={`w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold transition-all transform hover:scale-105 active:scale-95 ${user.status === 'VERIFIED' 
+                                          ? 'bg-emerald-600 text-white cursor-default hover:scale-100' 
+                                          : 'bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20'}`}
+                                      >
+                                        {uploading ? (
+                                           <><span className="w-4 h-4 border-2 border-stone-800/30 border-t-stone-800 rounded-full animate-spin mr-2"></span> {t.btn_processing || 'Processing...'}</>
+                                        ) : user.status === 'VERIFIED' ? (
+                                           <><CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}</>
+                                        ) : (
+                                           <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
+                                        )}
+                                      </button>
+                                  )}
+                                  
+                                  {user.status !== 'VERIFIED' && (
+                                    <button className="w-full flex justify-center items-center px-4 py-3 bg-transparent border border-stone-500 hover:border-white text-stone-300 hover:text-white rounded-lg font-medium transition-all hover:bg-white/5">
+                                      <CreditCard className="w-5 h-5 mr-2" /> {t.pay_telebirr}
+                                    </button>
+                                  )}
+                                </div>
                            </div>
                         </div>
                         
-                        {/* Prize Card (Identical to Landing Page) */}
-                        <div className="relative w-full max-w-xs md:max-w-sm flex-shrink-0">
-                          <div className="relative z-10 bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
+                        {/* Right Column: Prize Card */}
+                        <div className="relative w-full flex justify-center">
+                          <div className="relative z-10 w-full max-w-sm bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
                             <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group">
-                                <div className="h-48 md:h-56 bg-stone-700 flex items-center justify-center relative overflow-hidden">
+                                <div className="h-48 bg-stone-700 flex items-center justify-center relative overflow-hidden">
                                     <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
                                     
                                     {/* Ribbon Overlay */}
                                     <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
-                                        <div className="absolute top-42 left-42 -translate-x-12 -translate-y-12 w-48 h-48 flex items-center justify-center z-20">
+                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
                                               <img 
                                                 src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" 
                                                 alt="Ribbon" 
@@ -315,6 +332,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                             </div>
                           </div>
                         </div>
+
                     </div>
                 </div>
 
