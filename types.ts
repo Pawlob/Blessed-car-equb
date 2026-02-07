@@ -10,6 +10,11 @@ export interface AppSettings {
   totalMembers: number;
   cycle: number;
   daysRemaining: number;
+  carsDelivered: number;
+  trustScore: number;
+  prizeName: string;
+  prizeValue: string;
+  prizeImage: string;
 }
 
 export interface User {

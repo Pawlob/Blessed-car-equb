@@ -132,14 +132,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
                       </div>
 
                       <img 
-                        src="https://i.postimg.cc/d1xwLLhj/toyota.avif" 
-                        alt="Toyota Corolla Cross" 
+                        src={settings.prizeImage}
+                        alt={settings.prizeName} 
                         className="absolute inset-0 w-full h-full object-cover z-0"
                       />
                       
                       <div className="absolute inset-0 flex items-end justify-end z-20 p-4">
                           <span className="text-stone-100 font-bold text-sm md:text-base border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-3 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
-                              {t.hero.prize_name}
+                              {settings.prizeName}
                           </span>
                       </div>
                   </div>
@@ -152,7 +152,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
                           </div>
                           <div className="text-right">
                               <p className="text-stone-400 text-xs">{t.hero.prize_value}</p>
-                              <p className="text-xl font-bold text-white">ETB 4.5M</p>
+                              <p className="text-xl font-bold text-white">{settings.prizeValue}</p>
                           </div>
                       </div>
                   </div>
@@ -168,16 +168,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { label: t.stats.members, end: settings.totalMembers, suffix: "+", icon: Users },
-              { label: t.stats.cars, end: 142, icon: Car },
+              { label: t.stats.cars, end: settings.carsDelivered, icon: Car },
               { label: t.stats.pot, end: settings.potValue / 1000000, prefix: "ETB ", suffix: "M+", icon: Trophy },
-              { label: t.stats.trust, end: 100, suffix: "%", icon: ShieldCheck },
+              { label: t.stats.trust, end: settings.trustScore, suffix: "%", icon: ShieldCheck },
             ].map((stat, index) => (
               <div key={index} className="flex flex-col items-center text-center group">
                 <div className="bg-amber-800 p-3 rounded-full mb-3 group-hover:bg-amber-700 transition-colors">
                   <stat.icon className="w-6 h-6 text-amber-200" />
                 </div>
                 <h4 className="text-3xl font-bold text-white mb-1">
-                  <CountUp end={stat.end} prefix={stat.prefix} suffix={stat.suffix} />
+                  <CountUp end={stat.end} prefix={stat.prefix || ""} suffix={stat.suffix || ""} />
                 </h4>
                 <p className="text-amber-200/80 text-sm uppercase tracking-wider">{stat.label}</p>
               </div>

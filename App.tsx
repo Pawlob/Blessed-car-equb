@@ -19,7 +19,12 @@ const App: React.FC = () => {
     potValue: 50450000,
     totalMembers: 2150,
     cycle: 14,
-    daysRemaining: 14
+    daysRemaining: 14,
+    carsDelivered: 142,
+    trustScore: 100,
+    prizeName: 'Toyota Corolla Cross 2025',
+    prizeValue: 'ETB 4.5M',
+    prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif'
   });
 
   // Handle URL hash for Admin routing

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -454,68 +454,137 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
             <h2 className="text-3xl font-bold text-stone-800 hidden md:block">App Configuration</h2>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 space-y-6">
                
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div>
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Total Pot Value (ETB)</label>
+               <div className="pb-4 border-b border-stone-100">
+                  <h3 className="font-bold text-stone-800 flex items-center mb-4"><Settings className="w-5 h-5 mr-2 text-emerald-600"/> General Settings</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Total Pot Value (ETB)</label>
+                          <input 
+                            type="number" 
+                            value={settings.potValue}
+                            onChange={(e) => setSettings({...settings, potValue: parseInt(e.target.value)})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Total Members</label>
+                          <input 
+                            type="number" 
+                            value={settings.totalMembers}
+                            onChange={(e) => setSettings({...settings, totalMembers: parseInt(e.target.value)})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                      </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Current Cycle</label>
+                          <input 
+                            type="number" 
+                            value={settings.cycle}
+                            onChange={(e) => setSettings({...settings, cycle: parseInt(e.target.value)})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Days Remaining</label>
+                          <input 
+                            type="number" 
+                            value={settings.daysRemaining}
+                            onChange={(e) => setSettings({...settings, daysRemaining: parseInt(e.target.value)})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                      </div>
+                  </div>
+
+                   <div className="mt-4">
+                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (English)</label>
                        <input 
-                         type="number" 
-                         value={settings.potValue}
-                         onChange={(e) => setSettings({...settings, potValue: parseInt(e.target.value)})}
+                         type="text" 
+                         value={settings.nextDrawDateEn}
+                         onChange={(e) => setSettings({...settings, nextDrawDateEn: e.target.value})}
                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                         placeholder="e.g. Yekatit 21, 2018"
                        />
                    </div>
-                   <div>
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Total Members</label>
+
+                   <div className="mt-4">
+                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (Amharic)</label>
                        <input 
-                         type="number" 
-                         value={settings.totalMembers}
-                         onChange={(e) => setSettings({...settings, totalMembers: parseInt(e.target.value)})}
-                         className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                         type="text" 
+                         value={settings.nextDrawDateAm}
+                         onChange={(e) => setSettings({...settings, nextDrawDateAm: e.target.value})}
+                         className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-sans"
+                         placeholder="e.g. የካቲት 21፣ 2018"
                        />
                    </div>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div>
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Current Cycle</label>
-                       <input 
-                         type="number" 
-                         value={settings.cycle}
-                         onChange={(e) => setSettings({...settings, cycle: parseInt(e.target.value)})}
-                         className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                       />
+               <div className="pb-4 border-b border-stone-100">
+                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Trophy className="w-5 h-5 mr-2 text-amber-500"/> Prize Configuration</h3>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Prize Name</label>
+                          <input 
+                            type="text" 
+                            value={settings.prizeName}
+                            onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            placeholder="e.g. Toyota Corolla Cross 2025"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Prize Value Label</label>
+                          <input 
+                            type="text" 
+                            value={settings.prizeValue}
+                            onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                            placeholder="e.g. ETB 4.5M"
+                          />
+                      </div>
                    </div>
-                   <div>
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Days Remaining</label>
-                       <input 
-                         type="number" 
-                         value={settings.daysRemaining}
-                         onChange={(e) => setSettings({...settings, daysRemaining: parseInt(e.target.value)})}
-                         className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                       />
+                   <div className="mt-4">
+                      <label className="block text-sm font-bold text-stone-700 mb-2">Prize Image URL</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={settings.prizeImage}
+                          onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
+                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          placeholder="https://..."
+                        />
+                        <div className="w-10 h-10 rounded-lg bg-stone-100 flex-shrink-0 border border-stone-200 overflow-hidden">
+                           <img src={settings.prizeImage} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40'} />
+                        </div>
+                      </div>
                    </div>
                </div>
 
                <div>
-                   <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (English)</label>
-                   <input 
-                     type="text" 
-                     value={settings.nextDrawDateEn}
-                     onChange={(e) => setSettings({...settings, nextDrawDateEn: e.target.value})}
-                     className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                     placeholder="e.g. Yekatit 21, 2018"
-                   />
-               </div>
-
-               <div>
-                   <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (Amharic)</label>
-                   <input 
-                     type="text" 
-                     value={settings.nextDrawDateAm}
-                     onChange={(e) => setSettings({...settings, nextDrawDateAm: e.target.value})}
-                     className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-sans"
-                     placeholder="e.g. የካቲት 21፣ 2018"
-                   />
+                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><TrendingUp className="w-5 h-5 mr-2 text-blue-500"/> Platform Stats</h3>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Cars Delivered</label>
+                          <input 
+                            type="number" 
+                            value={settings.carsDelivered}
+                            onChange={(e) => setSettings({...settings, carsDelivered: parseInt(e.target.value)})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Trust Score (%)</label>
+                          <input 
+                            type="number" 
+                            value={settings.trustScore}
+                            onChange={(e) => setSettings({...settings, trustScore: parseInt(e.target.value)})}
+                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                          />
+                      </div>
+                   </div>
                </div>
 
                <div className="pt-4 border-t border-stone-100 flex justify-end">
