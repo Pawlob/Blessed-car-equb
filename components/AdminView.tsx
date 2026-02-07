@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
-  CheckCircle, XCircle, Edit2, Save, DollarSign, Calendar, 
-  Trophy, TrendingUp, AlertCircle 
+  CheckCircle, XCircle, Save, DollarSign, 
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -10,6 +10,17 @@ interface AdminViewProps {
   setView: (view: ViewState) => void;
   settings: AppSettings;
   setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+}
+
+interface PaymentRequest {
+  id: number;
+  userId: number;
+  userName: string;
+  userPhone: string;
+  amount: number;
+  date: string;
+  receiptUrl: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
 // Mock Database of Users
@@ -21,12 +32,37 @@ const MOCK_USERS: User[] = [
   { id: 105, name: "Yonas Alemu", phone: "0912341234", status: "VERIFIED", contribution: 30000, prizeNumber: 5, joinedDate: "Jan 20, 2024" },
 ];
 
+const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
+  {
+    id: 1,
+    userId: 102,
+    userName: "Tigist Haile",
+    userPhone: "0922558899",
+    amount: 10000,
+    date: "Feb 28, 2024",
+    receiptUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=400", 
+    status: 'PENDING'
+  },
+  {
+    id: 2,
+    userId: 104,
+    userName: "Sara Tesfaye",
+    userPhone: "0944112233",
+    amount: 10000,
+    date: "Feb 27, 2024",
+    receiptUrl: "https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&q=80&w=400", 
+    status: 'PENDING'
+  }
+];
+
 const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'settings' | 'payments'>('dashboard');
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(MOCK_PAYMENT_REQUESTS);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
 
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
@@ -45,14 +81,28 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     ));
   };
 
+  // Payment Verification Actions
+  const handleApprovePayment = (reqId: number, userId: number, amount: number) => {
+    // Remove from requests
+    setPaymentRequests(prev => prev.filter(req => req.id !== reqId));
+    
+    // Update user status and contribution
+    setUsers(prev => prev.map(u => 
+      u.id === userId 
+        ? { ...u, status: 'VERIFIED', contribution: u.contribution + amount } 
+        : u
+    ));
+  };
+
+  const handleRejectPayment = (reqId: number) => {
+    setPaymentRequests(prev => prev.filter(req => req.id !== reqId));
+    alert("Payment rejected. Notification sent to user.");
+  };
+
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.phone.includes(searchTerm)
   );
-
-  // Stats Calculation
-  const totalCollected = users.reduce((acc, curr) => acc + curr.contribution, 0);
-  const verifiedCount = users.filter(u => u.status === 'VERIFIED').length;
 
   if (!isAuthenticated) {
     return (
@@ -92,7 +142,27 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 flex">
+    <div className="min-h-screen bg-stone-100 flex relative">
+      
+      {/* Receipt Preview Modal */}
+      {selectedReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in-down" onClick={() => setSelectedReceipt(null)}>
+           <div className="relative max-w-3xl w-full h-full max-h-[85vh] flex flex-col justify-center" onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setSelectedReceipt(null)}
+                className="absolute -top-12 right-0 text-white hover:text-stone-300 transition-colors"
+              >
+                <X className="w-8 h-8" />
+              </button>
+              <img 
+                src={selectedReceipt} 
+                alt="Payment Receipt" 
+                className="w-full h-full object-contain rounded-lg shadow-2xl bg-stone-900" 
+              />
+           </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <aside className="w-64 bg-stone-900 text-stone-300 flex-shrink-0 hidden md:flex flex-col">
         <div className="p-6 border-b border-stone-800">
@@ -106,6 +176,17 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
             <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
+          </button>
+          <button 
+            onClick={() => setActiveTab('payments')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'payments' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
+          >
+            <FileText className="w-5 h-5 mr-3" /> Verification
+            {paymentRequests.length > 0 && (
+              <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {paymentRequests.length}
+              </span>
+            )}
           </button>
           <button 
             onClick={() => setActiveTab('users')}
@@ -128,7 +209,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto pt-24 md:pt-8">
+      <main className="flex-1 p-8 overflow-y-auto pt-24 md:pt-8 h-screen">
         {/* Mobile Header (Simplified) */}
         <div className="md:hidden flex justify-between items-center mb-8">
             <h1 className="text-2xl font-bold text-stone-800">Admin</h1>
@@ -163,26 +244,26 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                 <div className="text-xs text-stone-400">+12 this week</div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('payments')}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="text-stone-500 text-sm font-medium">Cycle</p>
-                    <h3 className="text-2xl font-bold text-amber-600">#{settings.cycle}</h3>
+                    <p className="text-stone-500 text-sm font-medium">Pending Approvals</p>
+                    <h3 className="text-2xl font-bold text-amber-600">{paymentRequests.length}</h3>
                   </div>
-                  <div className="bg-amber-100 p-2 rounded-lg"><TrendingUp className="w-6 h-6 text-amber-600" /></div>
+                  <div className="bg-amber-100 p-2 rounded-lg"><FileText className="w-6 h-6 text-amber-600" /></div>
                 </div>
-                <div className="text-xs text-stone-400">Next draw: {settings.nextDrawDateEn}</div>
+                <div className="text-xs text-stone-400">Requires verification</div>
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="text-stone-500 text-sm font-medium">Pending Verifications</p>
-                    <h3 className="text-2xl font-bold text-red-500">{users.filter(u => u.status === 'PENDING').length}</h3>
+                    <p className="text-stone-500 text-sm font-medium">Cycle</p>
+                    <h3 className="text-2xl font-bold text-emerald-800">#{settings.cycle}</h3>
                   </div>
-                  <div className="bg-red-100 p-2 rounded-lg"><AlertCircle className="w-6 h-6 text-red-600" /></div>
+                  <div className="bg-emerald-50 p-2 rounded-lg"><TrendingUp className="w-6 h-6 text-emerald-800" /></div>
                 </div>
-                <div className="text-xs text-stone-400">Action required</div>
+                <div className="text-xs text-stone-400">Next draw: {settings.nextDrawDateEn}</div>
               </div>
             </div>
 
@@ -212,6 +293,69 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="space-y-6 animate-fade-in-up">
+            <h2 className="text-3xl font-bold text-stone-800">Payment Verification</h2>
+            
+            {paymentRequests.length === 0 ? (
+               <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-12 text-center">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <CheckCircle className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-stone-800 mb-2">All Caught Up!</h3>
+                  <p className="text-stone-500">There are no pending payment verifications at the moment.</p>
+               </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paymentRequests.map((req) => (
+                  <div key={req.id} className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden flex flex-col">
+                    {/* Header */}
+                    <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                       <div>
+                          <p className="font-bold text-stone-800">{req.userName}</p>
+                          <p className="text-xs text-stone-500">{req.userPhone}</p>
+                       </div>
+                       <div className="text-right">
+                          <p className="font-bold text-emerald-700">{req.amount.toLocaleString()} ETB</p>
+                          <p className="text-xs text-stone-400">{req.date}</p>
+                       </div>
+                    </div>
+
+                    {/* Image Preview */}
+                    <div className="relative h-48 bg-stone-200 group overflow-hidden">
+                       <img src={req.receiptUrl} alt="Receipt" className="w-full h-full object-cover" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button 
+                            onClick={() => setSelectedReceipt(req.receiptUrl)}
+                            className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+                          >
+                             <ZoomIn className="w-5 h-5 mr-2" /> View Full
+                          </button>
+                       </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="p-4 mt-auto grid grid-cols-2 gap-3">
+                       <button 
+                         onClick={() => handleRejectPayment(req.id)}
+                         className="flex items-center justify-center py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"
+                       >
+                         <XCircle className="w-5 h-5 mr-2" /> Reject
+                       </button>
+                       <button 
+                         onClick={() => handleApprovePayment(req.id, req.userId, req.amount)}
+                         className="flex items-center justify-center py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition-colors shadow-lg shadow-emerald-600/20"
+                       >
+                         <CheckCircle className="w-5 h-5 mr-2" /> Verify
+                       </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
