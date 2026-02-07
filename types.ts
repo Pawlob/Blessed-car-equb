@@ -1,7 +1,7 @@
 import React from 'react';
 
 export type Language = 'en' | 'am';
-export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin' | 'prizes';
+export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin' | 'prizes' | 'terms';
 
 export interface Winner {
   id: number;

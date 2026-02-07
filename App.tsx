@@ -5,6 +5,7 @@ import LoginView from './components/LoginView';
 import DashboardView from './components/DashboardView';
 import AdminView from './components/AdminView';
 import PrizesView from './components/PrizesView';
+import TermsView from './components/TermsView';
 import Footer from './components/Footer';
 import { User, ViewState, Language, AppSettings } from './types';
 
@@ -107,9 +108,16 @@ const App: React.FC = () => {
                 setView={setView}
             />
         )}
+
+        {view === 'terms' && (
+            <TermsView 
+                language={language}
+                setView={setView}
+            />
+        )}
       </main>
 
-      <Footer language={language} />
+      <Footer language={language} setView={setView} />
     </div>
   );
 };

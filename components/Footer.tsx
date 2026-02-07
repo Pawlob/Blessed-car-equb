@@ -1,13 +1,14 @@
 import React from 'react';
 import { Gem, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
-import { Language } from '../types';
+import { Language, ViewState } from '../types';
 import { TRANSLATIONS } from '../constants';
 
 interface FooterProps {
   language?: Language;
+  setView: (view: ViewState) => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ language = 'en' }) => {
+const Footer: React.FC<FooterProps> = ({ language = 'en', setView }) => {
   const t = TRANSLATIONS[language].footer;
 
   return (
@@ -43,6 +44,21 @@ const Footer: React.FC<FooterProps> = ({ language = 'en' }) => {
               <Instagram className="w-5 h-5 hover:text-pink-500 cursor-pointer" />
               <Twitter className="w-5 h-5 hover:text-blue-400 cursor-pointer" />
             </div>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Legal</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <button onClick={() => setView('terms')} className="hover:text-amber-400 transition-colors text-left">
+                  {t.terms}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => setView('terms')} className="hover:text-amber-400 transition-colors text-left">
+                  {t.privacy}
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
         <div className="border-t border-stone-800 mt-12 pt-8 text-center text-xs text-stone-600">

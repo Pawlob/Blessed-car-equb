@@ -78,11 +78,39 @@ export const TRANSLATIONS = {
         ticket_saved: "Ticket Saved!",
         ticket_instruction: "Green numbers are available. Grey are taken."
     },
+    terms_page: {
+        title: "Terms and Conditions",
+        last_updated: "Last Updated: March 2024",
+        sections: [
+            {
+                heading: "1. Acceptance of Terms",
+                content: "By accessing and using the Blessed Digital Equb platform, you accept and agree to be bound by the terms and provision of this agreement."
+            },
+            {
+                heading: "2. Eligibility",
+                content: "You must be at least 18 years of age and a resident of Ethiopia to participate in the lottery and Equb cycles. Valid identification will be required to claim prizes."
+            },
+            {
+                heading: "3. Contributions & Payments",
+                content: "Members agree to make monthly contributions as specified by their tier. Payments are non-refundable once the monthly cycle has officially begun. Failure to pay may result in suspension."
+            },
+            {
+                heading: "4. Prize Drawings",
+                content: "Winners are selected through a transparent, random draw process. The results are final and binding. Winners must claim their prize within 30 days of the announcement."
+            },
+            {
+                heading: "5. Privacy Policy",
+                content: "We value your privacy. Your personal information, including phone number and payment details, is encrypted and used solely for platform operations and verification."
+            }
+        ]
+    },
     footer: {
         desc: "Transforming traditional Ethiopian savings into modern digital assets.",
         contact: "Contact",
         social: "Social",
-        rights: "Blessed Digital Equb."
+        rights: "Blessed Digital Equb.",
+        terms: "Terms & Conditions",
+        privacy: "Privacy Policy"
     }
   },
   am: {
@@ -163,11 +191,39 @@ export const TRANSLATIONS = {
         ticket_saved: "ቁጥሩ ተመዝግቧል!",
         ticket_instruction: "አረንጓዴ ቁጥሮች ክፍት ናቸው።"
     },
+    terms_page: {
+        title: "ውሎች እና ሁኔታዎች",
+        last_updated: "ለመጨረሻ ጊዜ የተሻሻለው: መጋቢት 2016",
+        sections: [
+            {
+                heading: "1. የአገልግሎት ስምምነት",
+                content: "የብለስድ ዲጂታል እቁብ መተግበሪያን ሲጠቀሙ፣ በዚህ ስምምነት ላይ በተገለጹት ውሎች እና ግዴታዎች ለመገዛት ይስማማሉ።"
+            },
+            {
+                heading: "2. መስፈርቶች",
+                content: "በእጣው እና በእቁብ ዙሮች ለመሳተፍ እድሜዎ ቢያንስ 18 ዓመት እና የኢትዮጵያ ነዋሪ መሆን አለብዎት። ሽልማቶችን ለመቀበል የሚሰራ መታወቂያ ያስፈልጋል።"
+            },
+            {
+                heading: "3. ክፍያዎች እና ቁጠባ",
+                content: "አባላት በተመረጠው እርከን መሰረት ወራዊ ክፍያ ለመፈጸም ይስማማሉ። የወር እቁብ ዑደቱ ከተጀመረ በኋላ የተከፈለ ገንዘብ ተመላሽ አይደረግም። ክፍያ አለመፈጸም ከአገልግሎት ሊያግድ ይችላል።"
+            },
+            {
+                heading: "4. የእጣ አወጣጥ",
+                content: "አሸናፊዎች ግልጽ በሆነ እና በዘፈቀደ የእጣ አወጣጥ ሂደት ይመረጣሉ። ውጤቱ የመጨረሻ ነው። አሸናፊዎች ሽልማታቸውን በ30 ቀናት ውስጥ መቀበል አለባቸው።"
+            },
+            {
+                heading: "5. ግላዊነት",
+                content: "የእርስዎን ግላዊነት እናከብራለን። የግል መረጃዎ፣ ስልክ ቁጥር እና የክፍያ ዝርዝሮችን ጨምሮ፣ የተመሰጠረ እና ለአገልግሎት አሰጣጥ እና ማረጋገጫ ብቻ የሚውል ነው።"
+            }
+        ]
+    },
     footer: {
         desc: "ባህላዊውን የኢትዮጵያ እቁብ ወደ ዘመናዊ ዲጂታል ንብረትነት ቀይረነዋል።",
         contact: "አድራሻ",
         social: "ማህበራዊ ሚዲያ",
-        rights: "ብለስድ ዲጂታል እቁብ።"
+        rights: "ብለስድ ዲጂታል እቁብ።",
+        terms: "ውሎች እና ሁኔታዎች",
+        privacy: "የግላዊነት መመሪያ"
     }
   }
 };
