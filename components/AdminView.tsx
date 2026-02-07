@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -63,6 +63,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(MOCK_PAYMENT_REQUESTS);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
@@ -104,6 +105,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     u.phone.includes(searchTerm)
   );
 
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setIsSidebarOpen(false);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
@@ -142,8 +148,16 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 flex relative">
+    <div className="min-h-screen bg-stone-100 flex relative overflow-hidden">
       
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden animate-fade-in-down"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Receipt Preview Modal */}
       {selectedReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in-down" onClick={() => setSelectedReceipt(null)}>
@@ -164,21 +178,28 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
       )}
 
       {/* Sidebar */}
-      <aside className="w-64 bg-stone-900 text-stone-300 flex-shrink-0 hidden md:flex flex-col">
-        <div className="p-6 border-b border-stone-800">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-stone-900 text-stone-300 flex flex-col transition-transform duration-300 ease-in-out
+        md:relative md:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-6 border-b border-stone-800 flex justify-between items-center">
           <h1 className="text-xl font-bold text-white flex items-center">
              <Trophy className="w-6 h-6 mr-2 text-amber-500" /> Blessed Admin
           </h1>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-stone-400 hover:text-white">
+            <X className="w-6 h-6" />
+          </button>
         </div>
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <button 
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => handleTabChange('dashboard')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
             <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
           </button>
           <button 
-            onClick={() => setActiveTab('payments')}
+            onClick={() => handleTabChange('payments')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'payments' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
             <FileText className="w-5 h-5 mr-3" /> Verification
@@ -189,13 +210,13 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
             )}
           </button>
           <button 
-            onClick={() => setActiveTab('users')}
+            onClick={() => handleTabChange('users')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'users' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
             <Users className="w-5 h-5 mr-3" /> Members
           </button>
           <button 
-            onClick={() => setActiveTab('settings')}
+            onClick={() => handleTabChange('settings')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
             <Settings className="w-5 h-5 mr-3" /> App Settings
@@ -209,16 +230,21 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto pt-24 md:pt-8 h-screen">
-        {/* Mobile Header (Simplified) */}
+      <main className="flex-1 p-8 overflow-y-auto h-screen w-full">
+        {/* Mobile Header */}
         <div className="md:hidden flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-stone-800">Admin</h1>
-            <button onClick={() => setView('landing')} className="p-2 bg-stone-200 rounded-full"><LogOut className="w-5 h-5" /></button>
+            <div className="flex items-center">
+                <button onClick={() => setIsSidebarOpen(true)} className="p-2 mr-3 bg-white border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 active:scale-95 transition-transform">
+                    <Menu className="w-6 h-6" /> 
+                </button>
+                <h1 className="text-2xl font-bold text-stone-800">Admin</h1>
+            </div>
+            <button onClick={() => setView('landing')} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-colors"><LogOut className="w-5 h-5" /></button>
         </div>
 
         {activeTab === 'dashboard' && (
           <div className="space-y-6 animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-stone-800">Overview</h2>
+            <h2 className="text-3xl font-bold text-stone-800 hidden md:block">Overview</h2>
             
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -244,7 +270,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                 <div className="text-xs text-stone-400">+12 this week</div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('payments')}>
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleTabChange('payments')}>
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <p className="text-stone-500 text-sm font-medium">Pending Approvals</p>
@@ -298,7 +324,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
 
         {activeTab === 'payments' && (
           <div className="space-y-6 animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-stone-800">Payment Verification</h2>
+            <h2 className="text-3xl font-bold text-stone-800 hidden md:block">Payment Verification</h2>
             
             {paymentRequests.length === 0 ? (
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-12 text-center">
@@ -362,58 +388,60 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
         {activeTab === 'users' && (
           <div className="space-y-6 animate-fade-in-up">
             <div className="flex justify-between items-center">
-              <h2 className="text-3xl font-bold text-stone-800">Members Management</h2>
-              <div className="relative">
+              <h2 className="text-3xl font-bold text-stone-800 hidden md:block">Members Management</h2>
+              <div className="relative w-full md:w-auto">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 w-5 h-5" />
                 <input 
                   type="text" 
                   placeholder="Search members..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full md:w-auto pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                 />
               </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-stone-50 text-stone-500 font-medium border-b border-stone-200">
-                  <tr>
-                    <th className="px-6 py-4">ID</th>
-                    <th className="px-6 py-4">Name</th>
-                    <th className="px-6 py-4">Phone</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Contribution</th>
-                    <th className="px-6 py-4">Ticket</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-stone-50 transition-colors">
-                      <td className="px-6 py-4 text-stone-500">#{user.id}</td>
-                      <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
-                      <td className="px-6 py-4 text-stone-600">{user.phone}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${user.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-stone-700">{user.contribution.toLocaleString()} ETB</td>
-                      <td className="px-6 py-4 text-amber-600 font-bold">{user.prizeNumber ? `#${user.prizeNumber}` : '-'}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => toggleUserStatus(user.id!)}
-                          className={`p-2 rounded-lg transition-colors mr-2 ${user.status === 'VERIFIED' ? 'text-red-500 hover:bg-red-50' : 'text-emerald-500 hover:bg-emerald-50'}`}
-                          title={user.status === 'VERIFIED' ? "Revoke Verification" : "Verify User"}
-                        >
-                          {user.status === 'VERIFIED' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
-                        </button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[800px]">
+                  <thead className="bg-stone-50 text-stone-500 font-medium border-b border-stone-200">
+                    <tr>
+                      <th className="px-6 py-4">ID</th>
+                      <th className="px-6 py-4">Name</th>
+                      <th className="px-6 py-4">Phone</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4">Contribution</th>
+                      <th className="px-6 py-4">Ticket</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {filteredUsers.map((user) => (
+                      <tr key={user.id} className="hover:bg-stone-50 transition-colors">
+                        <td className="px-6 py-4 text-stone-500">#{user.id}</td>
+                        <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
+                        <td className="px-6 py-4 text-stone-600">{user.phone}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${user.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                            {user.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-stone-700">{user.contribution.toLocaleString()} ETB</td>
+                        <td className="px-6 py-4 text-amber-600 font-bold">{user.prizeNumber ? `#${user.prizeNumber}` : '-'}</td>
+                        <td className="px-6 py-4 text-right">
+                          <button 
+                            onClick={() => toggleUserStatus(user.id!)}
+                            className={`p-2 rounded-lg transition-colors mr-2 ${user.status === 'VERIFIED' ? 'text-red-500 hover:bg-red-50' : 'text-emerald-500 hover:bg-emerald-50'}`}
+                            title={user.status === 'VERIFIED' ? "Revoke Verification" : "Verify User"}
+                          >
+                            {user.status === 'VERIFIED' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {filteredUsers.length === 0 && (
                 <div className="p-8 text-center text-stone-500">No members found matching your search.</div>
               )}
@@ -423,10 +451,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
 
         {activeTab === 'settings' && (
           <div className="space-y-6 max-w-2xl animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-stone-800">App Configuration</h2>
+            <h2 className="text-3xl font-bold text-stone-800 hidden md:block">App Configuration</h2>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 space-y-6">
                
-               <div className="grid grid-cols-2 gap-6">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div>
                        <label className="block text-sm font-bold text-stone-700 mb-2">Total Pot Value (ETB)</label>
                        <input 
@@ -447,7 +475,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                    </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-6">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div>
                        <label className="block text-sm font-bold text-stone-700 mb-2">Current Cycle</label>
                        <input 
@@ -491,7 +519,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                </div>
 
                <div className="pt-4 border-t border-stone-100 flex justify-end">
-                   <button className="flex items-center px-6 py-2 bg-emerald-900 text-white rounded-lg font-bold hover:bg-emerald-800 transition-colors">
+                   <button className="flex items-center px-6 py-2 bg-emerald-900 text-white rounded-lg font-bold hover:bg-emerald-800 transition-colors w-full md:w-auto justify-center">
                        <Save className="w-5 h-5 mr-2" /> Save Changes
                    </button>
                </div>
