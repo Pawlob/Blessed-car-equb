@@ -65,13 +65,40 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState<{
+    isOpen: boolean;
+    type: 'success' | 'error' | 'warning' | 'info' | 'confirm';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    type: 'info',
+    title: '',
+    message: ''
+  });
+
+  // Alert Helpers
+  const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
+    setAlertConfig({ isOpen: true, type, title, message });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setAlertConfig({ isOpen: true, type: 'confirm', title, message, onConfirm });
+  };
+  
+  const closeAlert = () => {
+    setAlertConfig(prev => ({ ...prev, isOpen: false }));
+  };
+
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'admin123') {
       setIsAuthenticated(true);
     } else {
-      alert('Invalid Password');
+      showAlert('error', 'Login Failed', 'The access key you provided is incorrect. Please try again.');
     }
   };
 
@@ -93,42 +120,44 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
         ? { ...u, status: 'VERIFIED', contribution: u.contribution + amount } 
         : u
     ));
+    showAlert('success', 'Payment Verified', 'User has been verified and contribution updated successfully.');
   };
 
   const handleRejectPayment = (reqId: number) => {
     setPaymentRequests(prev => prev.filter(req => req.id !== reqId));
-    alert("Payment rejected. Notification sent to user.");
+    showAlert('info', 'Payment Rejected', 'The payment has been rejected. A notification has been sent to the user.');
   };
 
   // Start New Cycle Logic
   const handleStartNewCycle = () => {
     const nextCycle = settings.cycle + 1;
-    const confirmed = window.confirm(
-      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n- Pot Value to 0\n- Member Contributions to 0\n- Member Status to Pending\n- Clear all Tickets & Requests`
+    
+    showConfirm(
+      'Start New Cycle?',
+      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n• Pot Value to 0\n• Member Contributions to 0\n• Member Status to Pending\n• Clear all Tickets & Requests`,
+      () => {
+        // 1. Reset Global Settings
+        setSettings(prev => ({
+          ...prev,
+          cycle: nextCycle,
+          potValue: 0,
+          daysRemaining: 30, // Reset timer to default 30 days
+        }));
+
+        // 2. Reset All Users
+        setUsers(prevUsers => prevUsers.map(u => ({
+          ...u,
+          status: 'PENDING',
+          contribution: 0,
+          prizeNumber: undefined // Clear tickets
+        })));
+
+        // 3. Clear Pending Requests
+        setPaymentRequests([]);
+
+        showAlert('success', 'Cycle Started', `Cycle ${nextCycle} has been started successfully!`);
+      }
     );
-
-    if (confirmed) {
-      // 1. Reset Global Settings
-      setSettings(prev => ({
-        ...prev,
-        cycle: nextCycle,
-        potValue: 0,
-        daysRemaining: 30, // Reset timer to default 30 days
-      }));
-
-      // 2. Reset All Users
-      setUsers(prevUsers => prevUsers.map(u => ({
-        ...u,
-        status: 'PENDING',
-        contribution: 0,
-        prizeNumber: undefined // Clear tickets
-      })));
-
-      // 3. Clear Pending Requests
-      setPaymentRequests([]);
-
-      alert(`Cycle ${nextCycle} started successfully!`);
-    }
   };
 
   const filteredUsers = users.filter(u => 
@@ -143,7 +172,25 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4 relative">
+        {/* Render Alert in Login View too if needed */}
+        {alertConfig.isOpen && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down" onClick={closeAlert}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden scale-100" onClick={e => e.stopPropagation()}>
+                <div className="p-4 bg-red-50 flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-red-800 flex items-center">
+                        <XCircle className="w-6 h-6 mr-2" /> Login Failed
+                    </h3>
+                    <button onClick={closeAlert} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
+                </div>
+                <div className="p-6">
+                    <p className="text-stone-600 mb-6">{alertConfig.message}</p>
+                    <button onClick={closeAlert} className="w-full px-4 py-2 bg-stone-800 text-white font-bold rounded-lg hover:bg-stone-700 transition-colors">OK</button>
+                </div>
+            </div>
+            </div>
+        )}
+
         <div className="bg-white rounded-xl shadow-2xl p-8 max-w-sm w-full">
           <div className="flex justify-center mb-6">
             <div className="bg-stone-800 p-3 rounded-lg">
@@ -187,6 +234,64 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
           className="fixed inset-0 bg-black/50 z-40 md:hidden animate-fade-in-down"
           onClick={() => setIsSidebarOpen(false)}
         />
+      )}
+
+      {/* Custom Alert/Confirm Modal */}
+      {alertConfig.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down" onClick={closeAlert}>
+           <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden scale-100" onClick={e => e.stopPropagation()}>
+              <div className={`p-4 flex items-center justify-between ${
+                 alertConfig.type === 'error' ? 'bg-red-50' : 
+                 alertConfig.type === 'success' ? 'bg-emerald-50' : 
+                 alertConfig.type === 'warning' || alertConfig.type === 'confirm' ? 'bg-amber-50' : 'bg-blue-50'
+              }`}>
+                 <h3 className={`font-bold text-lg flex items-center ${
+                    alertConfig.type === 'error' ? 'text-red-800' : 
+                    alertConfig.type === 'success' ? 'text-emerald-800' : 
+                    alertConfig.type === 'warning' || alertConfig.type === 'confirm' ? 'text-amber-800' : 'text-blue-800'
+                 }`}>
+                    {alertConfig.type === 'error' && <XCircle className="w-6 h-6 mr-2" />}
+                    {alertConfig.type === 'success' && <CheckCircle className="w-6 h-6 mr-2" />}
+                    {(alertConfig.type === 'warning' || alertConfig.type === 'confirm') && <AlertCircle className="w-6 h-6 mr-2" />}
+                    {alertConfig.type === 'info' && <AlertCircle className="w-6 h-6 mr-2" />}
+                    {alertConfig.title}
+                 </h3>
+                 <button onClick={closeAlert} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="p-6">
+                 <p className="text-stone-600 whitespace-pre-line leading-relaxed">{alertConfig.message}</p>
+                 
+                 <div className="mt-6 flex justify-end gap-3">
+                    {alertConfig.type === 'confirm' ? (
+                       <>
+                          <button 
+                            onClick={closeAlert}
+                            className="px-4 py-2 text-stone-500 font-bold hover:bg-stone-100 rounded-lg transition-colors"
+                          >
+                             Cancel
+                          </button>
+                          <button 
+                            onClick={() => {
+                               if (alertConfig.onConfirm) alertConfig.onConfirm();
+                               closeAlert();
+                            }}
+                            className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-colors"
+                          >
+                             Confirm
+                          </button>
+                       </>
+                    ) : (
+                       <button 
+                         onClick={closeAlert}
+                         className="w-full px-4 py-2 bg-stone-800 text-white font-bold rounded-lg hover:bg-stone-700 transition-colors"
+                       >
+                          OK
+                       </button>
+                    )}
+                 </div>
+              </div>
+           </div>
+        </div>
       )}
 
       {/* Receipt Preview Modal */}
