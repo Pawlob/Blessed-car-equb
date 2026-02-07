@@ -25,11 +25,11 @@ interface PaymentRequest {
 
 // Mock Database of Users
 const MOCK_USERS: User[] = [
-  { id: 101, name: "Abebe Kebede", phone: "0911234567", status: "VERIFIED", contribution: 60000, prizeNumber: 14, joinedDate: "Jan 12, 2024" },
+  { id: 101, name: "Abebe Kebede", phone: "0911234567", status: "VERIFIED", contribution: 30000, prizeNumber: 14, joinedDate: "Jan 12, 2024" },
   { id: 102, name: "Tigist Haile", phone: "0922558899", status: "PENDING", contribution: 0, joinedDate: "Feb 01, 2024" },
-  { id: 103, name: "Dawit Mulugeta", phone: "0933447788", status: "VERIFIED", contribution: 120000, prizeNumber: 42, joinedDate: "Dec 10, 2023" },
+  { id: 103, name: "Dawit Mulugeta", phone: "0933447788", status: "VERIFIED", contribution: 60000, prizeNumber: 42, joinedDate: "Dec 10, 2023" },
   { id: 104, name: "Sara Tesfaye", phone: "0944112233", status: "PENDING", contribution: 5000, joinedDate: "Feb 15, 2024" },
-  { id: 105, name: "Yonas Alemu", phone: "0912341234", status: "VERIFIED", contribution: 30000, prizeNumber: 5, joinedDate: "Jan 20, 2024" },
+  { id: 105, name: "Yonas Alemu", phone: "0912341234", status: "VERIFIED", contribution: 15000, prizeNumber: 5, joinedDate: "Jan 20, 2024" },
 ];
 
 const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
@@ -38,7 +38,7 @@ const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
     userId: 102,
     userName: "Tigist Haile",
     userPhone: "0922558899",
-    amount: 10000,
+    amount: 5000,
     date: "Feb 28, 2024",
     receiptUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=400", 
     status: 'PENDING'
@@ -48,7 +48,7 @@ const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
     userId: 104,
     userName: "Sara Tesfaye",
     userPhone: "0944112233",
-    amount: 10000,
+    amount: 5000,
     date: "Feb 27, 2024",
     receiptUrl: "https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&q=80&w=400", 
     status: 'PENDING'

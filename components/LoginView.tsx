@@ -13,7 +13,6 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
   const [isRegistering, setIsRegistering] = useState(false);
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
-  const [tier, setTier] = useState('10000');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,7 +34,7 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
         name: name || (isRegistering ? "New Member" : "Blessed Member"),
         phone: phone,
         status: 'PENDING',
-        contribution: isRegistering ? parseInt(tier) : 60000 // For login simulation, use dummy accumulated, for register use tier base
+        contribution: isRegistering ? 5000 : 30000 // Fixed 5000 for new, mock accumulated for returning
       });
       setView('dashboard');
       setLoading(false);
@@ -104,15 +103,9 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
               <div className="animate-fade-in-down">
                   <div className="mb-5">
                     <label className="block text-sm font-medium text-stone-700 mb-1">{t.label_tier}</label>
-                    <select 
-                        value={tier}
-                        onChange={(e) => setTier(e.target.value)}
-                        className="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all bg-white"
-                    >
-                        <option value="5000">{t.tier_1}</option>
-                        <option value="10000">{t.tier_2}</option>
-                        <option value="25000">{t.tier_3}</option>
-                    </select>
+                    <div className="w-full px-4 py-3 rounded-lg border border-stone-300 bg-stone-50 text-stone-600 font-bold">
+                        5,000 ETB
+                    </div>
                   </div>
 
                   <div className="flex items-start">

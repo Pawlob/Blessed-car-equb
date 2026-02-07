@@ -50,7 +50,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const handlePayment = () => {
     setUploading(true);
     setTimeout(() => {
-      setUser((prev: User | null) => prev ? ({ ...prev, status: 'VERIFIED', contribution: prev.contribution + 10000 }) : null);
+      setUser((prev: User | null) => prev ? ({ ...prev, status: 'VERIFIED', contribution: prev.contribution + 5000 }) : null);
       setUploading(false);
       // Add self to feed
       setFeed(prev => [{ id: Math.random(), name: "You", action: t.action_verified, time: "Just now" }, ...prev.slice(0, 4)]);
@@ -353,7 +353,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                     <p className="text-xs text-stone-500">{getHistoryDate(i)}</p>
                                  </div>
                               </div>
-                              <span className="font-bold text-stone-700">-10,000 ETB</span>
+                              <span className="font-bold text-stone-700">-5,000 ETB</span>
                            </div>
                         ))}
                     </div>
