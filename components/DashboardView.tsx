@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -25,6 +25,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -100,9 +101,86 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   // Helper to format ticket number
   const formatTicket = (num: number) => num.toString();
 
+  // Mock Notifications Data
+  const notifications = [
+    { 
+      id: 1,
+      title: language === 'en' ? "Payment Reminder" : "የክፍያ ማስታወሻ", 
+      desc: language === 'en' 
+        ? `Your contribution for Cycle ${settings.cycle} is due in 3 days. Please settle to remain eligible.`
+        : `የዙር ${settings.cycle} ክፍያዎ በ3 ቀናት ውስጥ መጠናቀቅ አለበት። ለእጣው ብቁ ለመሆን እባክዎ ክፍያ ይፈጽሙ።`,
+      time: language === 'en' ? "2 hours ago" : "ከ2 ሰዓት በፊት",
+      urgent: true 
+    },
+    { 
+      id: 2,
+      title: language === 'en' ? "System Update" : "የሲስተም ማሻሻያ", 
+      desc: language === 'en'
+        ? "We have added Telebirr direct payment integration for faster processing."
+        : "ለፈጣን አገልግሎት የቴሌብር ቀጥታ ክፍያ አማራጭ አካተናል።",
+      time: language === 'en' ? "1 day ago" : "ከ1 ቀን በፊት",
+      urgent: false 
+    },
+    { 
+      id: 3,
+      title: language === 'en' ? "Welcome!" : "እንኳን ደህና መጡ!", 
+      desc: language === 'en'
+        ? "Thank you for joining Blessed Digital Equb. Please complete your profile."
+        : "ብለስድ ዲጂታል እቁብን ስለተቀላቀሉ እናመሰግናለን። እባክዎ መገለጫዎን ያሟሉ።",
+      time: language === 'en' ? "3 days ago" : "ከ3 ቀን በፊት",
+      urgent: false 
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
       
+      {/* Notifications Modal Window */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-[60] flex items-start justify-end px-4 sm:px-8 pt-20" onClick={() => setShowNotifications(false)}>
+           {/* Backdrop */}
+           <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
+           
+           <div 
+             className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-down border border-stone-200 mt-2"
+             onClick={e => e.stopPropagation()}
+           >
+              <div className="bg-stone-900 text-white p-4 flex justify-between items-center border-b border-stone-800">
+                 <h3 className="font-bold flex items-center">
+                    <Bell className="w-5 h-5 mr-2 text-amber-400" /> 
+                    {language === 'en' ? "Notifications" : "ማሳወቂያዎች"}
+                 </h3>
+                 <button onClick={() => setShowNotifications(false)} className="text-stone-400 hover:text-white transition-colors">
+                    <X className="w-5 h-5" />
+                 </button>
+              </div>
+              
+              <div className="max-h-[400px] overflow-y-auto">
+                 {notifications.length > 0 ? (
+                    notifications.map((note) => (
+                        <div key={note.id} className={`p-4 border-b border-stone-100 hover:bg-stone-50 transition-colors ${note.urgent ? 'bg-amber-50/40' : ''}`}>
+                        <div className="flex justify-between items-start mb-1">
+                            <h4 className={`text-sm font-bold ${note.urgent ? 'text-amber-800' : 'text-stone-800'}`}>{note.title}</h4>
+                            <span className="text-[10px] text-stone-400 whitespace-nowrap ml-2">{note.time}</span>
+                        </div>
+                        <p className="text-xs text-stone-600 leading-relaxed">{note.desc}</p>
+                        </div>
+                    ))
+                 ) : (
+                    <div className="p-8 text-center text-stone-500 text-sm">
+                        {language === 'en' ? "No new notifications" : "ምንም አዲስ ማሳወቂያ የለም"}
+                    </div>
+                 )}
+              </div>
+              <div className="p-3 bg-stone-50 text-center border-t border-stone-200">
+                 <button className="text-emerald-700 text-xs font-bold hover:underline">
+                    {language === 'en' ? "Mark all as read" : "ሁሉንም እንዳነበብኩ ቁጠር"}
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
+
       {/* Ticket Selection Modal */}
       {showTicketModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down">
@@ -169,7 +247,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
               <p className="text-stone-500">Member ID: #8291 • {cycleText}</p>
            </div>
            <div className="mt-4 md:mt-0 flex space-x-3">
-              <button className="p-2 bg-white rounded-full shadow hover:bg-stone-100 text-stone-600 relative transition-transform hover:scale-110">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-2 bg-white rounded-full shadow hover:bg-stone-100 text-stone-600 relative transition-transform hover:scale-110"
+              >
                  <Bell className="w-5 h-5" />
                  <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
               </button>
