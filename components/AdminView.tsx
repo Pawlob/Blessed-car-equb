@@ -171,6 +171,23 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
       setSettings(prev => ({ ...prev, drawDate: newGregString }));
   };
 
+  // Auto-calculate Pot Value and Total Members based on Users
+  useEffect(() => {
+    const activePot = users.reduce((sum, user) => 
+        user.status === 'VERIFIED' ? sum + user.contribution : sum, 0
+    );
+    const memberCount = users.length;
+
+    // Only update if different to avoid redundant renders/updates
+    if (settings.potValue !== activePot || settings.totalMembers !== memberCount) {
+        setSettings(prev => ({
+            ...prev,
+            potValue: activePot,
+            totalMembers: memberCount
+        }));
+    }
+  }, [users, settings.potValue, settings.totalMembers, setSettings]);
+
   // Custom Alert State
   const [alertConfig, setAlertConfig] = useState<{
     isOpen: boolean;
@@ -243,10 +260,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
       `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n• Pot Value to 0\n• Member Contributions to 0\n• Member Status to Pending\n• Clear all Tickets & Requests`,
       () => {
         // 1. Reset Global Settings
+        // Note: Pot Value and Total Members will be auto-calculated by useEffect when users are reset
         setSettings(prev => ({
           ...prev,
           cycle: nextCycle,
-          potValue: 0,
           daysRemaining: 30, // Reset timer to default 30 days
         }));
 
@@ -703,22 +720,40 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Settings className="w-5 h-5 mr-2 text-emerald-600"/> General Settings</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Total Pot Value (ETB)</label>
-                          <input 
-                            type="number" 
-                            value={settings.potValue}
-                            onChange={(e) => setSettings({...settings, potValue: parseInt(e.target.value)})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
+                          <label className="block text-sm font-bold text-stone-700 mb-2">
+                            Total Pot Value (ETB) 
+                            <span className="ml-2 text-xs font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Auto-calculated</span>
+                          </label>
+                          <div className="relative">
+                             <input 
+                               type="number" 
+                               value={settings.potValue}
+                               disabled
+                               className="w-full px-4 py-2 border border-stone-200 bg-stone-50 text-stone-500 rounded-lg cursor-not-allowed font-bold"
+                             />
+                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <DollarSign className="h-4 w-4 text-stone-400" />
+                             </div>
+                          </div>
+                          <p className="text-xs text-stone-400 mt-1">Based on verified member contributions.</p>
                       </div>
                       <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Total Members</label>
-                          <input 
-                            type="number" 
-                            value={settings.totalMembers}
-                            onChange={(e) => setSettings({...settings, totalMembers: parseInt(e.target.value)})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
+                          <label className="block text-sm font-bold text-stone-700 mb-2">
+                            Total Members
+                            <span className="ml-2 text-xs font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Auto-calculated</span>
+                          </label>
+                           <div className="relative">
+                             <input 
+                               type="number" 
+                               value={settings.totalMembers}
+                               disabled
+                               className="w-full px-4 py-2 border border-stone-200 bg-stone-50 text-stone-500 rounded-lg cursor-not-allowed font-bold"
+                             />
+                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <Users className="h-4 w-4 text-stone-400" />
+                             </div>
+                           </div>
+                           <p className="text-xs text-stone-400 mt-1">Total registered users in database.</p>
                       </div>
                   </div>
 
