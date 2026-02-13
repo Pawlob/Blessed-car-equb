@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -636,18 +636,25 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                           </div>
                       </div>
                       <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Days Remaining</label>
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Draw Date (System)</label>
                           <input 
-                            type="number" 
-                            value={settings.daysRemaining}
-                            onChange={(e) => setSettings({...settings, daysRemaining: parseInt(e.target.value)})}
+                            type="date" 
+                            value={settings.drawDate}
+                            onChange={(e) => setSettings({...settings, drawDate: e.target.value})}
                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                           />
                       </div>
                   </div>
+                  
+                  <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-100 flex items-center justify-between">
+                     <span className="text-sm font-bold text-emerald-800 flex items-center">
+                       <Clock className="w-4 h-4 mr-2" /> Live Countdown
+                     </span>
+                     <span className="text-xl font-bold text-emerald-600">{settings.daysRemaining} Days</span>
+                  </div>
 
                    <div className="mt-4">
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (English)</label>
+                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (English Display)</label>
                        <input 
                          type="text" 
                          value={settings.nextDrawDateEn}
@@ -658,7 +665,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                    </div>
 
                    <div className="mt-4">
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (Amharic)</label>
+                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (Amharic Display)</label>
                        <input 
                          type="text" 
                          value={settings.nextDrawDateAm}

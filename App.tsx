@@ -14,6 +14,11 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState<Language>('am');
 
+  // Calculate initial target date (14 days from now for demo purposes)
+  const initialTargetDate = new Date();
+  initialTargetDate.setDate(initialTargetDate.getDate() + 14);
+  const initialDateString = initialTargetDate.toISOString().split('T')[0];
+
   // Global Settings State to be controlled by Admin
   const [appSettings, setAppSettings] = useState<AppSettings>({
     nextDrawDateEn: 'Yekatit 21, 2018',
@@ -22,6 +27,7 @@ const App: React.FC = () => {
     totalMembers: 2150,
     cycle: 14,
     daysRemaining: 14,
+    drawDate: initialDateString,
     carsDelivered: 142,
     trustScore: 100,
     prizeName: 'Toyota Corolla Cross 2025',
@@ -54,6 +60,34 @@ const App: React.FC = () => {
       }
     ]
   });
+
+  // Countdown Timer Logic
+  useEffect(() => {
+    const updateCountdown = () => {
+      const today = new Date();
+      // Reset time part to ensure clean day calculation
+      today.setHours(0, 0, 0, 0);
+      
+      const target = new Date(appSettings.drawDate);
+      target.setHours(0, 0, 0, 0);
+      
+      const diffTime = target.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Only update if changed to avoid render loops
+      const finalDays = diffDays > 0 ? diffDays : 0;
+      
+      if (finalDays !== appSettings.daysRemaining) {
+        setAppSettings(prev => ({ ...prev, daysRemaining: finalDays }));
+      }
+    };
+
+    updateCountdown();
+    // Update every minute to handle midnight transitions while app is open
+    const timer = setInterval(updateCountdown, 60000); 
+    
+    return () => clearInterval(timer);
+  }, [appSettings.drawDate, appSettings.daysRemaining]);
 
   // Handle History and Back Button
   useEffect(() => {

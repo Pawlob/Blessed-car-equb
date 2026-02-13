@@ -22,6 +22,7 @@ export interface AppSettings {
   totalMembers: number;
   cycle: number;
   daysRemaining: number;
+  drawDate: string;
   carsDelivered: number;
   trustScore: number;
   prizeName: string;
