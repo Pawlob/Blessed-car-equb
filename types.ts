@@ -6,9 +6,13 @@ export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin' | 'prizes' |
 export interface Winner {
   id: number;
   name: string;
+  nameAm: string;
   prize: string;
+  prizeAm: string;
   cycle: string;
+  cycleAm: string;
   location: string;
+  locationAm: string;
 }
 
 export interface AppSettings {

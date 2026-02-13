@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck } from 'lucide-react';
+import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS } from '../constants';
@@ -11,65 +11,14 @@ interface LandingPageProps {
   settings: AppSettings;
 }
 
-const CountUp = ({ end, duration = 2000, prefix = "", suffix = "" }: { end: number, duration?: number, prefix?: string, suffix?: string }) => {
-  const [count, setCount] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const elementRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    let startTime: number | null = null;
-    let animationFrameId: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = timestamp - startTime;
-      const percentage = Math.min(progress / duration, 1);
-      
-      const easeOut = (x: number): number => {
-        return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
-      };
-
-      setCount(Math.floor(easeOut(percentage) * end));
-
-      if (progress < duration) {
-        animationFrameId = requestAnimationFrame(animate);
-      } else {
-        setCount(end);
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isVisible, end, duration]);
-
-  return (
-    <span ref={elementRef}>{prefix}{count.toLocaleString()}{suffix}</span>
-  );
-};
-
 const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }) => {
   const t = TRANSLATIONS[language];
+  
+  // Generate mock tickets for the marquee - Ticket Roll System (001-030)
+  const tickets = [...Array(30)].map((_, i) => ({
+    number: (i + 1).toString().padStart(3, '0'),
+    isTaken: i % 3 !== 0 // Mock pattern: 2 taken, 1 lucky
+  }));
 
   return (
     <>
@@ -162,27 +111,57 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <div className="bg-amber-900 text-white py-12 relative z-20 -mt-8 shadow-xl">
+      {/* Ticket Status Bar */}
+      <div className="bg-amber-900 text-white py-8 relative z-20 -mt-8 shadow-xl overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { label: t.stats.members, end: settings.totalMembers, suffix: "+", icon: Users },
-              { label: t.stats.cars, end: settings.carsDelivered, icon: Car },
-              { label: t.stats.pot, end: settings.potValue / 1000000, prefix: "ETB ", suffix: "M+", icon: Trophy },
-              { label: t.stats.trust, end: settings.trustScore, suffix: "%", icon: ShieldCheck },
-            ].map((stat, index) => (
-              <div key={index} className="flex flex-col items-center text-center group">
-                <div className="bg-amber-800 p-3 rounded-full mb-3 group-hover:bg-amber-700 transition-colors">
-                  <stat.icon className="w-6 h-6 text-amber-200" />
+            <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+                <h3 className="text-xl font-bold flex items-center mb-4 md:mb-0">
+                <Ticket className="w-6 h-6 mr-2 text-amber-400" />
+                {language === 'en' ? "Live Ticket Status" : "የእጣ ቁጥሮች ሁኔታ"}
+                </h3>
+                <div className="flex space-x-6 text-sm">
+                <div className="flex items-center">
+                    <span className="w-3 h-3 rounded-full bg-stone-700 border border-stone-500 mr-2"></span>
+                    <span className="text-stone-300 font-medium">{t.stats.taken}</span>
                 </div>
-                <h4 className="text-3xl font-bold text-white mb-1">
-                  <CountUp end={stat.end} prefix={stat.prefix || ""} suffix={stat.suffix || ""} />
-                </h4>
-                <p className="text-amber-200/80 text-sm uppercase tracking-wider">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+                <div className="flex items-center">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] mr-2"></span>
+                    <span className="text-emerald-200 font-medium">{t.stats.lucky}</span>
+                </div>
+                </div>
+            </div>
+
+            {/* Marquee Container */}
+            <div className="relative w-full overflow-hidden"> 
+                {/* Fade edges */}
+                <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-amber-900 to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-amber-900 to-transparent z-10 pointer-events-none"></div>
+
+                <div className="flex animate-scroll space-x-4 w-max hover:[animation-play-state:paused]">
+                    {/* First Loop */}
+                    {tickets.map((ticket, i) => (
+                        <div key={i} className={`
+                            w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg border-2 cursor-default transition-transform hover:scale-110
+                            ${ticket.isTaken 
+                            ? 'bg-amber-950/60 border-amber-900 text-amber-800/60' 
+                            : 'bg-emerald-900/80 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]'}
+                        `}>
+                            {ticket.number}
+                        </div>
+                    ))}
+                    {/* Second Loop for seamless scroll */}
+                    {tickets.map((ticket, i) => (
+                        <div key={`dup-${i}`} className={`
+                            w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg border-2 cursor-default transition-transform hover:scale-110
+                            ${ticket.isTaken 
+                            ? 'bg-amber-950/60 border-amber-900 text-amber-800/60' 
+                            : 'bg-emerald-900/80 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]'}
+                        `}>
+                            {ticket.number}
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
       </div>
       

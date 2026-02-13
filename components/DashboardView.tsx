@@ -27,7 +27,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
   
-  // Mock available tickets (1-50, some taken)
+  // Mock available tickets (1-40 for demo of roll based system)
   const [tickets] = useState(() => Array.from({ length: 40 }, (_, i) => ({
     number: i + 1,
     taken: Math.random() > 0.7 // 30% taken
@@ -85,6 +85,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const hallOfFame2 = language === 'en'
       ? { name: "Sara T.", desc: "Won Hyundai (Tahsas)" }
       : { name: "ሳራ ት.", desc: "ሂዩንዳይ አሸንፏል (ታህሳስ)" };
+  
+  // Helper to format ticket number
+  const formatTicket = (num: number) => num.toString().padStart(3, '0');
 
   return (
     <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
@@ -122,7 +125,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:scale-105'}
                           `}
                         >
-                           {ticket.number}
+                           {formatTicket(ticket.number)}
                         </button>
                     ))}
                 </div>
@@ -130,7 +133,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                 <div className="bg-stone-50 p-4 rounded-xl flex items-center justify-between mb-4">
                     <span className="text-stone-600 font-medium">{t.my_ticket}:</span>
                     <span className="text-2xl font-bold text-amber-600">
-                        {selectedTempTicket ? `#${selectedTempTicket}` : '-'}
+                        {selectedTempTicket ? `#${formatTicket(selectedTempTicket)}` : '-'}
                     </span>
                 </div>
 
@@ -181,7 +184,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           <Ticket className="w-5 h-5 text-amber-600 mr-2" />
                           <span className="text-amber-800 font-medium text-sm">{t.my_ticket}</span>
                       </div>
-                      <span className="text-xl font-bold text-amber-600">#{user.prizeNumber}</span>
+                      <span className="text-xl font-bold text-amber-600">#{formatTicket(user.prizeNumber)}</span>
                    </div>
                ) : (
                    <>
@@ -223,7 +226,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             {/* Left: Action & History */}
             <div className="lg:col-span-2 space-y-6">
                 
-                {/* Hero / Action Section - REARRANGED */}
+                {/* Hero / Action Section */}
                 <div className="bg-gradient-to-r from-stone-800 to-stone-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl opacity-0 animate-fade-in-up delay-[300ms]">
                     <div className="absolute right-0 bottom-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mb-16"></div>
                     

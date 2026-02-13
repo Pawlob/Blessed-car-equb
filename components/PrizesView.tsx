@@ -94,16 +94,18 @@ const PrizesView: React.FC<PrizesViewProps> = ({ language, settings, setView }) 
                         <div key={winner.id} className="bg-white rounded-xl p-6 shadow-sm border border-stone-100 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 font-bold text-xl">
-                                    {winner.name.charAt(0)}
+                                    {language === 'en' ? winner.name.charAt(0) : winner.nameAm.charAt(0)}
                                 </div>
-                                <span className="px-2 py-1 bg-stone-100 text-stone-500 text-xs rounded font-medium">{winner.cycle}</span>
+                                <span className="px-2 py-1 bg-stone-100 text-stone-500 text-xs rounded font-medium">
+                                    {language === 'en' ? winner.cycle : winner.cycleAm}
+                                </span>
                             </div>
-                            <h4 className="text-lg font-bold text-stone-800">{winner.name}</h4>
-                            <p className="text-stone-500 text-sm mb-4">{winner.location}</p>
+                            <h4 className="text-lg font-bold text-stone-800">{language === 'en' ? winner.name : winner.nameAm}</h4>
+                            <p className="text-stone-500 text-sm mb-4">{language === 'en' ? winner.location : winner.locationAm}</p>
                             <div className="pt-4 border-t border-stone-50">
                                 <p className="text-xs text-stone-400 uppercase tracking-wider mb-1">Won Prize</p>
                                 <p className="text-emerald-700 font-bold flex items-center">
-                                    <Car className="w-4 h-4 mr-2" /> {winner.prize}
+                                    <Car className="w-4 h-4 mr-2" /> {language === 'en' ? winner.prize : winner.prizeAm}
                                 </p>
                             </div>
                         </div>

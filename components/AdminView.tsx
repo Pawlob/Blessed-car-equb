@@ -170,6 +170,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     setIsSidebarOpen(false);
   };
 
+  // Helper
+  const formatTicket = (num: number) => num.toString().padStart(3, '0');
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4 relative">
@@ -563,7 +566,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                           </span>
                         </td>
                         <td className="px-6 py-4 text-stone-700">{user.contribution.toLocaleString()} ETB</td>
-                        <td className="px-6 py-4 text-amber-600 font-bold">{user.prizeNumber ? `#${user.prizeNumber}` : '-'}</td>
+                        <td className="px-6 py-4 text-amber-600 font-bold">{user.prizeNumber ? `#${formatTicket(user.prizeNumber)}` : '-'}</td>
                         <td className="px-6 py-4 text-right">
                           <button 
                             onClick={() => toggleUserStatus(user.id!)}
@@ -673,59 +676,123 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                       {settings.recentWinners.map((winner, index) => (
                         <div key={winner.id} className="bg-stone-50 p-4 rounded-lg border border-stone-200 relative">
                            <div className="absolute top-2 right-2 text-xs font-bold text-stone-300">#{index + 1}</div>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                  <label className="block text-xs font-bold text-stone-500 mb-1">Winner Name</label>
-                                  <input 
-                                    type="text" 
-                                    value={winner.name}
-                                    onChange={(e) => {
-                                      const newWinners = [...settings.recentWinners];
-                                      newWinners[index] = { ...winner, name: e.target.value };
-                                      setSettings({ ...settings, recentWinners: newWinners });
-                                    }}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                  />
-                              </div>
-                              <div>
-                                  <label className="block text-xs font-bold text-stone-500 mb-1">Prize Won</label>
-                                  <input 
-                                    type="text" 
-                                    value={winner.prize}
-                                    onChange={(e) => {
-                                      const newWinners = [...settings.recentWinners];
-                                      newWinners[index] = { ...winner, prize: e.target.value };
-                                      setSettings({ ...settings, recentWinners: newWinners });
-                                    }}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                  />
-                              </div>
-                              <div>
-                                  <label className="block text-xs font-bold text-stone-500 mb-1">Cycle/Month</label>
-                                  <input 
-                                    type="text" 
-                                    value={winner.cycle}
-                                    onChange={(e) => {
-                                      const newWinners = [...settings.recentWinners];
-                                      newWinners[index] = { ...winner, cycle: e.target.value };
-                                      setSettings({ ...settings, recentWinners: newWinners });
-                                    }}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                  />
-                              </div>
-                              <div>
-                                  <label className="block text-xs font-bold text-stone-500 mb-1">Location</label>
-                                  <input 
-                                    type="text" 
-                                    value={winner.location}
-                                    onChange={(e) => {
-                                      const newWinners = [...settings.recentWinners];
-                                      newWinners[index] = { ...winner, location: e.target.value };
-                                      setSettings({ ...settings, recentWinners: newWinners });
-                                    }}
-                                    className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                  />
-                              </div>
+                           
+                           {/* English Fields */}
+                           <div className="mb-4 pb-4 border-b border-stone-200">
+                               <p className="text-xs font-bold text-stone-400 mb-2 uppercase">English Details</p>
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Name (EN)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.name}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, name: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Prize (EN)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.prize}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, prize: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Cycle (EN)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.cycle}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, cycle: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Location (EN)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.location}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, location: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
+                                      />
+                                  </div>
+                               </div>
+                           </div>
+
+                           {/* Amharic Fields */}
+                           <div>
+                               <p className="text-xs font-bold text-emerald-600 mb-2 uppercase">Amharic Details</p>
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Name (AM)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.nameAm}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, nameAm: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Prize (AM)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.prizeAm}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, prizeAm: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Cycle (AM)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.cycleAm}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, cycleAm: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-stone-500 mb-1">Location (AM)</label>
+                                      <input 
+                                        type="text" 
+                                        value={winner.locationAm}
+                                        onChange={(e) => {
+                                          const newWinners = [...settings.recentWinners];
+                                          newWinners[index] = { ...winner, locationAm: e.target.value };
+                                          setSettings({ ...settings, recentWinners: newWinners });
+                                        }}
+                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
+                                      />
+                                  </div>
+                               </div>
                            </div>
                         </div>
                       ))}

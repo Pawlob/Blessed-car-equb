@@ -12,7 +12,7 @@ import { User, ViewState, Language, AppSettings } from './types';
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
   const [user, setUser] = useState<User | null>(null);
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('am');
 
   // Global Settings State to be controlled by Admin
   const [appSettings, setAppSettings] = useState<AppSettings>({
@@ -28,8 +28,28 @@ const App: React.FC = () => {
     prizeValue: 'ETB 4.5M',
     prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
     recentWinners: [
-      { id: 1, name: "Dawit M.", prize: "Toyota Vitz", cycle: "Tir (Jan)", location: "Addis Ababa" },
-      { id: 2, name: "Sara T.", prize: "Hyundai i10", cycle: "Tahsas (Dec)", location: "Adama" }
+      { 
+        id: 1, 
+        name: "Dawit M.", 
+        nameAm: "ዳዊት መ.",
+        prize: "Toyota Vitz", 
+        prizeAm: "ቶዮታ ቪትዝ",
+        cycle: "Tir (Jan)", 
+        cycleAm: "ጥር",
+        location: "Addis Ababa",
+        locationAm: "አዲስ አበባ"
+      },
+      { 
+        id: 2, 
+        name: "Sara T.", 
+        nameAm: "ሳራ ት.",
+        prize: "Hyundai i10", 
+        prizeAm: "ሂዩንዳይ i10",
+        cycle: "Tahsas (Dec)", 
+        cycleAm: "ታህሳስ",
+        location: "Adama",
+        locationAm: "አዳማ"
+      }
     ]
   });
 
