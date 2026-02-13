@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -165,8 +165,57 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
            </div>
         </div>
 
+        {/* Live Stream Section */}
+        {settings.isLive && (
+          <div className="mb-8 animate-fade-in-down">
+            <div className="bg-stone-900 rounded-2xl overflow-hidden shadow-2xl border border-stone-800 relative">
+               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-pulse"></div>
+               <div className="p-4 bg-stone-800 flex items-center justify-between">
+                  <div className="flex items-center text-white">
+                     <span className="flex h-3 w-3 relative mr-3">
+                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                       <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                     </span>
+                     <h3 className="font-bold text-lg tracking-wide uppercase">Live Draw Now</h3>
+                  </div>
+                  <div className="text-xs font-bold text-stone-400 bg-black/30 px-2 py-1 rounded border border-stone-700">
+                     TikTok / Instagram
+                  </div>
+               </div>
+               
+               <div className="relative aspect-video bg-black flex flex-col items-center justify-center">
+                  {settings.liveStreamUrl ? (
+                     <iframe 
+                       src={settings.liveStreamUrl} 
+                       className="w-full h-full border-0" 
+                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                       allowFullScreen
+                     ></iframe>
+                  ) : (
+                     <div className="text-center p-8">
+                        <Video className="w-16 h-16 text-stone-700 mx-auto mb-4" />
+                        <p className="text-stone-500">Connecting to stream...</p>
+                     </div>
+                  )}
+                  
+                  {/* Overlay Button for External App */}
+                  <div className="absolute bottom-4 right-4">
+                     <a 
+                       href={settings.liveStreamUrl} 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       className="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white rounded-lg text-sm font-bold border border-white/20 transition-all"
+                     >
+                        <ExternalLink className="w-4 h-4 mr-2" /> Open in App
+                     </a>
+                  </div>
+               </div>
+            </div>
+          </div>
+        )}
+
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             
             {/* Card 1: Status */}
             <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300">
@@ -206,17 +255,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                   </div>
                </div>
                <p className="text-sm text-emerald-600 font-medium">{t.contribution_sub}</p>
-            </div>
-
-            {/* Card 3: Pot */}
-            <div className="bg-emerald-900 rounded-xl shadow-md p-6 text-white relative overflow-hidden opacity-0 animate-fade-in-up delay-[200ms] hover:shadow-lg transition-shadow duration-300 group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700"><Trophy className="w-24 h-24" /></div>
-               <h3 className="text-emerald-200 text-sm font-semibold uppercase mb-2">{t.pot}</h3>
-               <div className="text-3xl font-bold mb-1 animate-pulse-slow">{potFormatted} ETB</div>
-               <div className="text-sm text-emerald-300 mb-4">{t.pot_sub}</div>
-               <div className="inline-flex items-center px-2 py-1 bg-emerald-800 rounded text-xs">
-                 <Users className="w-3 h-3 mr-1" /> {membersFormatted} {t.pot_users}
-               </div>
             </div>
         </div>
 

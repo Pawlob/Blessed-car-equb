@@ -28,6 +28,8 @@ export interface AppSettings {
   prizeValue: string;
   prizeImage: string;
   recentWinners: Winner[];
+  liveStreamUrl: string;
+  isLive: boolean;
 }
 
 export interface User {

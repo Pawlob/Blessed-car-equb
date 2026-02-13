@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -669,6 +669,37 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                    </div>
                </div>
 
+               {/* Live Stream Settings */}
+               <div className="pb-4 border-b border-stone-100">
+                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Video className="w-5 h-5 mr-2 text-red-500"/> Live Stream Configuration</h3>
+                   
+                   <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                       <div className="flex items-center justify-between mb-4">
+                           <span className="font-bold text-stone-700">Live Status</span>
+                           <button 
+                             onClick={() => setSettings({...settings, isLive: !settings.isLive})}
+                             className={`px-4 py-1.5 rounded-full font-bold text-sm transition-colors ${settings.isLive ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'bg-stone-300 text-stone-500'}`}
+                           >
+                              {settings.isLive ? 'LIVE NOW' : 'OFFLINE'}
+                           </button>
+                       </div>
+                       
+                       <div>
+                           <label className="block text-sm font-bold text-stone-700 mb-2">Stream URL (TikTok/Instagram)</label>
+                           <input 
+                             type="text" 
+                             value={settings.liveStreamUrl}
+                             onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
+                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                             placeholder="e.g. https://www.tiktok.com/@user/live or Embed URL"
+                           />
+                           <p className="text-xs text-stone-400 mt-2">
+                             Enter the full URL to the live stream. If the platform allows embedding, it will be displayed directly. Otherwise, a button will be provided to open the app.
+                           </p>
+                       </div>
+                   </div>
+               </div>
+
                <div className="pb-4 border-b border-stone-100">
                    <h3 className="font-bold text-stone-800 flex items-center mb-4"><Trophy className="w-5 h-5 mr-2 text-amber-500"/> Winner Spotlight</h3>
                    
@@ -792,7 +823,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                         className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
                                       />
                                   </div>
-                               </div>
+                                </div>
                            </div>
                         </div>
                       ))}

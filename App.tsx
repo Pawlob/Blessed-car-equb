@@ -27,6 +27,8 @@ const App: React.FC = () => {
     prizeName: 'Toyota Corolla Cross 2025',
     prizeValue: 'ETB 4.5M',
     prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
+    liveStreamUrl: '',
+    isLive: false,
     recentWinners: [
       { 
         id: 1, 
