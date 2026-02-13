@@ -111,7 +111,9 @@ const App: React.FC = () => {
         window.history.replaceState({ view: currentView }, '', `#${currentView}`);
       }
     } catch (e) {
-      console.error("History API not available", e);
+      // In some environments (like blob URLs or strict iframes), History API might be restricted.
+      // We silence the error to allow the app to function without URL sync.
+      // console.warn("History API restricted, navigation state will not be synced to URL.");
     }
 
     const handlePopState = (event: PopStateEvent) => {
@@ -137,7 +139,8 @@ const App: React.FC = () => {
       window.history.pushState({ view: newView }, '', `#${newView}`);
       window.scrollTo(0, 0);
     } catch (e) {
-      console.error("Failed to push state", e);
+      // Fallback if History API fails
+      window.scrollTo(0, 0);
     }
   };
 

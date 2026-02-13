@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
@@ -26,6 +26,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [uploading, setUploading] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   // Mock available tickets (1-40 for demo of roll based system)
   const [tickets] = useState(() => Array.from({ length: 40 }, (_, i) => ({
@@ -52,6 +55,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     setTimeout(() => {
       setUser((prev: User | null) => prev ? ({ ...prev, status: 'VERIFIED', contribution: prev.contribution + 5000 }) : null);
       setUploading(false);
+      setPaymentMethod(null);
+      setPaymentConfirmed(false);
       // Add self to feed
       setFeed(prev => [{ id: Math.random(), name: "You", action: t.action_verified, time: "Just now" }, ...prev.slice(0, 4)]);
       
@@ -65,6 +70,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         setUser({ ...user, prizeNumber: selectedTempTicket });
         setShowTicketModal(false);
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   // Dynamic Data from Settings
@@ -292,38 +303,86 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                      </span>
                                 </div>
                                 
-                                <div className="flex flex-col gap-3">
-                                  {user.status === 'VERIFIED' && !user.prizeNumber ? (
-                                      <button 
-                                        onClick={() => setShowTicketModal(true)}
-                                        className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
-                                      >
-                                         <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
-                                      </button>
-                                  ) : (
-                                      <button 
-                                        onClick={handlePayment} 
-                                        disabled={user.status === 'VERIFIED' || uploading}
-                                        className={`w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold transition-all transform hover:scale-105 active:scale-95 ${user.status === 'VERIFIED' 
-                                          ? 'bg-emerald-600 text-white cursor-default hover:scale-100' 
-                                          : 'bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20'}`}
-                                      >
-                                        {uploading ? (
-                                           <><span className="w-4 h-4 border-2 border-stone-800/30 border-t-stone-800 rounded-full animate-spin mr-2"></span> {t.btn_processing || 'Processing...'}</>
-                                        ) : user.status === 'VERIFIED' ? (
-                                           <><CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}</>
-                                        ) : (
-                                           <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
-                                        )}
-                                      </button>
-                                  )}
-                                  
-                                  {user.status !== 'VERIFIED' && (
-                                    <button className="w-full flex justify-center items-center px-4 py-3 bg-transparent border border-stone-500 hover:border-white text-stone-300 hover:text-white rounded-lg font-medium transition-all hover:bg-white/5">
-                                      <CreditCard className="w-5 h-5 mr-2" /> {t.pay_telebirr}
+                                {user.status === 'VERIFIED' && !user.prizeNumber ? (
+                                    <div className="flex flex-col gap-3">
+                                        <button 
+                                            onClick={() => setShowTicketModal(true)}
+                                            className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
+                                        >
+                                            <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
+                                        </button>
+                                    </div>
+                                ) : user.status === 'VERIFIED' ? (
+                                    <button disabled className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 text-white rounded-lg font-bold cursor-default">
+                                         <CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}
                                     </button>
-                                  )}
-                                </div>
+                                ) : (
+                                    <div className="flex flex-col gap-3">
+                                        {!paymentMethod ? (
+                                            <>
+                                                <button onClick={() => { setPaymentMethod('CBE'); setPaymentConfirmed(false); }} className="w-full flex justify-between items-center px-4 py-3 bg-purple-900/50 hover:bg-purple-900 border border-purple-500/30 text-white rounded-lg transition-all group">
+                                                    <span className="flex items-center"><Building className="w-5 h-5 mr-3 text-purple-300" /> {t.pay_cbe}</span>
+                                                    <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
+                                                </button>
+                                                <button onClick={() => { setPaymentMethod('TELEBIRR'); setPaymentConfirmed(false); }} className="w-full flex justify-between items-center px-4 py-3 bg-blue-900/50 hover:bg-blue-900 border border-blue-500/30 text-white rounded-lg transition-all group">
+                                                    <span className="flex items-center"><Smartphone className="w-5 h-5 mr-3 text-blue-300" /> {t.pay_telebirr}</span>
+                                                    <ChevronRight className="w-4 h-4 text-blue-300 group-hover:translate-x-1 transition-transform" />
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <div className="animate-fade-in-up">
+                                               <button onClick={() => { setPaymentMethod(null); setPaymentConfirmed(false); }} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white">
+                                                  <ArrowLeft className="w-3 h-3 mr-1" /> {t.change_method}
+                                               </button>
+                                               
+                                               {paymentMethod === 'CBE' ? (
+                                                   <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
+                                                       <p className="text-stone-400 text-xs mb-1">{t.account_no}</p>
+                                                       <div className="flex justify-between items-center mb-2">
+                                                           <p className="text-lg font-bold font-mono tracking-wide">1000234567890</p>
+                                                           <button onClick={() => copyToClipboard('1000234567890')} className="text-purple-300 hover:text-white p-1">
+                                                              {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                           </button>
+                                                       </div>
+                                                       <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Digital Equb</p>
+                                                   </div>
+                                               ) : (
+                                                   <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
+                                                       <p className="text-stone-400 text-xs mb-1">{t.merchant_id}</p>
+                                                       <div className="flex justify-between items-center mb-2">
+                                                           <p className="text-lg font-bold font-mono tracking-wide">707070</p>
+                                                           <button onClick={() => copyToClipboard('707070')} className="text-blue-300 hover:text-white p-1">
+                                                              {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                           </button>
+                                                       </div>
+                                                        <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Equb Service</p>
+                                                   </div>
+                                               )}
+
+                                               {!paymentConfirmed ? (
+                                                   <button 
+                                                     onClick={() => setPaymentConfirmed(true)}
+                                                     className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg"
+                                                   >
+                                                      <CheckCircle className="w-5 h-5 mr-2" /> {t.confirm_paid}
+                                                   </button>
+                                               ) : (
+                                                   <button 
+                                                     onClick={handlePayment} 
+                                                     disabled={uploading}
+                                                     className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg animate-fade-in-up"
+                                                   >
+                                                     {uploading ? (
+                                                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</>
+                                                     ) : (
+                                                        <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
+                                                     )}
+                                                   </button>
+                                               )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                            </div>
                         </div>
                         

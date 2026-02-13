@@ -72,6 +72,7 @@ export const TRANSLATIONS = {
         pot_users: "Contributing",
         upload: "Upload Receipt", 
         pay_telebirr: "Pay with Telebirr", 
+        pay_cbe: "Pay with CBE",
         history: "Recent Activity",
         next_draw: "NEXT DRAW: 14 DAYS",
         win_title: "Win a Toyota Corolla Cross",
@@ -89,7 +90,12 @@ export const TRANSLATIONS = {
         confirm_ticket: "Confirm Number",
         my_ticket: "My Ticket #",
         ticket_saved: "Ticket Saved!",
-        ticket_instruction: "Green numbers are available. Grey are taken."
+        ticket_instruction: "Green numbers are available. Grey are taken.",
+        change_method: "Change Method",
+        confirm_paid: "I Have Paid",
+        account_no: "Account Number",
+        merchant_id: "Merchant ID",
+        acc_name: "Account Name"
     },
     terms_page: {
         title: "Terms and Conditions",
@@ -196,7 +202,8 @@ export const TRANSLATIONS = {
         pot_sub: "የዚህ ዙር ጠቅላላ",
         pot_users: "የከፈሉ አባላት",
         upload: "ደረሰኝ ይላኩ", 
-        pay_telebirr: "በቴሌብር ይክፈሉ", 
+        pay_telebirr: "በቴሌብር ይክፈሉ",
+        pay_cbe: "በንግድ ባንክ ይክፈሉ", 
         history: "የቅርብ ጊዜ እንቅስቃሴዎች",
         next_draw: "ቀጣይ እጣ: በ14 ቀናት ውስጥ",
         win_title: "ቶዮታ ኮሮላ ክሮስ ያሸንፉ",
@@ -214,7 +221,12 @@ export const TRANSLATIONS = {
         confirm_ticket: "ቁጥሩን አረጋግጥ",
         my_ticket: "የእኔ ቁጥር",
         ticket_saved: "ቁጥሩ ተመዝግቧል!",
-        ticket_instruction: "አረንጓዴ ቁጥሮች ክፍት ናቸው።"
+        ticket_instruction: "አረንጓዴ ቁጥሮች ክፍት ናቸው።",
+        change_method: "ዘዴ ቀይር",
+        confirm_paid: "ክፍያ ፈጽሚያለሁ",
+        account_no: "የሂሳብ ቁጥር",
+        merchant_id: "የንግድ መለያ",
+        acc_name: "የሂሳብ ስም"
     },
     terms_page: {
         title: "ውሎች እና ሁኔታዎች",

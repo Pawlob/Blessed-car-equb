@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket } from 'lucide-react';
+import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS } from '../constants';
@@ -12,6 +12,7 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const t = TRANSLATIONS[language];
   
   // Generate mock tickets for the marquee - Ticket Roll System (001-030)
@@ -19,6 +20,54 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
     number: (i + 1).toString().padStart(3, '0'),
     isTaken: i % 3 !== 0 // Mock pattern: 2 taken, 1 lucky
   }));
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-stone-950 flex flex-col items-center justify-center overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-stone-900 to-stone-950"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-900/20 rounded-full blur-3xl animate-pulse"></div>
+        
+        <div className="relative z-10 flex flex-col items-center">
+           {/* Logo Animation */}
+           <div className="relative mb-8 group">
+              <div className="absolute inset-0 bg-amber-500/20 blur-xl rounded-full animate-pulse"></div>
+              <div className="w-24 h-24 bg-stone-900 rounded-2xl border border-stone-800 flex items-center justify-center relative z-10 shadow-2xl ring-1 ring-white/10">
+                 <Gem className="w-10 h-10 text-emerald-500 absolute animate-ping opacity-20" />
+                 <Gem className="w-10 h-10 text-amber-500 relative z-20" />
+              </div>
+           </div>
+           
+           {/* Text */}
+           <h1 className="text-3xl font-bold text-white mb-3 tracking-widest uppercase flex items-center gap-2">
+             Blessed <span className="text-amber-500">የመኪና ዕቁብ</span>
+           </h1>
+           <p className="text-stone-500 text-xs tracking-[0.3em] uppercase mb-12">
+               {language === 'en' ? 'Digital Future' : 'የዲጂታል ዘመን እቁብ'}
+           </p>
+   
+           {/* Loading Bar */}
+           <div className="w-48 h-1 bg-stone-800 rounded-full overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-amber-500 to-emerald-600 w-[200%] animate-[shimmer_2s_infinite_linear]"></div>
+           </div>
+           
+           <style>{`
+             @keyframes shimmer {
+               0% { transform: translateX(-100%); }
+               100% { transform: translateX(50%); }
+             }
+           `}</style>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -31,23 +80,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 text-center md:text-left">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-800/30 border border-emerald-700/50 text-emerald-300 text-sm font-semibold mb-2">
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-800/30 border border-emerald-700/50 text-emerald-300 text-sm font-semibold mb-2 animate-fade-in-down">
               <Trophy className="w-4 h-4 mr-2 text-amber-400" />
               {t.hero.subtitle} {language === 'en' ? `${settings.daysRemaining} Days` : `${settings.daysRemaining} ቀናት`}
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight animate-fade-in-up">
               {t.hero.title1} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-600">
                 {t.hero.title2}
               </span>
             </h1>
             
-            <p className="text-lg md:text-xl text-stone-300 max-w-lg mx-auto md:mx-0 leading-relaxed">
+            <p className="text-lg md:text-xl text-stone-300 max-w-lg mx-auto md:mx-0 leading-relaxed animate-fade-in-up delay-[100ms]">
               {t.hero.desc}
             </p>
             
-            <div className="flex flex-row items-center space-x-3 justify-center md:justify-start pt-4 w-full sm:w-auto">
+            <div className="flex flex-row items-center space-x-3 justify-center md:justify-start pt-4 w-full sm:w-auto animate-fade-in-up delay-[200ms]">
               <button 
                 onClick={() => setView('login')}
                 className="flex-1 sm:flex-none sm:w-auto px-4 sm:px-8 py-4 bg-red-900 hover:bg-red-800 text-white rounded-lg font-bold text-sm sm:text-lg shadow-xl shadow-red-900/20 transition-all hover:-translate-y-1 flex items-center justify-center whitespace-nowrap"
@@ -62,7 +111,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
             </div>
           </div>
 
-          <div className="relative -mt-8 md:mt-0">
+          <div className="relative -mt-8 md:mt-0 animate-fade-in-up delay-[300ms]">
             <div className="relative z-10 bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
               <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group">
                   <div className="h-64 md:h-80 bg-stone-700 flex items-center justify-center relative overflow-hidden">
