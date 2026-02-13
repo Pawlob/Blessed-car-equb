@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
@@ -23,7 +23,93 @@ interface PaymentRequest {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }
 
-// Mock Database of Users
+// --- Ethiopian Calendar Utils ---
+
+const ETHIOPIAN_MONTHS = [
+    { val: 1, name: "Meskerem (Sep-Oct)" },
+    { val: 2, name: "Tikimt (Oct-Nov)" },
+    { val: 3, name: "Hidar (Nov-Dec)" },
+    { val: 4, name: "Tahsas (Dec-Jan)" },
+    { val: 5, name: "Tir (Jan-Feb)" },
+    { val: 6, name: "Yekatit (Feb-Mar)" },
+    { val: 7, name: "Megabit (Mar-Apr)" },
+    { val: 8, name: "Miyazia (Apr-May)" },
+    { val: 9, name: "Ginbot (May-Jun)" },
+    { val: 10, name: "Sene (Jun-Jul)" },
+    { val: 11, name: "Hamle (Jul-Aug)" },
+    { val: 12, name: "Nehase (Aug-Sep)" },
+    { val: 13, name: "Pagume (Sep)" },
+];
+
+// Convert Ethiopian Date to Gregorian string (YYYY-MM-DD)
+const getGregorianFromEthiopian = (year: number, month: number, day: number) => {
+    // Eth New Year is Sep 11, or Sep 12 if the *next* Gregorian year is a leap year.
+    // Greg Leap years: 2024, 2028, 2032...
+    // Sep 2023 -> Next is 2024 (Leap) -> Sep 12
+    // Sep 2024 -> Next is 2025 (Not Leap) -> Sep 11
+    // Sep 2025 -> Next is 2026 (Not Leap) -> Sep 11
+    // Sep 2026 -> Next is 2027 (Not Leap) -> Sep 11
+    // Sep 2027 -> Next is 2028 (Leap) -> Sep 12
+    
+    // Determine the Gregorian year that contains the start of this Ethiopian year
+    // Eth Year Y starts in Greg Year Y + 7
+    const startGregYear = year + 7;
+    const nextGregYear = startGregYear + 1;
+    const isNextGregLeap = (nextGregYear % 4 === 0 && nextGregYear % 100 !== 0) || (nextGregYear % 400 === 0);
+    const startDay = isNextGregLeap ? 12 : 11;
+
+    // Create anchor date (Meskerem 1)
+    const anchor = new Date(startGregYear, 8, startDay); // Sept is month 8
+    
+    // Add days
+    // (Month-1) * 30 + (Day-1)
+    const daysToAdd = (month - 1) * 30 + (day - 1);
+    anchor.setDate(anchor.getDate() + daysToAdd);
+
+    // Format to YYYY-MM-DD
+    return anchor.toISOString().split('T')[0];
+};
+
+// Convert Gregorian string to Ethiopian Date Object
+const getEthiopianFromGregorian = (gregDateStr: string) => {
+    const date = new Date(gregDateStr);
+    const gregYear = date.getFullYear();
+    
+    // Determine the start of the Ethiopian year for this Gregorian year
+    // Check if we are before or after the Eth New Year (Sep 11/12) of this Greg year
+    
+    const nextGregYear = gregYear + 1;
+    const isNextGregLeap = (nextGregYear % 4 === 0 && nextGregYear % 100 !== 0) || (nextGregYear % 400 === 0);
+    const newYearDayInThisGregYear = isNextGregLeap ? 12 : 11;
+    const ethNewYearDate = new Date(gregYear, 8, newYearDayInThisGregYear); // Sept
+    
+    let ethYear, diffDays;
+
+    if (date >= ethNewYearDate) {
+        // We are in the beginning of Eth Year = gregYear - 7
+        ethYear = gregYear - 7;
+        const diffTime = date.getTime() - ethNewYearDate.getTime();
+        diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    } else {
+        // We are at the end of Eth Year = gregYear - 8
+        ethYear = gregYear - 8;
+        // Find New Year of previous Greg year
+        const currentGregLeap = (gregYear % 4 === 0 && gregYear % 100 !== 0) || (gregYear % 400 === 0);
+        const prevNewYearDay = currentGregLeap ? 12 : 11;
+        const prevEthNewYearDate = new Date(gregYear - 1, 8, prevNewYearDay);
+        
+        const diffTime = date.getTime() - prevEthNewYearDate.getTime();
+        diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    const ethMonth = Math.floor(diffDays / 30) + 1;
+    const ethDay = (diffDays % 30) + 1;
+
+    return { year: ethYear, month: ethMonth, day: ethDay };
+};
+
+// --- Mock Data ---
+
 const MOCK_USERS: User[] = [
   { id: 101, name: "Abebe Kebede", phone: "0911234567", status: "VERIFIED", contribution: 30000, prizeNumber: 14, joinedDate: "Jan 12, 2024" },
   { id: 102, name: "Tigist Haile", phone: "0922558899", status: "PENDING", contribution: 0, joinedDate: "Feb 01, 2024" },
@@ -64,6 +150,26 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Local state for Ethiopian Date Inputs
+  const [ethDate, setEthDate] = useState({ year: 2016, month: 1, day: 1 });
+
+  // Sync Eth date state when settings.drawDate changes (e.g. initial load)
+  useEffect(() => {
+    if (settings.drawDate) {
+        setEthDate(getEthiopianFromGregorian(settings.drawDate));
+    }
+  }, [settings.drawDate]);
+
+  // Handle Eth Date Change
+  const handleEthDateChange = (field: 'year' | 'month' | 'day', value: number) => {
+      const newEthDate = { ...ethDate, [field]: value };
+      setEthDate(newEthDate);
+      
+      // Calculate new Gregorian date and update global settings
+      const newGregString = getGregorianFromEthiopian(newEthDate.year, newEthDate.month, newEthDate.day);
+      setSettings(prev => ({ ...prev, drawDate: newGregString }));
+  };
 
   // Custom Alert State
   const [alertConfig, setAlertConfig] = useState<{
@@ -636,13 +742,42 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                           </div>
                       </div>
                       <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Draw Date (System)</label>
-                          <input 
-                            type="date" 
-                            value={settings.drawDate}
-                            onChange={(e) => setSettings({...settings, drawDate: e.target.value})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
+                          <label className="block text-sm font-bold text-stone-700 mb-2">Draw Date (Ethiopian Cal.)</label>
+                          <div className="grid grid-cols-3 gap-2">
+                              {/* Month */}
+                              <select 
+                                value={ethDate.month}
+                                onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
+                                className="col-span-1 px-2 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white"
+                              >
+                                {ETHIOPIAN_MONTHS.map(m => (
+                                    <option key={m.val} value={m.val}>{m.name}</option>
+                                ))}
+                              </select>
+                              
+                              {/* Day */}
+                              <input 
+                                type="number" 
+                                min="1" max="30"
+                                value={ethDate.day}
+                                onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
+                                className="col-span-1 px-2 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-center"
+                                placeholder="Day"
+                              />
+
+                              {/* Year */}
+                              <input 
+                                type="number" 
+                                min="2000" max="2100"
+                                value={ethDate.year}
+                                onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
+                                className="col-span-1 px-2 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-center"
+                                placeholder="Year"
+                              />
+                          </div>
+                          <div className="mt-1 text-xs text-stone-400">
+                             System Date: {settings.drawDate}
+                          </div>
                       </div>
                   </div>
                   
