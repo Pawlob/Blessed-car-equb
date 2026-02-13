@@ -81,6 +81,12 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
               className="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
               placeholder="e.g. Abebe Kebede"
             />
+            {isRegistering && (
+              <p className="text-xs text-amber-600 mt-1.5 flex items-center font-medium">
+                 <AlertCircle className="w-3 h-3 mr-1.5" />
+                 {t.name_notice}
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">{t.label_phone}</label>

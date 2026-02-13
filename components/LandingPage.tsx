@@ -15,9 +15,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
   const [isLoading, setIsLoading] = useState(true);
   const t = TRANSLATIONS[language];
   
-  // Generate mock tickets for the marquee - Ticket Roll System (001-030)
+  // Generate mock tickets for the marquee - Ticket Roll System (1-30)
   const tickets = [...Array(30)].map((_, i) => ({
-    number: (i + 1).toString().padStart(3, '0'),
+    number: (i + 1).toString(),
     isTaken: i % 3 !== 0 // Mock pattern: 2 taken, 1 lucky
   }));
 

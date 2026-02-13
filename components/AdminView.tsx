@@ -293,8 +293,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     setIsSidebarOpen(false);
   };
 
-  // Helper
-  const formatTicket = (num: number) => num.toString().padStart(3, '0');
+  // Helper - No padding
+  const formatTicket = (num: number) => num.toString();
 
   if (!isAuthenticated) {
     return (
@@ -372,88 +372,63 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                  alertConfig.type === 'warning' || alertConfig.type === 'confirm' ? 'bg-amber-50' : 'bg-blue-50'
               }`}>
                  <h3 className={`font-bold text-lg flex items-center ${
-                    alertConfig.type === 'error' ? 'text-red-800' : 
-                    alertConfig.type === 'success' ? 'text-emerald-800' : 
-                    alertConfig.type === 'warning' || alertConfig.type === 'confirm' ? 'text-amber-800' : 'text-blue-800'
+                     alertConfig.type === 'error' ? 'text-red-800' : 
+                     alertConfig.type === 'success' ? 'text-emerald-800' : 
+                     alertConfig.type === 'warning' || alertConfig.type === 'confirm' ? 'text-amber-800' : 'text-blue-800'
                  }`}>
                     {alertConfig.type === 'error' && <XCircle className="w-6 h-6 mr-2" />}
                     {alertConfig.type === 'success' && <CheckCircle className="w-6 h-6 mr-2" />}
                     {(alertConfig.type === 'warning' || alertConfig.type === 'confirm') && <AlertCircle className="w-6 h-6 mr-2" />}
-                    {alertConfig.type === 'info' && <AlertCircle className="w-6 h-6 mr-2" />}
                     {alertConfig.title}
                  </h3>
-                 <button onClick={closeAlert} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
+                 <button onClick={closeAlert} className="opacity-50 hover:opacity-100"><X className="w-5 h-5" /></button>
               </div>
               <div className="p-6">
-                 <p className="text-stone-600 whitespace-pre-line leading-relaxed">{alertConfig.message}</p>
-                 
-                 <div className="mt-6 flex justify-end gap-3">
-                    {alertConfig.type === 'confirm' ? (
-                       <>
-                          <button 
-                            onClick={closeAlert}
-                            className="px-4 py-2 text-stone-500 font-bold hover:bg-stone-100 rounded-lg transition-colors"
-                          >
-                             Cancel
-                          </button>
-                          <button 
-                            onClick={() => {
-                               if (alertConfig.onConfirm) alertConfig.onConfirm();
-                               closeAlert();
-                            }}
-                            className="px-6 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-colors"
-                          >
-                             Confirm
-                          </button>
-                       </>
-                    ) : (
-                       <button 
-                         onClick={closeAlert}
-                         className="w-full px-4 py-2 bg-stone-800 text-white font-bold rounded-lg hover:bg-stone-700 transition-colors"
-                       >
-                          OK
-                       </button>
+                 <p className="text-stone-600 mb-6 whitespace-pre-line">{alertConfig.message}</p>
+                 <div className="flex space-x-3">
+                    {alertConfig.type === 'confirm' && (
+                        <button 
+                            onClick={() => { alertConfig.onConfirm?.(); closeAlert(); }}
+                            className="flex-1 px-4 py-2 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-500"
+                        >
+                            Confirm
+                        </button>
                     )}
+                    <button 
+                        onClick={closeAlert} 
+                        className={`flex-1 px-4 py-2 font-bold rounded-lg ${alertConfig.type === 'confirm' ? 'bg-stone-200 text-stone-700 hover:bg-stone-300' : 'bg-stone-800 text-white hover:bg-stone-700'}`}
+                    >
+                        {alertConfig.type === 'confirm' ? 'Cancel' : 'OK'}
+                    </button>
                  </div>
               </div>
            </div>
         </div>
       )}
 
-      {/* Receipt Preview Modal */}
+      {/* Image Modal for Receipts */}
       {selectedReceipt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in-down" onClick={() => setSelectedReceipt(null)}>
-           <div className="relative max-w-3xl w-full h-full max-h-[85vh] flex flex-col justify-center" onClick={e => e.stopPropagation()}>
-              <button 
-                onClick={() => setSelectedReceipt(null)}
-                className="absolute -top-12 right-0 text-white hover:text-stone-300 transition-colors"
-              >
-                <X className="w-8 h-8" />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in-down" onClick={() => setSelectedReceipt(null)}>
+           <div className="relative max-w-2xl w-full">
+              <button className="absolute -top-12 right-0 text-white hover:text-red-500" onClick={() => setSelectedReceipt(null)}>
+                 <X className="w-8 h-8" />
               </button>
-              <img 
-                src={selectedReceipt} 
-                alt="Payment Receipt" 
-                className="w-full h-full object-contain rounded-lg shadow-2xl bg-stone-900" 
-              />
+              <img src={selectedReceipt} alt="Receipt" className="w-full rounded-lg shadow-2xl" onClick={e => e.stopPropagation()} />
            </div>
         </div>
       )}
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-stone-900 text-stone-300 flex flex-col transition-transform duration-300 ease-in-out
-        md:relative md:translate-x-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+         fixed md:relative z-50 w-64 h-full bg-stone-900 text-stone-300 flex flex-col transition-transform duration-300
+         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-6 border-b border-stone-800 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-white flex items-center">
-             <Trophy className="w-6 h-6 mr-2 text-amber-500" /> Blessed Admin
-          </h1>
-          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-stone-400 hover:text-white">
-            <X className="w-6 h-6" />
-          </button>
+          <h2 className="text-xl font-bold text-white">Admin Panel</h2>
+          <button className="md:hidden" onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
         </div>
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        
+        <nav className="flex-1 p-4 space-y-2">
           <button 
             onClick={() => handleTabChange('dashboard')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
@@ -461,21 +436,20 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
             <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
           </button>
           <button 
-            onClick={() => handleTabChange('payments')}
-            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'payments' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
-          >
-            <FileText className="w-5 h-5 mr-3" /> Verification
-            {paymentRequests.length > 0 && (
-              <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {paymentRequests.length}
-              </span>
-            )}
-          </button>
-          <button 
             onClick={() => handleTabChange('users')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'users' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
-            <Users className="w-5 h-5 mr-3" /> Members
+            <Users className="w-5 h-5 mr-3" /> User Management
+          </button>
+          <button 
+            onClick={() => handleTabChange('payments')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'payments' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
+          >
+            <div className="relative mr-3">
+               <DollarSign className="w-5 h-5" />
+               {paymentRequests.length > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>}
+            </div>
+            Verify Payments
           </button>
           <button 
             onClick={() => handleTabChange('settings')}
@@ -484,603 +458,405 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
             <Settings className="w-5 h-5 mr-3" /> App Settings
           </button>
         </nav>
+
         <div className="p-4 border-t border-stone-800">
-          <button onClick={() => setView('landing')} className="w-full flex items-center px-4 py-2 text-red-400 hover:text-red-300 transition-colors">
-            <LogOut className="w-5 h-5 mr-3" /> Logout
+          <button 
+            onClick={() => setView('landing')}
+            className="w-full flex items-center px-4 py-3 text-stone-400 hover:text-white transition-colors"
+          >
+            <LogOut className="w-5 h-5 mr-3" /> Exit Admin
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto h-screen w-full">
-        {/* Mobile Header */}
-        <div className="md:hidden flex justify-between items-center mb-8">
-            <div className="flex items-center">
-                <button onClick={() => setIsSidebarOpen(true)} className="p-2 mr-3 bg-white border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50 active:scale-95 transition-transform">
-                    <Menu className="w-6 h-6" /> 
-                </button>
-                <h1 className="text-2xl font-bold text-stone-800">Admin</h1>
-            </div>
-            <button onClick={() => setView('landing')} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-colors"><LogOut className="w-5 h-5" /></button>
-        </div>
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Top Header Mobile */}
+        <header className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center z-30">
+           <button onClick={() => setIsSidebarOpen(true)}><Menu className="w-6 h-6 text-stone-700" /></button>
+           <h1 className="font-bold text-stone-800">
+              {activeTab === 'dashboard' ? 'Dashboard' : 
+               activeTab === 'users' ? 'User Management' : 
+               activeTab === 'payments' ? 'Payment Verification' : 'Settings'}
+           </h1>
+           <div className="w-6"></div>
+        </header>
 
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6 animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-stone-800 hidden md:block">Overview</h2>
+        <div className="flex-1 overflow-auto p-4 md:p-8">
             
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-stone-500 text-sm font-medium">Total Pot</p>
-                    <h3 className="text-2xl font-bold text-emerald-600">{settings.potValue.toLocaleString()} ETB</h3>
-                  </div>
-                  <div className="bg-emerald-100 p-2 rounded-lg"><DollarSign className="w-6 h-6 text-emerald-600" /></div>
-                </div>
-                <div className="text-xs text-stone-400">Current Cycle Target</div>
-              </div>
-
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-stone-500 text-sm font-medium">Total Members</p>
-                    <h3 className="text-2xl font-bold text-stone-800">{settings.totalMembers.toLocaleString()}</h3>
-                  </div>
-                  <div className="bg-blue-100 p-2 rounded-lg"><Users className="w-6 h-6 text-blue-600" /></div>
-                </div>
-                <div className="text-xs text-stone-400">+12 this week</div>
-              </div>
-
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleTabChange('payments')}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-stone-500 text-sm font-medium">Pending Approvals</p>
-                    <h3 className="text-2xl font-bold text-amber-600">{paymentRequests.length}</h3>
-                  </div>
-                  <div className="bg-amber-100 p-2 rounded-lg"><FileText className="w-6 h-6 text-amber-600" /></div>
-                </div>
-                <div className="text-xs text-stone-400">Requires verification</div>
-              </div>
-
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-stone-500 text-sm font-medium">Cycle</p>
-                    <h3 className="text-2xl font-bold text-emerald-800">#{settings.cycle}</h3>
-                  </div>
-                  <div className="bg-emerald-50 p-2 rounded-lg"><TrendingUp className="w-6 h-6 text-emerald-800" /></div>
-                </div>
-                <div className="text-xs text-stone-400">Next draw: {settings.nextDrawDateEn}</div>
-              </div>
-            </div>
-
-            {/* Recent Table Preview */}
-            <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-              <h3 className="font-bold text-stone-800 mb-4">Recent Verified Transactions</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="text-stone-400 text-xs uppercase bg-stone-50">
-                    <tr>
-                      <th className="px-4 py-3">Member</th>
-                      <th className="px-4 py-3">Amount</th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {users.filter(u => u.status === 'VERIFIED').slice(0, 3).map((user) => (
-                      <tr key={user.id}>
-                         <td className="px-4 py-3 font-medium text-stone-700">{user.name}</td>
-                         <td className="px-4 py-3 text-stone-600">{user.contribution.toLocaleString()} ETB</td>
-                         <td className="px-4 py-3 text-stone-500">{user.joinedDate}</td>
-                         <td className="px-4 py-3"><span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">Paid</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'payments' && (
-          <div className="space-y-6 animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-stone-800 hidden md:block">Payment Verification</h2>
-            
-            {paymentRequests.length === 0 ? (
-               <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-12 text-center">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                     <CheckCircle className="w-8 h-8 text-emerald-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-stone-800 mb-2">All Caught Up!</h3>
-                  <p className="text-stone-500">There are no pending payment verifications at the moment.</p>
-               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paymentRequests.map((req) => (
-                  <div key={req.id} className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden flex flex-col">
-                    {/* Header */}
-                    <div className="p-4 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                       <div>
-                          <p className="font-bold text-stone-800">{req.userName}</p>
-                          <p className="text-xs text-stone-500">{req.userPhone}</p>
-                       </div>
-                       <div className="text-right">
-                          <p className="font-bold text-emerald-700">{req.amount.toLocaleString()} ETB</p>
-                          <p className="text-xs text-stone-400">{req.date}</p>
-                       </div>
+            {/* --- DASHBOARD TAB --- */}
+            {activeTab === 'dashboard' && (
+                <div className="space-y-6 animate-fade-in-up">
+                    <h1 className="text-2xl font-bold text-stone-800 hidden md:block">Dashboard Overview</h1>
+                    
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                           <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">Total Pot</h3>
+                              <DollarSign className="w-5 h-5 text-emerald-500" />
+                           </div>
+                           <p className="text-2xl font-bold text-stone-800">{settings.potValue.toLocaleString()} ETB</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                           <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">Total Members</h3>
+                              <Users className="w-5 h-5 text-blue-500" />
+                           </div>
+                           <p className="text-2xl font-bold text-stone-800">{settings.totalMembers.toLocaleString()}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                           <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">Pending Verifications</h3>
+                              <FileText className="w-5 h-5 text-amber-500" />
+                           </div>
+                           <p className="text-2xl font-bold text-stone-800">{paymentRequests.length}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                           <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">Current Cycle</h3>
+                              <RefreshCw className="w-5 h-5 text-purple-500" />
+                           </div>
+                           <p className="text-2xl font-bold text-stone-800">Cycle {settings.cycle}</p>
+                        </div>
                     </div>
 
-                    {/* Image Preview */}
-                    <div className="relative h-48 bg-stone-200 group overflow-hidden">
-                       <img src={req.receiptUrl} alt="Receipt" className="w-full h-full object-cover" />
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <button 
-                            onClick={() => setSelectedReceipt(req.receiptUrl)}
-                            className="bg-white/20 backdrop-blur-md hover:bg-white/30 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
-                          >
-                             <ZoomIn className="w-5 h-5 mr-2" /> View Full
-                          </button>
-                       </div>
+                    {/* Cycle Control */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-stone-800">Cycle Management</h3>
+                                <p className="text-stone-500 text-sm">Control the current lottery cycle status</p>
+                            </div>
+                            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold uppercase">Active</span>
+                        </div>
+                        <div className="flex flex-wrap gap-4">
+                             <button 
+                               onClick={handleStartNewCycle}
+                               className="px-6 py-2 bg-red-900 hover:bg-red-800 text-white font-bold rounded-lg transition-colors flex items-center"
+                             >
+                                <RefreshCw className="w-4 h-4 mr-2" /> Start New Cycle
+                             </button>
+                             <div className="px-4 py-2 bg-stone-100 rounded-lg text-stone-600 text-sm flex items-center">
+                                <Clock className="w-4 h-4 mr-2" /> Next Draw: {settings.daysRemaining} days remaining
+                             </div>
+                        </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="p-4 mt-auto grid grid-cols-2 gap-3">
-                       <button 
-                         onClick={() => handleRejectPayment(req.id)}
-                         className="flex items-center justify-center py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg font-medium transition-colors"
-                       >
-                         <XCircle className="w-5 h-5 mr-2" /> Reject
-                       </button>
-                       <button 
-                         onClick={() => handleApprovePayment(req.id, req.userId, req.amount)}
-                         className="flex items-center justify-center py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition-colors shadow-lg shadow-emerald-600/20"
-                       >
-                         <CheckCircle className="w-5 h-5 mr-2" /> Verify
-                       </button>
+                    {/* Recent Payments Preview */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                        <div className="p-6 border-b border-stone-100 flex justify-between items-center">
+                           <h3 className="font-bold text-stone-800">Recent Payment Requests</h3>
+                           <button onClick={() => setActiveTab('payments')} className="text-emerald-600 text-sm font-bold hover:underline">View All</button>
+                        </div>
+                        {paymentRequests.length === 0 ? (
+                            <div className="p-8 text-center text-stone-500">No pending payments.</div>
+                        ) : (
+                            <table className="w-full text-left">
+                                <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
+                                    <tr>
+                                        <th className="px-6 py-3">User</th>
+                                        <th className="px-6 py-3">Amount</th>
+                                        <th className="px-6 py-3">Date</th>
+                                        <th className="px-6 py-3">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-stone-100">
+                                    {paymentRequests.slice(0, 3).map((req) => (
+                                        <tr key={req.id}>
+                                            <td className="px-6 py-4 font-medium">{req.userName}</td>
+                                            <td className="px-6 py-4">{req.amount} ETB</td>
+                                            <td className="px-6 py-4 text-stone-500 text-sm">{req.date}</td>
+                                            <td className="px-6 py-4">
+                                                <button onClick={() => setActiveTab('payments')} className="text-emerald-600 hover:underline text-sm font-bold">Review</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
-                  </div>
-                ))}
-              </div>
+                </div>
             )}
-          </div>
-        )}
 
-        {activeTab === 'users' && (
-          <div className="space-y-6 animate-fade-in-up">
-            <div className="flex justify-between items-center">
-              <h2 className="text-3xl font-bold text-stone-800 hidden md:block">Members Management</h2>
-              <div className="relative w-full md:w-auto">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 w-5 h-5" />
-                <input 
-                  type="text" 
-                  placeholder="Search members..." 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full md:w-auto pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left min-w-[800px]">
-                  <thead className="bg-stone-50 text-stone-500 font-medium border-b border-stone-200">
-                    <tr>
-                      <th className="px-6 py-4">ID</th>
-                      <th className="px-6 py-4">Name</th>
-                      <th className="px-6 py-4">Phone</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4">Contribution</th>
-                      <th className="px-6 py-4">Ticket</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-stone-50 transition-colors">
-                        <td className="px-6 py-4 text-stone-500">#{user.id}</td>
-                        <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
-                        <td className="px-6 py-4 text-stone-600">{user.phone}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${user.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                            {user.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-stone-700">{user.contribution.toLocaleString()} ETB</td>
-                        <td className="px-6 py-4 text-amber-600 font-bold">{user.prizeNumber ? `#${formatTicket(user.prizeNumber)}` : '-'}</td>
-                        <td className="px-6 py-4 text-right">
-                          <button 
-                            onClick={() => toggleUserStatus(user.id!)}
-                            className={`p-2 rounded-lg transition-colors mr-2 ${user.status === 'VERIFIED' ? 'text-red-500 hover:bg-red-50' : 'text-emerald-500 hover:bg-emerald-50'}`}
-                            title={user.status === 'VERIFIED' ? "Revoke Verification" : "Verify User"}
-                          >
-                            {user.status === 'VERIFIED' ? <XCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {filteredUsers.length === 0 && (
-                <div className="p-8 text-center text-stone-500">No members found matching your search.</div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="space-y-6 max-w-2xl animate-fade-in-up">
-            <h2 className="text-3xl font-bold text-stone-800 hidden md:block">App Configuration</h2>
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 space-y-6">
-               
-               <div className="pb-4 border-b border-stone-100">
-                  <h3 className="font-bold text-stone-800 flex items-center mb-4"><Settings className="w-5 h-5 mr-2 text-emerald-600"/> General Settings</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">
-                            Total Pot Value (ETB) 
-                            <span className="ml-2 text-xs font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Auto-calculated</span>
-                          </label>
-                          <div className="relative">
-                             <input 
-                               type="number" 
-                               value={settings.potValue}
-                               disabled
-                               className="w-full px-4 py-2 border border-stone-200 bg-stone-50 text-stone-500 rounded-lg cursor-not-allowed font-bold"
-                             />
-                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <DollarSign className="h-4 w-4 text-stone-400" />
-                             </div>
-                          </div>
-                          <p className="text-xs text-stone-400 mt-1">Based on verified member contributions.</p>
-                      </div>
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">
-                            Total Members
-                            <span className="ml-2 text-xs font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">Auto-calculated</span>
-                          </label>
-                           <div className="relative">
-                             <input 
-                               type="number" 
-                               value={settings.totalMembers}
-                               disabled
-                               className="w-full px-4 py-2 border border-stone-200 bg-stone-50 text-stone-500 rounded-lg cursor-not-allowed font-bold"
-                             />
-                             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <Users className="h-4 w-4 text-stone-400" />
-                             </div>
-                           </div>
-                           <p className="text-xs text-stone-400 mt-1">Total registered users in database.</p>
-                      </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Current Cycle</label>
-                          <div className="flex gap-2">
+            {/* --- USERS TAB --- */}
+            {activeTab === 'users' && (
+                <div className="space-y-6 animate-fade-in-up">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                             <input 
-                              type="number" 
-                              value={settings.cycle}
-                              onChange={(e) => setSettings({...settings, cycle: parseInt(e.target.value)})}
-                              className="w-24 px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                                type="text" 
+                                placeholder="Search users..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full md:w-64"
                             />
-                            <button 
-                              onClick={handleStartNewCycle}
-                              className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-lg px-4 py-2 text-sm font-bold flex items-center justify-center transition-colors"
-                            >
-                              <RefreshCw className="w-4 h-4 mr-2" />
-                              Start Cycle {settings.cycle + 1}
-                            </button>
-                          </div>
-                      </div>
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Draw Date (Ethiopian Cal.)</label>
-                          <div className="grid grid-cols-3 gap-2">
-                              {/* Month */}
-                              <select 
-                                value={ethDate.month}
-                                onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
-                                className="col-span-1 px-2 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white"
-                              >
-                                {ETHIOPIAN_MONTHS.map(m => (
-                                    <option key={m.val} value={m.val}>{m.name}</option>
-                                ))}
-                              </select>
-                              
-                              {/* Day */}
-                              <input 
-                                type="number" 
-                                min="1" max="30"
-                                value={ethDate.day}
-                                onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
-                                className="col-span-1 px-2 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-center"
-                                placeholder="Day"
-                              />
+                        </div>
+                    </div>
 
-                              {/* Year */}
-                              <input 
-                                type="number" 
-                                min="2000" max="2100"
-                                value={ethDate.year}
-                                onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
-                                className="col-span-1 px-2 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-center"
-                                placeholder="Year"
-                              />
-                          </div>
-                          <div className="mt-1 text-xs text-stone-400">
-                             System Date: {settings.drawDate}
-                          </div>
-                      </div>
-                  </div>
-                  
-                  <div className="mt-4 p-4 bg-emerald-50 rounded-lg border border-emerald-100 flex items-center justify-between">
-                     <span className="text-sm font-bold text-emerald-800 flex items-center">
-                       <Clock className="w-4 h-4 mr-2" /> Live Countdown
-                     </span>
-                     <span className="text-xl font-bold text-emerald-600">{settings.daysRemaining} Days</span>
-                  </div>
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap">
+                                <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
+                                    <tr>
+                                        <th className="px-6 py-3">ID</th>
+                                        <th className="px-6 py-3">Name</th>
+                                        <th className="px-6 py-3">Phone</th>
+                                        <th className="px-6 py-3">Status</th>
+                                        <th className="px-6 py-3">Contribution</th>
+                                        <th className="px-6 py-3">Ticket #</th>
+                                        <th className="px-6 py-3">Joined</th>
+                                        <th className="px-6 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-stone-100">
+                                    {filteredUsers.map((user) => (
+                                        <tr key={user.id} className="hover:bg-stone-50">
+                                            <td className="px-6 py-4 text-stone-500 text-sm">#{user.id}</td>
+                                            <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
+                                            <td className="px-6 py-4 text-stone-600">{user.phone}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                                    user.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                                }`}>
+                                                    {user.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 font-mono">{user.contribution.toLocaleString()}</td>
+                                            <td className="px-6 py-4">
+                                                {user.prizeNumber ? (
+                                                    <span className="bg-stone-800 text-white px-2 py-1 rounded text-xs font-bold">
+                                                        {formatTicket(user.prizeNumber)}
+                                                    </span>
+                                                ) : <span className="text-stone-300">-</span>}
+                                            </td>
+                                            <td className="px-6 py-4 text-stone-400 text-sm">{user.joinedDate}</td>
+                                            <td className="px-6 py-4">
+                                                <button 
+                                                    onClick={() => toggleUserStatus(user.id!)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm font-bold"
+                                                >
+                                                    Toggle Status
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {filteredUsers.length === 0 && (
+                                        <tr>
+                                            <td colSpan={8} className="text-center py-8 text-stone-500">No users found matching your search.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-                   <div className="mt-4">
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (English Display)</label>
-                       <input 
-                         type="text" 
-                         value={settings.nextDrawDateEn}
-                         onChange={(e) => setSettings({...settings, nextDrawDateEn: e.target.value})}
-                         className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                         placeholder="e.g. Yekatit 21, 2018"
-                       />
-                   </div>
-
-                   <div className="mt-4">
-                       <label className="block text-sm font-bold text-stone-700 mb-2">Next Draw Date (Amharic Display)</label>
-                       <input 
-                         type="text" 
-                         value={settings.nextDrawDateAm}
-                         onChange={(e) => setSettings({...settings, nextDrawDateAm: e.target.value})}
-                         className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none font-sans"
-                         placeholder="e.g. የካቲት 21፣ 2018"
-                       />
-                   </div>
-               </div>
-
-               {/* Live Stream Settings */}
-               <div className="pb-4 border-b border-stone-100">
-                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Video className="w-5 h-5 mr-2 text-red-500"/> Live Stream Configuration</h3>
-                   
-                   <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
-                       <div className="flex items-center justify-between mb-4">
-                           <span className="font-bold text-stone-700">Live Status</span>
-                           <button 
-                             onClick={() => setSettings({...settings, isLive: !settings.isLive})}
-                             className={`px-4 py-1.5 rounded-full font-bold text-sm transition-colors ${settings.isLive ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'bg-stone-300 text-stone-500'}`}
-                           >
-                              {settings.isLive ? 'LIVE NOW' : 'OFFLINE'}
-                           </button>
-                       </div>
-                       
-                       <div>
-                           <label className="block text-sm font-bold text-stone-700 mb-2">Stream URL (TikTok/Instagram)</label>
-                           <input 
-                             type="text" 
-                             value={settings.liveStreamUrl}
-                             onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
-                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                             placeholder="e.g. https://www.tiktok.com/@user/live or Embed URL"
-                           />
-                           <p className="text-xs text-stone-400 mt-2">
-                             Enter the full URL to the live stream. If the platform allows embedding, it will be displayed directly. Otherwise, a button will be provided to open the app.
-                           </p>
-                       </div>
-                   </div>
-               </div>
-
-               <div className="pb-4 border-b border-stone-100">
-                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Trophy className="w-5 h-5 mr-2 text-amber-500"/> Winner Spotlight</h3>
-                   
-                   <div className="space-y-4">
-                      {settings.recentWinners.map((winner, index) => (
-                        <div key={winner.id} className="bg-stone-50 p-4 rounded-lg border border-stone-200 relative">
-                           <div className="absolute top-2 right-2 text-xs font-bold text-stone-300">#{index + 1}</div>
-                           
-                           {/* English Fields */}
-                           <div className="mb-4 pb-4 border-b border-stone-200">
-                               <p className="text-xs font-bold text-stone-400 mb-2 uppercase">English Details</p>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Name (EN)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.name}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, name: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Prize (EN)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.prize}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, prize: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Cycle (EN)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.cycle}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, cycle: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Location (EN)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.location}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, location: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-amber-500 outline-none"
-                                      />
-                                  </div>
-                               </div>
-                           </div>
-
-                           {/* Amharic Fields */}
-                           <div>
-                               <p className="text-xs font-bold text-emerald-600 mb-2 uppercase">Amharic Details</p>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Name (AM)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.nameAm}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, nameAm: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Prize (AM)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.prizeAm}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, prizeAm: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Cycle (AM)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.cycleAm}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, cycleAm: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
-                                      />
-                                  </div>
-                                  <div>
-                                      <label className="block text-xs font-bold text-stone-500 mb-1">Location (AM)</label>
-                                      <input 
-                                        type="text" 
-                                        value={winner.locationAm}
-                                        onChange={(e) => {
-                                          const newWinners = [...settings.recentWinners];
-                                          newWinners[index] = { ...winner, locationAm: e.target.value };
-                                          setSettings({ ...settings, recentWinners: newWinners });
-                                        }}
-                                        className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-500 outline-none font-sans"
-                                      />
-                                  </div>
+            {/* --- PAYMENTS TAB --- */}
+            {activeTab === 'payments' && (
+                <div className="space-y-6 animate-fade-in-up">
+                    <h1 className="text-2xl font-bold text-stone-800">Pending Payments</h1>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {paymentRequests.map((req) => (
+                            <div key={req.id} className="bg-white rounded-xl shadow-md border border-stone-200 overflow-hidden hover:shadow-lg transition-shadow">
+                                <div className="h-48 bg-stone-100 relative group cursor-pointer" onClick={() => setSelectedReceipt(req.receiptUrl)}>
+                                    <img src={req.receiptUrl} alt="Receipt" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ZoomIn className="w-8 h-8 text-white" />
+                                    </div>
                                 </div>
-                           </div>
+                                <div className="p-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="font-bold text-lg text-stone-800">{req.userName}</h3>
+                                            <p className="text-stone-500 text-sm">{req.userPhone}</p>
+                                        </div>
+                                        <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">PENDING</span>
+                                    </div>
+                                    <div className="bg-stone-50 p-3 rounded-lg mb-6 flex justify-between items-center">
+                                        <span className="text-stone-500 text-sm">Amount Declared:</span>
+                                        <span className="font-bold text-emerald-700">{req.amount.toLocaleString()} ETB</span>
+                                    </div>
+                                    <div className="flex space-x-3">
+                                        <button 
+                                            onClick={() => handleRejectPayment(req.id)}
+                                            className="flex-1 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 font-bold transition-colors"
+                                        >
+                                            Reject
+                                        </button>
+                                        <button 
+                                            onClick={() => handleApprovePayment(req.id, req.userId, req.amount)}
+                                            className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 font-bold transition-colors shadow-lg shadow-emerald-200"
+                                        >
+                                            Approve
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    {paymentRequests.length === 0 && (
+                        <div className="bg-white rounded-xl border border-stone-200 p-12 text-center">
+                            <div className="bg-emerald-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <CheckCircle className="w-8 h-8 text-emerald-500" />
+                            </div>
+                            <h3 className="text-xl font-bold text-stone-800 mb-2">All Caught Up!</h3>
+                            <p className="text-stone-500">There are no pending payment verifications at the moment.</p>
                         </div>
-                      ))}
-                   </div>
-               </div>
+                    )}
+                </div>
+            )}
 
-               <div className="pb-4 border-b border-stone-100">
-                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><Trophy className="w-5 h-5 mr-2 text-amber-500"/> Prize Configuration</h3>
-                   
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Prize Name</label>
-                          <input 
-                            type="text" 
-                            value={settings.prizeName}
-                            onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                            placeholder="e.g. Toyota Corolla Cross 2025"
-                          />
-                      </div>
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Prize Value Label</label>
-                          <input 
-                            type="text" 
-                            value={settings.prizeValue}
-                            onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                            placeholder="e.g. ETB 4.5M"
-                          />
-                      </div>
-                   </div>
-                   <div className="mt-4">
-                      <label className="block text-sm font-bold text-stone-700 mb-2">Prize Image URL</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="text" 
-                          value={settings.prizeImage}
-                          onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
-                          className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          placeholder="https://..."
-                        />
-                        <div className="w-10 h-10 rounded-lg bg-stone-100 flex-shrink-0 border border-stone-200 overflow-hidden">
-                           <img src={settings.prizeImage} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40'} />
+            {/* --- SETTINGS TAB --- */}
+            {activeTab === 'settings' && (
+                <div className="space-y-6 animate-fade-in-up max-w-4xl mx-auto">
+                    <h1 className="text-2xl font-bold text-stone-800">App Settings</h1>
+                    
+                    {/* Draw Schedule Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
+                        </h2>
+                        
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
+                                <div className="flex space-x-2">
+                                    <select 
+                                        value={ethDate.month}
+                                        onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
+                                        className="flex-1 p-2 border border-stone-300 rounded-lg"
+                                    >
+                                        {ETHIOPIAN_MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
+                                    </select>
+                                    <select 
+                                        value={ethDate.day}
+                                        onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
+                                        className="w-20 p-2 border border-stone-300 rounded-lg"
+                                    >
+                                        {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                                    </select>
+                                    <input 
+                                        type="number" 
+                                        value={ethDate.year}
+                                        onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
+                                        className="w-24 p-2 border border-stone-300 rounded-lg"
+                                    />
+                                </div>
+                                <p className="text-xs text-stone-500">
+                                    This will automatically update the countdown and Gregorian date.
+                                </p>
+                            </div>
+
+                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">Preview</h3>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-stone-600">Amharic Date:</span>
+                                        <span className="font-bold text-stone-800">{settings.nextDrawDateAm}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-stone-600">English Date:</span>
+                                        <span className="font-bold text-stone-800">{settings.nextDrawDateEn}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-stone-600">Gregorian (System):</span>
+                                        <span className="font-mono text-stone-800">{settings.drawDate}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                      </div>
-                   </div>
-               </div>
+                    </div>
 
-               <div>
-                   <h3 className="font-bold text-stone-800 flex items-center mb-4"><TrendingUp className="w-5 h-5 mr-2 text-blue-500"/> Platform Stats</h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Cars Delivered</label>
-                          <input 
-                            type="number" 
-                            value={settings.carsDelivered}
-                            onChange={(e) => setSettings({...settings, carsDelivered: parseInt(e.target.value)})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
-                      </div>
-                      <div>
-                          <label className="block text-sm font-bold text-stone-700 mb-2">Trust Score (%)</label>
-                          <input 
-                            type="number" 
-                            value={settings.trustScore}
-                            onChange={(e) => setSettings({...settings, trustScore: parseInt(e.target.value)})}
-                            className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                          />
-                      </div>
-                   </div>
-               </div>
+                    {/* Prize Settings Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
+                        </h2>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.prizeName}
+                                        onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
+                                        className="w-full p-2 border border-stone-300 rounded-lg"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value Display</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.prizeValue}
+                                        onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
+                                        className="w-full p-2 border border-stone-300 rounded-lg"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            value={settings.prizeImage}
+                                            onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
+                                            className="w-full p-2 border border-stone-300 rounded-lg text-sm"
+                                        />
+                                        <button className="p-2 bg-stone-100 rounded border border-stone-300">
+                                            <ImageIcon className="w-5 h-5 text-stone-600" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
+                                <img src={settings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
+                                <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
+                                    Preview
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-               <div className="pt-4 border-t border-stone-100 flex justify-end">
-                   <button className="flex items-center px-6 py-2 bg-emerald-900 text-white rounded-lg font-bold hover:bg-emerald-800 transition-colors w-full md:w-auto justify-center">
-                       <Save className="w-5 h-5 mr-2" /> Save Changes
-                   </button>
-               </div>
-            </div>
-          </div>
-        )}
+                    {/* Live Stream Settings Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Video className="w-5 h-5 mr-2 text-red-600" /> Live Stream Configuration
+                        </h2>
+                        
+                        <div className="space-y-4">
+                             <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                 <div>
+                                     <h3 className="font-bold text-stone-800">Live Status</h3>
+                                     <p className="text-sm text-stone-500">Toggle this ON when the draw event starts</p>
+                                 </div>
+                                 <button 
+                                   onClick={() => setSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
+                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
+                                 >
+                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
+                                 </button>
+                             </div>
+
+                             <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Embed URL / Stream Link</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="https://www.youtube.com/embed/..."
+                                    value={settings.liveStreamUrl}
+                                    onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
+                                    className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
+                                />
+                                <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
       </main>
     </div>
   );

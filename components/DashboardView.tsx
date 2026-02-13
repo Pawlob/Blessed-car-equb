@@ -98,7 +98,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
       : { name: "ሳራ ት.", desc: "ሂዩንዳይ አሸንፏል (ታህሳስ)" };
   
   // Helper to format ticket number
-  const formatTicket = (num: number) => num.toString().padStart(3, '0');
+  const formatTicket = (num: number) => num.toString();
 
   return (
     <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
