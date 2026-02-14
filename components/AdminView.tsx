@@ -5,17 +5,19 @@ import {
   Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target, Ticket, Download, Ban, MousePointerClick
 } from 'lucide-react';
 import { User, AppSettings, ViewState, AppNotification } from '../types';
+import { collection, onSnapshot, updateDoc, doc, addDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface AdminViewProps {
   setView: (view: ViewState) => void;
   settings: AppSettings;
-  setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+  setSettings: (settings: React.SetStateAction<AppSettings>) => void;
   addNotification: (notification: AppNotification) => void;
 }
 
 interface PaymentRequest {
-  id: number;
-  userId: number;
+  id: string; // Changed to string for Firestore ID
+  userId: string | number;
   userName: string;
   userPhone: string;
   amount: number;
@@ -28,7 +30,7 @@ interface PaymentRequest {
 interface TicketType {
   id: string;
   ticketNumber: number;
-  userId: number;
+  userId: string | number;
   userName: string;
   cycle: number;
   status: 'ACTIVE' | 'VOID';
@@ -125,48 +127,6 @@ const getEthiopianFromGregorian = (gregDateStr: string) => {
     return { year: ethYear, month: ethMonth, day: ethDay };
 };
 
-// --- Mock Data ---
-
-const MOCK_USERS: User[] = [
-  { id: 101, name: "Abebe Kebede", phone: "0911234567", status: "VERIFIED", contribution: 30000, prizeNumber: 14, joinedDate: "Jan 12, 2024" },
-  { id: 102, name: "Tigist Haile", phone: "0922558899", status: "PENDING", contribution: 0, joinedDate: "Feb 01, 2024" },
-  { id: 103, name: "Dawit Mulugeta", phone: "0933447788", status: "VERIFIED", contribution: 60000, prizeNumber: 42, joinedDate: "Dec 10, 2023" },
-  { id: 104, name: "Sara Tesfaye", phone: "0944112233", status: "PENDING", contribution: 5000, joinedDate: "Feb 15, 2024" },
-  { id: 105, name: "Yonas Alemu", phone: "0912341234", status: "VERIFIED", contribution: 15000, prizeNumber: 5, joinedDate: "Jan 20, 2024" },
-];
-
-const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
-  {
-    id: 1,
-    userId: 102,
-    userName: "Tigist Haile",
-    userPhone: "0922558899",
-    amount: 5000,
-    date: "Feb 28, 2024",
-    receiptUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&q=80&w=400", 
-    status: 'PENDING',
-    requestedTicket: 23
-  },
-  {
-    id: 2,
-    userId: 104,
-    userName: "Sara Tesfaye",
-    userPhone: "0944112233",
-    amount: 5000,
-    date: "Feb 27, 2024",
-    receiptUrl: "https://images.unsplash.com/photo-1554224154-26032ffc0d07?auto=format&fit=crop&q=80&w=400", 
-    status: 'PENDING'
-  }
-];
-
-const MOCK_TICKETS: TicketType[] = [
-  { id: 't-101', ticketNumber: 14, userId: 101, userName: "Abebe Kebede", cycle: 14, status: 'ACTIVE', assignedDate: '2024-02-15', assignedBy: 'SYSTEM' },
-  { id: 't-103', ticketNumber: 42, userId: 103, userName: "Dawit Mulugeta", cycle: 14, status: 'ACTIVE', assignedDate: '2024-02-16', assignedBy: 'SYSTEM' },
-  { id: 't-105', ticketNumber: 5, userId: 105, userName: "Yonas Alemu", cycle: 14, status: 'ACTIVE', assignedDate: '2024-02-18', assignedBy: 'SYSTEM' },
-  { id: 't-106', ticketNumber: 88, userId: 108, userName: "Meron Tadesse", cycle: 13, status: 'ACTIVE', assignedDate: '2024-01-10', assignedBy: 'SYSTEM' },
-  { id: 't-107', ticketNumber: 3, userId: 109, userName: "Kebede Alemu", cycle: 14, status: 'VOID', assignedDate: '2024-02-20', assignedBy: 'ADMIN' },
-];
-
 const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
@@ -175,11 +135,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   // Competition Sub-tabs
   const [compSubTab, setCompSubTab] = useState<'settings' | 'tickets'>('settings');
   
-  const [users, setUsers] = useState<User[]>(MOCK_USERS);
-  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(MOCK_PAYMENT_REQUESTS);
+  // Real-time Data State
+  const [users, setUsers] = useState<User[]>([]);
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+  const [tickets, setTickets] = useState<TicketType[]>([]);
   
-  // Ticket Management State
-  const [tickets, setTickets] = useState<TicketType[]>(MOCK_TICKETS);
   const [ticketSearch, setTicketSearch] = useState('');
   const [ticketCycleFilter, setTicketCycleFilter] = useState<number | 'ALL'>('ALL');
 
@@ -202,6 +162,33 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     }
   }, [settings.drawDate]);
 
+  // --- Real-Time Listeners ---
+  useEffect(() => {
+     // Users Listener
+     const usersUnsub = onSnapshot(collection(db, 'users'), (snapshot) => {
+         const usersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as User));
+         setUsers(usersData);
+     });
+
+     // Payment Requests Listener
+     const paymentsUnsub = onSnapshot(collection(db, 'payment_requests'), (snapshot) => {
+         const requestsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as PaymentRequest));
+         setPaymentRequests(requestsData.filter(req => req.status === 'PENDING')); // Filter for pending in this view or keep all? Keeping all for now then local filter
+     });
+
+     // Tickets Listener
+     const ticketsUnsub = onSnapshot(collection(db, 'tickets'), (snapshot) => {
+         const ticketsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as TicketType));
+         setTickets(ticketsData);
+     });
+
+     return () => {
+         usersUnsub();
+         paymentsUnsub();
+         ticketsUnsub();
+     };
+  }, []);
+
   // Handle Eth Date Change
   const handleEthDateChange = (field: 'year' | 'month' | 'day', value: number) => {
       const newEthDate = { ...ethDate, [field]: value };
@@ -218,7 +205,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
       const nextDrawDateEn = `${monthNameEn} ${newEthDate.day}, ${newEthDate.year}`;
       const nextDrawDateAm = `${monthNameAm} ${newEthDate.day}፣ ${newEthDate.year}`;
       
-      // Update global settings
+      // Update global settings via passed function (which handles Firestore)
       setSettings(prev => ({ 
           ...prev, 
           drawDate: newGregString,
@@ -228,15 +215,16 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   };
 
   // Auto-calculate Pot Value and Total Members based on Users
+  // Note: Since setSettings now updates Firestore, be careful with infinite loops.
+  // We should check values before setting.
   useEffect(() => {
     // Calculate pot value based on verified users in the current cycle.
-    // Assuming a fixed contribution of 5,000 ETB per verified member for the current cycle.
     const activePot = users.reduce((sum, user) => 
         user.status === 'VERIFIED' ? sum + 5000 : sum, 0
     );
     const memberCount = users.length;
 
-    // Only update if different to avoid redundant renders/updates
+    // Only update if different to avoid redundant DB writes
     if (settings.potValue !== activePot || settings.totalMembers !== memberCount) {
         setSettings(prev => ({
             ...prev,
@@ -279,10 +267,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         'Save Changes',
         `Are you sure you want to save changes to ${sectionName}?`,
         () => {
-             // Simulate API call delay
-             setTimeout(() => {
-                 showAlert('success', 'Changes Saved', `${sectionName} has been successfully updated.`);
-             }, 500);
+             // Real settings save happens in App.tsx via setSettings passed down
+             // Just show confirmation here
+             showAlert('success', 'Changes Saved', `${sectionName} settings updated.`);
         }
     );
   };
@@ -292,8 +279,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
       showConfirm(
           'Void Ticket',
           'Are you sure you want to void this ticket? This action cannot be undone and will remove the user from the current draw.',
-          () => {
-              setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'VOID' } : t));
+          async () => {
+              // Update in Firestore
+              const ticketRef = doc(db, 'tickets', ticketId);
+              await updateDoc(ticketRef, { status: 'VOID' });
               showAlert('success', 'Ticket Voided', 'The ticket has been successfully voided.');
           }
       );
@@ -304,18 +293,24 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
       showConfirm(
           'Manual Ticket Assignment',
           'This will assign a new randomized ticket to a selected user. Continue?',
-          () => {
-              const newTicket: TicketType = {
-                  id: `t-${Date.now()}`,
-                  ticketNumber: Math.floor(Math.random() * 100) + 1,
-                  userId: 999,
+          async () => {
+              // Find next available ticket
+              const currentCycleTickets = tickets.filter(t => t.cycle === settings.cycle);
+              const takenNumbers = new Set(currentCycleTickets.map(t => t.ticketNumber));
+              let nextTicketNum = 1;
+              while (takenNumbers.has(nextTicketNum)) nextTicketNum++;
+
+              const newTicket: any = {
+                  ticketNumber: nextTicketNum,
+                  userId: '999', // Placeholder
                   userName: "Manually Assigned User",
                   cycle: settings.cycle,
                   status: 'ACTIVE',
                   assignedDate: new Date().toISOString().split('T')[0],
                   assignedBy: 'ADMIN'
               };
-              setTickets(prev => [newTicket, ...prev]);
+              
+              await addDoc(collection(db, 'tickets'), newTicket);
               showAlert('success', 'Ticket Assigned', `Ticket #${newTicket.ticketNumber} assigned successfully.`);
           }
       );
@@ -359,7 +354,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   };
 
   // User Management
-  const handleSaveUser = (e: React.FormEvent) => {
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser.name || !editingUser.phone) {
         showAlert('error', 'Missing Information', 'Name and Phone are required.');
@@ -368,29 +363,28 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
 
     if (editingUser.id) {
         // Update existing user
-        setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editingUser } as User : u));
+        const userRef = doc(db, 'users', editingUser.id.toString());
+        await updateDoc(userRef, editingUser);
         showAlert('success', 'User Updated', 'User details have been saved successfully.');
     } else {
         // Create new user
-        const newId = Math.max(...users.map(u => u.id || 0), 100) + 1;
         const newUser: User = {
-            id: newId,
             name: editingUser.name,
             phone: editingUser.phone,
             status: editingUser.status || 'PENDING',
             contribution: editingUser.contribution || 0,
             prizeNumber: editingUser.prizeNumber,
-            joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            joinedDate: new Date().toLocaleDateString('en-US')
         };
-        setUsers([...users, newUser]);
+        await addDoc(collection(db, 'users'), newUser);
         showAlert('success', 'User Created', 'New user has been added successfully.');
     }
     setIsUserModalOpen(false);
   };
 
-  const handleDeleteUser = (id: number) => {
-    showConfirm('Delete User', 'Are you sure you want to delete this user? This action cannot be undone.', () => {
-        setUsers(users.filter(u => u.id !== id));
+  const handleDeleteUser = (id: any) => {
+    showConfirm('Delete User', 'Are you sure you want to delete this user? This action cannot be undone.', async () => {
+        await deleteDoc(doc(db, 'users', id.toString()));
         showAlert('success', 'User Deleted', 'User has been removed from the system.');
     });
   };
@@ -406,15 +400,16 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   };
 
   // Payment Verification Actions
-  const handleApprovePayment = (req: PaymentRequest) => {
+  const handleApprovePayment = async (req: PaymentRequest) => {
     const { id: reqId, userId, amount, requestedTicket } = req;
     
     // 1. Get User Details
     const targetUser = users.find(u => u.id === userId);
     const userName = targetUser ? targetUser.name : 'Unknown User';
 
-    // 2. Remove from requests
-    setPaymentRequests(prev => prev.filter(r => r.id !== reqId));
+    // 2. Update Request Status
+    const reqRef = doc(db, 'payment_requests', reqId);
+    await updateDoc(reqRef, { status: 'APPROVED' });
     
     // 3. Generate Ticket
     // Find next available ticket number for the current cycle
@@ -425,11 +420,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     let assignedBy: 'SYSTEM' | 'USER' = 'SYSTEM';
 
     if (requestedTicket && !takenNumbers.has(requestedTicket)) {
-        // If user requested a ticket and it's available, assign it
         assignedTicketNum = requestedTicket;
         assignedBy = 'USER';
     } else {
-        // Fallback: Find next available
         let nextTicketNum = 1;
         while (takenNumbers.has(nextTicketNum)) {
             nextTicketNum++;
@@ -437,13 +430,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         assignedTicketNum = nextTicketNum;
         
         if (requestedTicket) {
-             // Warn if requested ticket was taken
              showAlert('warning', 'Ticket Conflict', `Requested ticket #${requestedTicket} was already taken. System assigned #${assignedTicketNum} instead.`);
         }
     }
 
-    const newTicket: TicketType = {
-        id: `t-${Date.now()}`,
+    const newTicket: any = {
         ticketNumber: assignedTicketNum,
         userId: userId,
         userName: userName,
@@ -454,28 +445,28 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     };
 
     // Add to ticket management system
-    setTickets(prev => [newTicket, ...prev]);
+    await addDoc(collection(db, 'tickets'), newTicket);
 
     // 4. Update user status, contribution, and assign the ticket number
-    setUsers(prev => prev.map(u => 
-      u.id === userId 
-        ? { 
-            ...u, 
-            status: 'VERIFIED', 
-            contribution: u.contribution + amount,
-            prizeNumber: assignedTicketNum 
-          } 
-        : u
-    ));
+    // Ensure userId is string for Firestore doc reference
+    if (userId) {
+        const userRef = doc(db, 'users', userId.toString());
+        await updateDoc(userRef, {
+            status: 'VERIFIED',
+            contribution: (targetUser?.contribution || 0) + amount,
+            prizeNumber: assignedTicketNum
+        });
+    }
     
     if (!requestedTicket || assignedTicketNum === requestedTicket) {
         showAlert('success', 'Payment Verified', `User verified and Ticket #${assignedTicketNum} has been assigned.`);
     }
   };
 
-  const handleRejectPayment = (reqId: number) => {
-    setPaymentRequests(prev => prev.filter(req => req.id !== reqId));
-    showAlert('info', 'Payment Rejected', 'The payment has been rejected. A notification has been sent to the user.');
+  const handleRejectPayment = async (reqId: string) => {
+    const reqRef = doc(db, 'payment_requests', reqId);
+    await updateDoc(reqRef, { status: 'REJECTED' });
+    showAlert('info', 'Payment Rejected', 'The payment has been rejected.');
   };
 
   // Start New Cycle Logic
@@ -485,7 +476,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     showConfirm(
       'Start New Cycle?',
       `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n• Pot Value to 0\n• Member Contributions to 0\n• Member Status to Pending\n• Clear all Tickets & Requests\n• Next Draw Date to +30 days`,
-      () => {
+      async () => {
         // Calculate new draw date (30 days from now)
         const today = new Date();
         const nextDraw = new Date(today);
@@ -518,17 +509,19 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         setEthDate(newEthDate);
 
         // 2. Reset All Users
-        setUsers(prevUsers => prevUsers.map(u => ({
-          ...u,
-          status: 'PENDING',
-          contribution: 0,
-          prizeNumber: undefined // Clear tickets
-        })));
+        // Batch updates might be better for large sets, but simple loop for now
+        // IMPORTANT: Real world apps would use a cloud function for this
+        for (const u of users) {
+             if (u.id) {
+                 await updateDoc(doc(db, 'users', u.id.toString()), {
+                     status: 'PENDING',
+                     contribution: 0,
+                     prizeNumber: null // Use null to remove field or special value
+                 } as any);
+             }
+        }
 
-        // 3. Clear Pending Requests
-        setPaymentRequests([]);
-
-        // 4. Notify All Members
+        // 3. Notify All Members (Mock)
         const newNotification: AppNotification = {
           id: Date.now(),
           title: { en: `Cycle ${nextCycle} Started`, am: `ዙር ${nextCycle} ተጀምሯል` },
@@ -616,6 +609,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     );
   }
 
+  // Render content is largely the same, just utilizing dynamic state variables
+  // ... (rest of render logic follows same structure as previous AdminView but uses live state)
+  
   return (
     <div className="min-h-screen bg-stone-100 flex relative overflow-hidden">
       
@@ -1039,7 +1035,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <input 
                                                 type="text" 
                                                 value={settings.prizeName}
-                                                onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
+                                                onChange={(e) => setSettings(prev => ({...prev, prizeName: e.target.value}))}
                                                 className="w-full p-2 border border-stone-300 rounded-lg"
                                             />
                                         </div>
@@ -1048,7 +1044,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <input 
                                                 type="text" 
                                                 value={settings.prizeValue}
-                                                onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
+                                                onChange={(e) => setSettings(prev => ({...prev, prizeValue: e.target.value}))}
                                                 className="w-full p-2 border border-stone-300 rounded-lg"
                                             />
                                         </div>
@@ -1058,7 +1054,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                                 <input 
                                                     type="text" 
                                                     value={settings.prizeImage}
-                                                    onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
+                                                    onChange={(e) => setSettings(prev => ({...prev, prizeImage: e.target.value}))}
                                                     className="w-full p-2 border border-stone-300 rounded-lg text-sm"
                                                 />
                                                 <button className="p-2 bg-stone-100 rounded border border-stone-300">
@@ -1107,7 +1103,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             type="text" 
                                             placeholder="https://www.youtube.com/embed/..."
                                             value={settings.liveStreamUrl}
-                                            onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
+                                            onChange={(e) => setSettings(prev => ({...prev, liveStreamUrl: e.target.value}))}
                                             className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
                                         />
                                         <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
@@ -1245,6 +1241,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 </div>
             )}
 
+            {/* ... (Existing USERS, PAYMENTS, SETTINGS tabs remain mostly same structure but using live data) ... */}
+            {/* The render logic for other tabs uses 'filteredUsers', 'paymentRequests' which are now state driven by Firestore */}
+            
             {/* --- USERS TAB --- */}
             {activeTab === 'users' && (
                 <div className="space-y-6 animate-fade-in-up">
@@ -1252,7 +1251,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                         <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
                         
                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                           {/* Filter */}
                            <div className="relative">
                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                    <Filter className="w-4 h-4 text-stone-400" />
@@ -1268,7 +1266,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                </select>
                            </div>
 
-                           {/* Search */}
                            <div className="relative flex-grow sm:flex-grow-0">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                                 <input 
@@ -1280,7 +1277,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 />
                            </div>
 
-                            {/* Save Button */}
                             <button 
                              onClick={() => handleSaveSection('User Database')}
                              className="flex items-center justify-center px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 font-bold shadow-md transition-colors"
@@ -1288,7 +1284,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                <Save className="w-4 h-4 mr-2" /> Save Changes
                            </button>
 
-                           {/* Add Button */}
                            <button 
                              onClick={openAddUser}
                              className="flex items-center justify-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow-md transition-colors"
@@ -1307,7 +1302,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         <th className="px-6 py-3">Name</th>
                                         <th className="px-6 py-3">Phone</th>
                                         <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3">This Month</th>
                                         <th className="px-6 py-3">Total Contrib.</th>
                                         <th className="px-6 py-3">Ticket #</th>
                                         <th className="px-6 py-3">Joined</th>
@@ -1317,7 +1311,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 <tbody className="divide-y divide-stone-100">
                                     {filteredUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-stone-50 group transition-colors">
-                                            <td className="px-6 py-4 text-stone-500 text-sm">#{user.id}</td>
+                                            <td className="px-6 py-4 text-stone-500 text-sm">#{user.id?.toString().substring(0,6)}</td>
                                             <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
                                             <td className="px-6 py-4 text-stone-600">{user.phone}</td>
                                             <td className="px-6 py-4">
@@ -1326,13 +1320,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                                 }`}>
                                                     {user.status}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-medium">
-                                                {user.status === 'VERIFIED' ? (
-                                                    <span className="text-emerald-600 font-bold">+5,000</span>
-                                                ) : (
-                                                    <span className="text-stone-300">0</span>
-                                                )}
                                             </td>
                                             <td className="px-6 py-4 font-mono text-stone-500">{user.contribution.toLocaleString()}</td>
                                             <td className="px-6 py-4">
@@ -1375,15 +1362,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                     )}
                                 </tbody>
                             </table>
-                        </div>
-                        <div className="bg-stone-50 px-6 py-3 border-t border-stone-200 text-xs text-stone-500 flex justify-between items-center">
-                             <span>Showing {filteredUsers.length} users</span>
-                             {users.length > 20 && (
-                                <div className="flex space-x-1">
-                                    <button className="px-2 py-1 border border-stone-300 rounded hover:bg-white disabled:opacity-50">Prev</button>
-                                    <button className="px-2 py-1 border border-stone-300 rounded hover:bg-white">Next</button>
-                                </div>
-                             )}
                         </div>
                     </div>
                 </div>

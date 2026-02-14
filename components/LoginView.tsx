@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { User as UserIcon, CheckSquare, Square, AlertCircle } from 'lucide-react';
 import { ViewState, User, Language, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface LoginViewProps {
   setView: (view: ViewState) => void;
@@ -19,7 +21,7 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
   const [error, setError] = useState('');
   const t = TRANSLATIONS[language].login;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -29,17 +31,57 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
     }
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setUser({
-        name: name || (isRegistering ? "New Member" : "Blessed Member"),
-        phone: phone,
-        status: 'PENDING',
-        contribution: isRegistering ? 5000 : 30000 // Fixed 5000 for new, mock accumulated for returning
-      });
-      setView('dashboard');
-      setLoading(false);
-    }, 1500);
+
+    try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where("phone", "==", phone));
+        const querySnapshot = await getDocs(q);
+
+        if (isRegistering) {
+            // REGISTRATION LOGIC
+            if (!querySnapshot.empty) {
+                setError(language === 'en' ? 'Phone number already registered. Please login.' : 'ይህ ስልክ ቁጥር ተመዝግቧል። እባክዎ ይግቡ።');
+                setLoading(false);
+                return;
+            }
+
+            const newUser: User = {
+                name: name,
+                phone: phone,
+                status: 'PENDING',
+                contribution: 0,
+                joinedDate: new Date().toLocaleDateString('en-US')
+            };
+
+            // Add to Firestore
+            const docRef = await addDoc(collection(db, 'users'), newUser);
+            
+            // Set Local State
+            setUser({ ...newUser, id: docRef.id as any }); // Using doc ID as user ID
+            setView('dashboard');
+
+        } else {
+            // LOGIN LOGIC
+            if (querySnapshot.empty) {
+                setError(language === 'en' ? 'Account not found. Please register.' : 'መለያ አልተገኘም። እባክዎ ይመዝገቡ።');
+                setLoading(false);
+                return;
+            }
+
+            // Get the first matching user
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data() as User;
+            // Append Firestore ID
+            setUser({ ...userData, id: userDoc.id as any });
+            setView('dashboard');
+        }
+
+    } catch (err) {
+        console.error("Auth Error", err);
+        setError(language === 'en' ? 'Connection error. Please try again.' : 'የግንኙነት ችግር አጋጥሟል። እንደገና ይሞክሩ።');
+    } finally {
+        setLoading(false);
+    }
   };
 
   const toggleMode = () => {

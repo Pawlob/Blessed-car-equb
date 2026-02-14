@@ -8,54 +8,114 @@ import PrizesView from './components/PrizesView';
 import TermsView from './components/TermsView';
 import Footer from './components/Footer';
 import { User, ViewState, Language, AppSettings, AppNotification } from './types';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { db } from './lib/firebase';
+
+// Default settings if DB is empty
+const DEFAULT_SETTINGS: AppSettings = {
+  nextDrawDateEn: 'Yekatit 21, 2018',
+  nextDrawDateAm: 'የካቲት 21፣ 2018',
+  potValue: 50450000,
+  totalMembers: 2150,
+  cycle: 14,
+  daysRemaining: 14,
+  drawDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString().split('T')[0],
+  carsDelivered: 142,
+  trustScore: 100,
+  prizeName: 'Toyota Corolla Cross 2025',
+  prizeValue: 'ETB 4.5M',
+  prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
+  liveStreamUrl: '',
+  isLive: false,
+  registrationEnabled: true,
+  adminPassword: 'admin123',
+  recentWinners: [
+    { 
+      id: 1, 
+      name: "Dawit M.", 
+      nameAm: "ዳዊት መ.",
+      prize: "Toyota Vitz", 
+      prizeAm: "ቶዮታ ቪትዝ",
+      cycle: "Tir (Jan)", 
+      cycleAm: "ጥር",
+      location: "Addis Ababa",
+      locationAm: "አዲስ አበባ"
+    },
+    { 
+      id: 2, 
+      name: "Sara T.", 
+      nameAm: "ሳራ ት.",
+      prize: "Hyundai i10", 
+      prizeAm: "ሂዩንዳይ i10",
+      cycle: "Tahsas (Dec)", 
+      cycleAm: "ታህሳስ",
+      location: "Adama",
+      locationAm: "አዳማ"
+    }
+  ]
+};
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
   const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState<Language>('am');
   const [hasShownPreloader, setHasShownPreloader] = useState(false);
+  
+  // App Settings State
+  const [appSettings, setAppSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
-  // Calculate initial target date (14 days from now for demo purposes)
-  const initialTargetDate = new Date();
-  initialTargetDate.setDate(initialTargetDate.getDate() + 14);
-  const initialDateString = initialTargetDate.toISOString().split('T')[0];
-
-  // Initial Mock Notifications
+  // Initial Mock Notifications (Can be moved to DB later)
   const [notifications, setNotifications] = useState<AppNotification[]>([
     { 
       id: 1,
-      title: { en: "Payment Reminder", am: "የክፍያ ማስታወሻ" },
-      desc: { 
-        en: "Your contribution for the current cycle is due. Please settle to remain eligible.",
-        am: "የአሁኑ ዙር ክፍያ ጊዜው እየደረሰ ነው። ለእጣው ብቁ ለመሆን እባክዎ ክፍያ ይፈጽሙ።"
-      },
-      time: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      urgent: true,
-      read: false
-    },
-    { 
-      id: 2,
-      title: { en: "System Update", am: "የሲስተም ማሻሻያ" },
-      desc: { 
-        en: "We have added Telebirr direct payment integration for faster processing.",
-        am: "ለፈጣን አገልግሎት የቴሌብር ቀጥታ ክፍያ አማራጭ አካተናል።"
-      },
-      time: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      urgent: false,
-      read: true
-    },
-    { 
-      id: 3,
       title: { en: "Welcome!", am: "እንኳን ደህና መጡ!" },
       desc: { 
-        en: "Thank you for joining Blessed Digital Equb. Please complete your profile.",
-        am: "ብለስድ ዲጂታል እቁብን ስለተቀላቀሉ እናመሰግናለን። እባክዎ መገለጫዎን ያሟሉ።"
+        en: "Thank you for joining Blessed Digital Equb.",
+        am: "ብለስድ ዲጂታል እቁብን ስለተቀላቀሉ እናመሰግናለን።"
       },
-      time: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+      time: new Date(), 
       urgent: false,
-      read: true
+      read: false
     }
   ]);
+
+  // --- Firestore Integration for Settings ---
+  useEffect(() => {
+    const settingsRef = doc(db, 'settings', 'global');
+    
+    // Subscribe to real-time updates
+    const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setAppSettings(docSnap.data() as AppSettings);
+      } else {
+        // If document doesn't exist, create it with defaults
+        setDoc(settingsRef, DEFAULT_SETTINGS).catch(console.error);
+      }
+    }, (error) => {
+      console.error("Error fetching settings:", error);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Sync updated settings back to Firestore when changed via Admin
+  const handleSettingsUpdate = async (newSettings: React.SetStateAction<AppSettings>) => {
+      // Resolve the state update if it's a function
+      const resolvedSettings = typeof newSettings === 'function' 
+        ? newSettings(appSettings) 
+        : newSettings;
+      
+      // Update local state immediately for UI responsiveness
+      setAppSettings(resolvedSettings);
+
+      // Persist to Firestore
+      try {
+        await setDoc(doc(db, 'settings', 'global'), resolvedSettings, { merge: true });
+      } catch (err) {
+        console.error("Failed to save settings to DB", err);
+      }
+  };
+
 
   const addNotification = (notification: AppNotification) => {
     setNotifications(prev => [notification, ...prev]);
@@ -65,55 +125,12 @@ const App: React.FC = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  // Global Settings State to be controlled by Admin
-  const [appSettings, setAppSettings] = useState<AppSettings>({
-    nextDrawDateEn: 'Yekatit 21, 2018',
-    nextDrawDateAm: 'የካቲት 21፣ 2018',
-    potValue: 50450000,
-    totalMembers: 2150,
-    cycle: 14,
-    daysRemaining: 14,
-    drawDate: initialDateString,
-    carsDelivered: 142,
-    trustScore: 100,
-    prizeName: 'Toyota Corolla Cross 2025',
-    prizeValue: 'ETB 4.5M',
-    prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
-    liveStreamUrl: '',
-    isLive: false,
-    registrationEnabled: true,
-    adminPassword: 'admin123',
-    recentWinners: [
-      { 
-        id: 1, 
-        name: "Dawit M.", 
-        nameAm: "ዳዊት መ.",
-        prize: "Toyota Vitz", 
-        prizeAm: "ቶዮታ ቪትዝ",
-        cycle: "Tir (Jan)", 
-        cycleAm: "ጥር",
-        location: "Addis Ababa",
-        locationAm: "አዲስ አበባ"
-      },
-      { 
-        id: 2, 
-        name: "Sara T.", 
-        nameAm: "ሳራ ት.",
-        prize: "Hyundai i10", 
-        prizeAm: "ሂዩንዳይ i10",
-        cycle: "Tahsas (Dec)", 
-        cycleAm: "ታህሳስ",
-        location: "Adama",
-        locationAm: "አዳማ"
-      }
-    ]
-  });
-
   // Countdown Timer Logic
   useEffect(() => {
     const updateCountdown = () => {
+      if (!appSettings.drawDate) return;
+
       const today = new Date();
-      // Reset time part to ensure clean day calculation
       today.setHours(0, 0, 0, 0);
       
       const target = new Date(appSettings.drawDate);
@@ -122,16 +139,19 @@ const App: React.FC = () => {
       const diffTime = target.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      // Only update if changed to avoid render loops
       const finalDays = diffDays > 0 ? diffDays : 0;
       
+      // Only update if changed (and sync to DB to keep everyone on same page)
       if (finalDays !== appSettings.daysRemaining) {
-        setAppSettings(prev => ({ ...prev, daysRemaining: finalDays }));
+         setAppSettings(prev => ({ ...prev, daysRemaining: finalDays }));
+         // Optional: We might not want to write to DB every second from every client.
+         // Usually, a cloud function or the Admin updates this. 
+         // For this demo, we'll let the AdminView handle the DB write for daysRemaining
+         // or rely on local calculation for display.
       }
     };
 
     updateCountdown();
-    // Update every minute to handle midnight transitions while app is open
     const timer = setInterval(updateCountdown, 60000); 
     
     return () => clearInterval(timer);
@@ -149,26 +169,19 @@ const App: React.FC = () => {
        }
     };
 
-    // Set initial view based on URL hash
     const currentView = getInitialView();
     setView(currentView);
     
-    // Ensure we have a history state for the initial load
     try {
       if (!window.history.state) {
         window.history.replaceState({ view: currentView }, '', `#${currentView}`);
       }
-    } catch (e) {
-      // In some environments (like blob URLs or strict iframes), History API might be restricted.
-      // We silence the error to allow the app to function without URL sync.
-      // console.warn("History API restricted, navigation state will not be synced to URL.");
-    }
+    } catch (e) {}
 
     const handlePopState = (event: PopStateEvent) => {
         if (event.state && event.state.view) {
             setView(event.state.view);
         } else {
-            // Fallback for scenarios where state might be lost or manual hash change
             setView(getInitialView());
         }
     };
@@ -177,17 +190,13 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Custom navigator that syncs with browser history
   const handleSetView = (newView: ViewState) => {
-    // Prevent pushing duplicate states
     if (view === newView) return;
-    
     setView(newView);
     try {
       window.history.pushState({ view: newView }, '', `#${newView}`);
       window.scrollTo(0, 0);
     } catch (e) {
-      // Fallback if History API fails
       window.scrollTo(0, 0);
     }
   };
@@ -202,7 +211,7 @@ const App: React.FC = () => {
       <AdminView 
         setView={handleSetView} 
         settings={appSettings} 
-        setSettings={setAppSettings} 
+        setSettings={handleSettingsUpdate} 
         addNotification={addNotification}
       />
     );

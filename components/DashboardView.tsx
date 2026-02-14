@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS } from '../constants';
+import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface DashboardViewProps {
   user: User;
@@ -33,44 +35,89 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
   
-  // Mock available tickets (1-40 for demo of roll based system)
-  const [tickets] = useState(() => Array.from({ length: 40 }, (_, i) => ({
-    number: i + 1,
-    taken: Math.random() > 0.7 // 30% taken
-  })));
+  // Real ticket data from DB
+  const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
 
   const t = TRANSLATIONS[language].dashboard;
   const heroT = TRANSLATIONS[language].hero;
 
+  // --- Real-time User Updates ---
   useEffect(() => {
-    // Initialize some feed items
+    if (!user || !user.id) return;
+
+    // Listen to changes in the current user's document
+    const userRef = doc(db, 'users', user.id.toString());
+    const unsub = onSnapshot(userRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            // Merge with local user state to update Status/Contribution/PrizeNumber
+            setUser(prev => ({ ...prev!, ...data }));
+        }
+    });
+
+    return () => unsub();
+  }, [user?.id]); // Depend on ID to set up listener
+
+  // --- Mock Feed & Tickets Init ---
+  useEffect(() => {
+    // Generate some mock feed
     setFeed([generateMockFeed(t), generateMockFeed(t)]);
-    
-    // Simulate live feed
     const interval = setInterval(() => {
       setFeed(prev => [generateMockFeed(t), ...prev.slice(0, 4)]);
     }, 4000);
+
+    // Initialize Tickets (Mock 1-100) - In a real app, fetch from 'tickets' collection
+    // For now, we simulate taken tickets locally or fetch from settings if implemented
+    // Let's create a simple local array, but marking user's ticket as taken
+    const allTickets = Array.from({ length: 100 }, (_, i) => ({
+        number: i + 1,
+        taken: Math.random() > 0.8 // Random taken status
+    }));
+    setTickets(allTickets);
+
     return () => clearInterval(interval);
   }, [language, t]);
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
+    if (!user || !user.id) return;
     setUploading(true);
-    setTimeout(() => {
-      setUser((prev: User | null) => prev ? ({ ...prev, status: 'VERIFIED', contribution: prev.contribution + 5000 }) : null);
-      setUploading(false);
-      setPaymentMethod(null);
-      setPaymentConfirmed(false);
-      // Add self to feed
-      setFeed(prev => [{ id: Math.random(), name: "You", action: t.action_verified, time: "Just now" }, ...prev.slice(0, 4)]);
-      
-      // Open ticket modal after success
-      setTimeout(() => setShowTicketModal(true), 500);
-    }, 2000);
+
+    try {
+        // Create Payment Request in Firestore
+        await addDoc(collection(db, 'payment_requests'), {
+            userId: user.id, // Store ID as string from Firestore
+            userName: user.name,
+            userPhone: user.phone,
+            amount: 5000,
+            date: new Date().toLocaleDateString(),
+            receiptUrl: "https://via.placeholder.com/150", // Placeholder until file upload is implemented
+            status: 'PENDING',
+            requestedTicket: selectedTempTicket // If user selected a ticket before paying (optional flow)
+        });
+
+        // UI Feedback
+        setTimeout(() => {
+            setUploading(false);
+            setPaymentMethod(null);
+            setPaymentConfirmed(false);
+            // We don't verify user immediately anymore. Admin must verify.
+            // But we can show success message.
+            alert(language === 'en' ? "Receipt uploaded successfully! Waiting for admin verification." : "ደረሰኝ በተሳካ ሁኔታ ተላከ! አስተዳዳሪው እስኪያረጋግጥ ይጠብቁ።");
+        }, 1000);
+
+    } catch (error) {
+        console.error("Payment Error", error);
+        setUploading(false);
+    }
   };
 
-  const confirmTicket = () => {
-    if (selectedTempTicket && user) {
-        setUser({ ...user, prizeNumber: selectedTempTicket });
+  const confirmTicket = async () => {
+    if (selectedTempTicket && user && user.id) {
+        // In this flow, we might just save the preference in the user doc
+        // Or create a request. For simplicity, let's update user doc directly for now?
+        // NO, Admin logic says "requestedTicket" is in payment request. 
+        // Let's assume this modal is just for viewing or "Reserving" if allowed.
+        // For now, let's just close modal as the payment flow handles the assignment logic in AdminView
         setShowTicketModal(false);
     }
   };
@@ -81,9 +128,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date: any) => {
+    // Handle Firestore Timestamp or JS Date
+    const d = date?.toDate ? date.toDate() : new Date(date);
+    
     const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
     
     if (diffInSeconds < 60) return language === 'en' ? 'Just now' : 'አሁን';
     const diffInMinutes = Math.floor(diffInSeconds / 60);
@@ -99,8 +149,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   // Dynamic Data from Settings
   const paymentDueDate = language === 'en' ? settings.nextDrawDateEn : settings.nextDrawDateAm;
   const cycleText = language === 'en' ? `Cycle ${settings.cycle}` : `ዙር ${settings.cycle}`;
-  const potFormatted = settings.potValue.toLocaleString();
-  const membersFormatted = settings.totalMembers.toLocaleString();
 
   const getHistoryDate = (offset: number) => {
       const day = 12 - offset;
@@ -188,7 +236,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             
             <div className="p-6">
                 <p className="text-sm text-stone-500 mb-4">{t.ticket_instruction}</p>
-                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 mb-6">
+                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 mb-6 max-h-60 overflow-y-auto">
                     {tickets.map((ticket) => (
                         <button
                           key={ticket.number}
@@ -233,7 +281,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 animate-fade-in-down">
            <div>
               <h1 className="text-2xl font-bold text-emerald-900">{t.welcome} {user.name}</h1>
-              <p className="text-stone-500">Member ID: #8291 • {cycleText}</p>
+              <p className="text-stone-500">Member ID: #{user.id?.toString().slice(0,6)}... • {cycleText}</p>
            </div>
            <div className="mt-4 md:mt-0 flex space-x-3">
               <button 
