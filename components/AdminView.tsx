@@ -41,6 +41,10 @@ const ETHIOPIAN_MONTHS = [
     { val: 13, name: "Pagume (Sep)" },
 ];
 
+const AMHARIC_MONTHS = [
+    "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሀምሌ", "ነሃሴ", "ጳጉሜ"
+];
+
 // Convert Ethiopian Date to Gregorian string (YYYY-MM-DD)
 const getGregorianFromEthiopian = (year: number, month: number, day: number) => {
     // Eth New Year is Sep 11, or Sep 12 if the *next* Gregorian year is a leap year.
@@ -171,9 +175,24 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
       const newEthDate = { ...ethDate, [field]: value };
       setEthDate(newEthDate);
       
-      // Calculate new Gregorian date and update global settings
+      // Calculate new Gregorian date
       const newGregString = getGregorianFromEthiopian(newEthDate.year, newEthDate.month, newEthDate.day);
-      setSettings(prev => ({ ...prev, drawDate: newGregString }));
+
+      // Format display strings
+      const monthIndex = newEthDate.month - 1;
+      const monthNameEn = ETHIOPIAN_MONTHS[monthIndex]?.name.split(' ')[0] || '';
+      const monthNameAm = AMHARIC_MONTHS[monthIndex] || '';
+
+      const nextDrawDateEn = `${monthNameEn} ${newEthDate.day}, ${newEthDate.year}`;
+      const nextDrawDateAm = `${monthNameAm} ${newEthDate.day}፣ ${newEthDate.year}`;
+      
+      // Update global settings
+      setSettings(prev => ({ 
+          ...prev, 
+          drawDate: newGregString,
+          nextDrawDateEn,
+          nextDrawDateAm
+      }));
   };
 
   // Auto-calculate Pot Value and Total Members based on Users
