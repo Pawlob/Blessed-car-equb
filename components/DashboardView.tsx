@@ -326,19 +326,19 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             
             <div className="p-6">
                 <p className="text-sm text-stone-500 mb-4">{t.ticket_instruction}</p>
-                <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 mb-6 max-h-60 overflow-y-auto">
+                <div className="grid grid-cols-5 sm:grid-cols-6 gap-3 mb-6 max-h-80 overflow-y-auto p-2">
                     {tickets.map((ticket) => (
                         <button
                           key={ticket.number}
                           disabled={ticket.taken}
                           onClick={() => setSelectedTempTicket(ticket.number)}
                           className={`
-                             aspect-square rounded-lg flex items-center justify-center text-sm font-bold transition-all
+                             aspect-square rounded-xl flex items-center justify-center text-xl font-extrabold transition-all shadow-sm
                              ${ticket.taken 
-                                ? 'bg-stone-100 text-stone-300 cursor-not-allowed' 
+                                ? 'bg-stone-100 text-stone-300 cursor-not-allowed opacity-50' 
                                 : selectedTempTicket === ticket.number 
-                                   ? 'bg-amber-500 text-white shadow-lg scale-110 ring-2 ring-amber-300' 
-                                   : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:scale-105'}
+                                   ? 'bg-amber-500 text-white shadow-xl scale-110 ring-4 ring-amber-200' 
+                                   : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-600 hover:text-white hover:scale-105 active:scale-95'}
                           `}
                         >
                            {formatTicket(ticket.number)}
@@ -346,9 +346,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                     ))}
                 </div>
 
-                <div className="bg-stone-50 p-4 rounded-xl flex items-center justify-between mb-4">
-                    <span className="text-stone-600 font-medium">{t.my_ticket}:</span>
-                    <span className="text-2xl font-bold text-amber-600">
+                <div className="bg-emerald-50 p-5 rounded-2xl flex items-center justify-between mb-6 border border-emerald-100">
+                    <span className="text-emerald-900 font-bold">{t.my_ticket}:</span>
+                    <span className="text-4xl font-black text-emerald-700 tracking-tighter">
                         {selectedTempTicket ? `#${formatTicket(selectedTempTicket)}` : '-'}
                     </span>
                 </div>
@@ -356,7 +356,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                 <button 
                   onClick={confirmTicket}
                   disabled={!selectedTempTicket}
-                  className="w-full py-3 bg-emerald-900 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors shadow-lg"
+                  className="w-full py-4 bg-emerald-900 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold text-lg rounded-xl transition-all shadow-xl active:scale-95"
                 >
                     {t.confirm_ticket}
                 </button>
@@ -451,7 +451,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           <Ticket className="w-3 h-3 md:w-5 md:h-5 text-amber-600 mr-1 md:mr-2 flex-shrink-0" />
                           <span className="text-amber-800 font-medium text-[10px] md:text-sm truncate">{t.my_ticket}</span>
                       </div>
-                      <span className="text-xs md:text-xl font-bold text-amber-600 flex-shrink-0 ml-1">#{formatTicket(user.prizeNumber)}</span>
+                      <span className="text-sm md:text-xl font-extrabold text-amber-600 flex-shrink-0 ml-1">#{formatTicket(user.prizeNumber)}</span>
                    </div>
                ) : (
                    <>
@@ -667,10 +667,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                   </div>
                   {luckyStatus === 'AVAILABLE' && (
                       <div className="mt-3 animate-fade-in-down">
-                          <p className="text-xs text-emerald-600 font-bold mb-3 flex items-center">
-                              <CheckCircle className="w-3 h-3 mr-1" /> {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
+                          <p className="text-sm text-emerald-600 font-extrabold mb-3 flex items-center">
+                              <CheckCircle className="w-4 h-4 mr-1" /> {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
                           </p>
-                          <button onClick={() => { setSelectedTempTicket(parseInt(luckySearch)); setShowTicketModal(true); }} className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-500 shadow-md transition-all transform active:scale-95">
+                          <button onClick={() => { setSelectedTempTicket(parseInt(luckySearch)); setShowTicketModal(true); }} className="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold text-base hover:bg-emerald-500 shadow-md transition-all transform active:scale-95">
                               {language === 'en' ? `Select #${luckySearch}` : `#${luckySearch} ምረጥ`}
                           </button>
                       </div>
