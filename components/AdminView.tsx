@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -151,6 +151,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // User Management State
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<Partial<User>>({});
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'VERIFIED' | 'PENDING'>('ALL');
+
   // Local state for Ethiopian Date Inputs
   const [ethDate, setEthDate] = useState({ year: 2016, month: 1, day: 1 });
 
@@ -215,6 +220,20 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     setAlertConfig(prev => ({ ...prev, isOpen: false }));
   };
 
+  // Generic Save Handler
+  const handleSaveSection = (sectionName: string) => {
+    showConfirm(
+        'Save Changes',
+        `Are you sure you want to save changes to ${sectionName}?`,
+        () => {
+             // Simulate API call delay
+             setTimeout(() => {
+                 showAlert('success', 'Changes Saved', `${sectionName} has been successfully updated.`);
+             }, 500);
+        }
+    );
+  };
+
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,10 +246,50 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   };
 
   // User Management
-  const toggleUserStatus = (id: number) => {
-    setUsers(users.map(u => 
-      u.id === id ? { ...u, status: u.status === 'VERIFIED' ? 'PENDING' : 'VERIFIED' } : u
-    ));
+  const handleSaveUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser.name || !editingUser.phone) {
+        showAlert('error', 'Missing Information', 'Name and Phone are required.');
+        return;
+    }
+
+    if (editingUser.id) {
+        // Update existing user
+        setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editingUser } as User : u));
+        showAlert('success', 'User Updated', 'User details have been saved successfully.');
+    } else {
+        // Create new user
+        const newId = Math.max(...users.map(u => u.id || 0), 100) + 1;
+        const newUser: User = {
+            id: newId,
+            name: editingUser.name,
+            phone: editingUser.phone,
+            status: editingUser.status || 'PENDING',
+            contribution: editingUser.contribution || 0,
+            prizeNumber: editingUser.prizeNumber,
+            joinedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+        setUsers([...users, newUser]);
+        showAlert('success', 'User Created', 'New user has been added successfully.');
+    }
+    setIsUserModalOpen(false);
+  };
+
+  const handleDeleteUser = (id: number) => {
+    showConfirm('Delete User', 'Are you sure you want to delete this user? This action cannot be undone.', () => {
+        setUsers(users.filter(u => u.id !== id));
+        showAlert('success', 'User Deleted', 'User has been removed from the system.');
+    });
+  };
+
+  const openAddUser = () => {
+    setEditingUser({ status: 'PENDING', contribution: 0 });
+    setIsUserModalOpen(true);
+  };
+
+  const openEditUser = (user: User) => {
+    setEditingUser({ ...user });
+    setIsUserModalOpen(true);
   };
 
   // Payment Verification Actions
@@ -284,10 +343,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     );
   };
 
-  const filteredUsers = users.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.phone.includes(searchTerm)
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = u.name.toLowerCase().includes(searchTerm.toLowerCase()) || u.phone.includes(searchTerm);
+    const matchesStatus = statusFilter === 'ALL' || u.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleTabChange = (tab: typeof activeTab) => {
     setActiveTab(tab);
@@ -363,10 +423,87 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
         />
       )}
 
+      {/* User Modal */}
+      {isUserModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down" onClick={() => setIsUserModalOpen(false)}>
+           <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={e => e.stopPropagation()}>
+               <div className="p-5 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+                   <h3 className="font-bold text-lg text-stone-800 flex items-center">
+                       {editingUser.id ? <Edit className="w-5 h-5 mr-2" /> : <Plus className="w-5 h-5 mr-2" />}
+                       {editingUser.id ? 'Edit User' : 'Add New User'}
+                   </h3>
+                   <button onClick={() => setIsUserModalOpen(false)} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
+               </div>
+               <form onSubmit={handleSaveUser} className="p-6 space-y-4">
+                   <div className="grid grid-cols-2 gap-4">
+                       <div className="col-span-2">
+                           <label className="block text-sm font-bold text-stone-700 mb-1">Full Name</label>
+                           <input 
+                             type="text" 
+                             required
+                             value={editingUser.name || ''}
+                             onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                             placeholder="e.g. Abebe Kebede"
+                           />
+                       </div>
+                       <div className="col-span-2 md:col-span-1">
+                           <label className="block text-sm font-bold text-stone-700 mb-1">Phone Number</label>
+                           <input 
+                             type="text" 
+                             required
+                             value={editingUser.phone || ''}
+                             onChange={e => setEditingUser({...editingUser, phone: e.target.value})}
+                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                             placeholder="0911..."
+                           />
+                       </div>
+                       <div className="col-span-2 md:col-span-1">
+                           <label className="block text-sm font-bold text-stone-700 mb-1">Status</label>
+                           <select 
+                             value={editingUser.status || 'PENDING'}
+                             onChange={e => setEditingUser({...editingUser, status: e.target.value as 'PENDING' | 'VERIFIED'})}
+                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                           >
+                               <option value="PENDING">Pending</option>
+                               <option value="VERIFIED">Verified</option>
+                           </select>
+                       </div>
+                       <div className="col-span-2 md:col-span-1">
+                           <label className="block text-sm font-bold text-stone-700 mb-1">Contribution (ETB)</label>
+                           <input 
+                             type="number" 
+                             value={editingUser.contribution || 0}
+                             onChange={e => setEditingUser({...editingUser, contribution: parseInt(e.target.value) || 0})}
+                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                           />
+                       </div>
+                       <div className="col-span-2 md:col-span-1">
+                           <label className="block text-sm font-bold text-stone-700 mb-1">Ticket Number (Opt)</label>
+                           <input 
+                             type="number" 
+                             value={editingUser.prizeNumber || ''}
+                             onChange={e => setEditingUser({...editingUser, prizeNumber: e.target.value ? parseInt(e.target.value) : undefined})}
+                             className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                             placeholder="Ticket #"
+                           />
+                       </div>
+                   </div>
+                   <div className="pt-4 flex justify-end space-x-3">
+                       <button type="button" onClick={() => setIsUserModalOpen(false)} className="px-4 py-2 text-stone-600 font-bold hover:bg-stone-100 rounded-lg">Cancel</button>
+                       <button type="submit" className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center">
+                           <Save className="w-4 h-4 mr-2" /> Save User
+                       </button>
+                   </div>
+               </form>
+           </div>
+        </div>
+      )}
+
       {/* Custom Alert/Confirm Modal */}
       {alertConfig.isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down" onClick={closeAlert}>
-           <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden scale-100" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down" onClick={closeAlert}>
+           <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden scale-100 border border-stone-200" onClick={e => e.stopPropagation()}>
               <div className={`p-4 flex items-center justify-between ${
                  alertConfig.type === 'error' ? 'bg-red-50' : 
                  alertConfig.type === 'success' ? 'bg-emerald-50' : 
@@ -385,19 +522,19 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                  <button onClick={closeAlert} className="opacity-50 hover:opacity-100"><X className="w-5 h-5" /></button>
               </div>
               <div className="p-6">
-                 <p className="text-stone-600 mb-6 whitespace-pre-line">{alertConfig.message}</p>
+                 <p className="text-stone-600 mb-6 whitespace-pre-line text-sm leading-relaxed">{alertConfig.message}</p>
                  <div className="flex space-x-3">
                     {alertConfig.type === 'confirm' && (
                         <button 
                             onClick={() => { alertConfig.onConfirm?.(); closeAlert(); }}
-                            className="flex-1 px-4 py-2 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-500"
+                            className="flex-1 px-4 py-2 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-500 shadow-md transition-colors"
                         >
                             Confirm
                         </button>
                     )}
                     <button 
                         onClick={closeAlert} 
-                        className={`flex-1 px-4 py-2 font-bold rounded-lg ${alertConfig.type === 'confirm' ? 'bg-stone-200 text-stone-700 hover:bg-stone-300' : 'bg-stone-800 text-white hover:bg-stone-700'}`}
+                        className={`flex-1 px-4 py-2 font-bold rounded-lg transition-colors ${alertConfig.type === 'confirm' ? 'bg-stone-200 text-stone-700 hover:bg-stone-300' : 'bg-stone-800 text-white hover:bg-stone-700'}`}
                     >
                         {alertConfig.type === 'confirm' ? 'Cancel' : 'OK'}
                     </button>
@@ -585,15 +722,51 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                 <div className="space-y-6 animate-fade-in-up">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-                            <input 
-                                type="text" 
-                                placeholder="Search users..." 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full md:w-64"
-                            />
+                        
+                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                           {/* Filter */}
+                           <div className="relative">
+                               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                   <Filter className="w-4 h-4 text-stone-400" />
+                               </div>
+                               <select 
+                                 value={statusFilter}
+                                 onChange={(e) => setStatusFilter(e.target.value as any)}
+                                 className="pl-9 pr-8 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-auto appearance-none bg-white"
+                               >
+                                   <option value="ALL">All Status</option>
+                                   <option value="VERIFIED">Verified</option>
+                                   <option value="PENDING">Pending</option>
+                               </select>
+                           </div>
+
+                           {/* Search */}
+                           <div className="relative flex-grow sm:flex-grow-0">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search users..." 
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-64"
+                                />
+                           </div>
+
+                            {/* Save Button */}
+                            <button 
+                             onClick={() => handleSaveSection('User Database')}
+                             className="flex items-center justify-center px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 font-bold shadow-md transition-colors"
+                           >
+                               <Save className="w-4 h-4 mr-2" /> Save Changes
+                           </button>
+
+                           {/* Add Button */}
+                           <button 
+                             onClick={openAddUser}
+                             className="flex items-center justify-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow-md transition-colors"
+                           >
+                               <Plus className="w-4 h-4 mr-2" /> Add User
+                           </button>
                         </div>
                     </div>
 
@@ -609,12 +782,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                         <th className="px-6 py-3">Contribution</th>
                                         <th className="px-6 py-3">Ticket #</th>
                                         <th className="px-6 py-3">Joined</th>
-                                        <th className="px-6 py-3">Actions</th>
+                                        <th className="px-6 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-stone-100">
                                     {filteredUsers.map((user) => (
-                                        <tr key={user.id} className="hover:bg-stone-50">
+                                        <tr key={user.id} className="hover:bg-stone-50 group transition-colors">
                                             <td className="px-6 py-4 text-stone-500 text-sm">#{user.id}</td>
                                             <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
                                             <td className="px-6 py-4 text-stone-600">{user.phone}</td>
@@ -634,23 +807,47 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                                 ) : <span className="text-stone-300">-</span>}
                                             </td>
                                             <td className="px-6 py-4 text-stone-400 text-sm">{user.joinedDate}</td>
-                                            <td className="px-6 py-4">
-                                                <button 
-                                                    onClick={() => toggleUserStatus(user.id!)}
-                                                    className="text-blue-600 hover:text-blue-800 text-sm font-bold"
-                                                >
-                                                    Toggle Status
-                                                </button>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end space-x-2">
+                                                    <button 
+                                                        onClick={() => openEditUser(user)}
+                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        title="Edit User"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteUser(user.id!)}
+                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Delete User"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {filteredUsers.length === 0 && (
                                         <tr>
-                                            <td colSpan={8} className="text-center py-8 text-stone-500">No users found matching your search.</td>
+                                            <td colSpan={8} className="text-center py-12 text-stone-500">
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <Search className="w-8 h-8 text-stone-300 mb-2" />
+                                                    <p>No users found matching your search.</p>
+                                                </div>
+                                            </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="bg-stone-50 px-6 py-3 border-t border-stone-200 text-xs text-stone-500 flex justify-between items-center">
+                             <span>Showing {filteredUsers.length} users</span>
+                             {users.length > 20 && (
+                                <div className="flex space-x-1">
+                                    <button className="px-2 py-1 border border-stone-300 rounded hover:bg-white disabled:opacity-50">Prev</button>
+                                    <button className="px-2 py-1 border border-stone-300 rounded hover:bg-white">Next</button>
+                                </div>
+                             )}
                         </div>
                     </div>
                 </div>
@@ -769,6 +966,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                 </div>
                             </div>
                         </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Account & Security')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
+                        </div>
                     </div>
 
                     {/* Draw Schedule Card */}
@@ -825,6 +1027,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                 </div>
                             </div>
                         </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Draw Schedule')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
+                        </div>
                     </div>
 
                     {/* Prize Settings Card */}
@@ -874,6 +1081,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                 </div>
                             </div>
                         </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Current Prize')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
+                        </div>
                     </div>
 
                     {/* Live Stream Settings Card */}
@@ -907,6 +1119,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                 />
                                 <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
                              </div>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Live Stream Config')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
                         </div>
                     </div>
                 </div>
