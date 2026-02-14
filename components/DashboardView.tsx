@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS } from '../constants';
-import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface DashboardViewProps {
@@ -34,6 +34,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [userActivities, setUserActivities] = useState<any[]>([]);
   
   // Real ticket data from DB
   const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
@@ -58,6 +59,77 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     return () => unsub();
   }, [user?.id]); // Depend on ID to set up listener
 
+  // --- Fetch User Specific Activities (Payments, etc) ---
+  useEffect(() => {
+    if (!user || !user.id) return;
+
+    // Listen to payment requests for this user
+    const q = query(collection(db, 'payment_requests'), where('userId', '==', user.id));
+    
+    const unsub = onSnapshot(q, (snapshot) => {
+        const paymentActs = snapshot.docs.map(doc => ({
+            id: doc.id,
+            type: 'PAYMENT',
+            date: doc.data().date,
+            data: doc.data()
+        }));
+
+        // Construct timeline
+        const timeline = [];
+
+        // 1. Joined
+        timeline.push({
+            id: 'joined',
+            type: 'JOINED',
+            date: user.joinedDate || 'Recent',
+            title: language === 'en' ? 'Joined the Equb' : 'እቁቡን ተቀላቅለዋል',
+            desc: language === 'en' ? 'Account created successfully' : 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል',
+            status: 'success'
+        });
+
+        // 2. Payments
+        paymentActs.forEach(pay => {
+            let statusColor = 'text-amber-500';
+            let statusText = language === 'en' ? 'Pending' : 'በመጠባበቅ ላይ';
+            
+            if (pay.data.status === 'APPROVED') {
+                statusColor = 'text-emerald-500';
+                statusText = language === 'en' ? 'Approved' : 'ተረጋግጧል';
+            } else if (pay.data.status === 'REJECTED') {
+                statusColor = 'text-red-500';
+                statusText = language === 'en' ? 'Rejected' : 'ተሰርዟል';
+            }
+
+            timeline.push({
+                id: pay.id,
+                type: 'PAYMENT',
+                date: pay.date,
+                title: language === 'en' ? 'Payment Submitted' : 'ክፍያ ተፈጽሟል',
+                desc: `${pay.data.amount} ETB - ${statusText}`,
+                status: pay.data.status === 'APPROVED' ? 'success' : pay.data.status === 'REJECTED' ? 'error' : 'warning'
+            });
+        });
+
+        // 3. Ticket
+        if (user.prizeNumber) {
+            timeline.push({
+                id: 'ticket-assigned',
+                type: 'TICKET',
+                date: language === 'en' ? 'Active' : 'ንቁ',
+                title: language === 'en' ? 'Ticket Assigned' : 'እጣ ቁጥር ተሰጥቷል',
+                desc: `Lucky Number: #${user.prizeNumber}`,
+                status: 'success'
+            });
+        }
+
+        // Sort roughly (Strings dates are hard to sort perfectly without parsing, but putting newest first generally)
+        // Since we build it, let's reverse to show Ticket -> Payment -> Join
+        setUserActivities(timeline.reverse());
+    });
+
+    return () => unsub();
+  }, [user.id, user.prizeNumber, language]);
+
   // --- Mock Feed & Tickets Init ---
   useEffect(() => {
     // Generate some mock feed
@@ -67,8 +139,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     }, 4000);
 
     // Initialize Tickets (Mock 1-100) - In a real app, fetch from 'tickets' collection
-    // For now, we simulate taken tickets locally or fetch from settings if implemented
-    // Let's create a simple local array, but marking user's ticket as taken
     const allTickets = Array.from({ length: 100 }, (_, i) => ({
         number: i + 1,
         taken: Math.random() > 0.8 // Random taken status
@@ -113,11 +183,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
   const confirmTicket = async () => {
     if (selectedTempTicket && user && user.id) {
-        // In this flow, we might just save the preference in the user doc
-        // Or create a request. For simplicity, let's update user doc directly for now?
-        // NO, Admin logic says "requestedTicket" is in payment request. 
-        // Let's assume this modal is just for viewing or "Reserving" if allowed.
-        // For now, let's just close modal as the payment flow handles the assignment logic in AdminView
         setShowTicketModal(false);
     }
   };
@@ -150,11 +215,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const paymentDueDate = language === 'en' ? settings.nextDrawDateEn : settings.nextDrawDateAm;
   const cycleText = language === 'en' ? `Cycle ${settings.cycle}` : `ዙር ${settings.cycle}`;
 
-  const getHistoryDate = (offset: number) => {
-      const day = 12 - offset;
-      return language === 'en' ? `Tir ${day}, 2018` : `ጥር ${day}፣ 2018`;
-  };
-
   const hallOfFame1 = language === 'en' 
       ? { name: "Dawit M.", desc: "Won Toyota Vitz (Tir)" }
       : { name: "ዳዊት መ.", desc: "ቶዮታ ቪትዝ አሸንፏል (ጥር)" };
@@ -165,6 +225,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   
   // Helper to format ticket number
   const formatTicket = (num: number) => num.toString();
+
+  // Helper icons for activity
+  const getActivityIcon = (type: string, status: string) => {
+      if (type === 'TICKET') return <Ticket className="w-5 h-5 text-emerald-600" />;
+      if (type === 'JOINED') return <UserPlus className="w-5 h-5 text-blue-500" />;
+      if (type === 'PAYMENT') {
+          if (status === 'success') return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+          if (status === 'error') return <X className="w-5 h-5 text-red-500" />;
+          return <Clock className="w-5 h-5 text-amber-500" />;
+      }
+      return <Activity className="w-5 h-5 text-stone-400" />;
+  };
 
   return (
     <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
@@ -556,27 +628,44 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                     </div>
                 </div>
 
-                {/* History */}
+                {/* Activity Tracker (Conditions) */}
                 <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[400ms]">
-                    <h3 className="font-bold text-stone-800 mb-4 flex items-center">
-                       <History className="w-5 h-5 mr-2 text-stone-400" /> {t.history}
-                    </h3>
-                    <div className="space-y-4">
-                        {[1, 2, 3].map((i) => (
-                           <div key={i} className="flex items-center justify-between py-2 border-b border-stone-100 last:border-0 hover:bg-stone-50 transition-colors px-2 -mx-2 rounded-lg">
-                              <div className="flex items-center">
-                                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mr-3">
-                                    <CheckCircle className="w-5 h-5" />
-                                 </div>
-                                 <div>
-                                    <p className="font-medium text-stone-800">Monthly Contribution</p>
-                                    <p className="text-xs text-stone-500">{getHistoryDate(i)}</p>
-                                 </div>
-                              </div>
-                              <span className="font-bold text-stone-700">-5,000 ETB</span>
-                           </div>
-                        ))}
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="font-bold text-stone-800 flex items-center">
+                           <Activity className="w-5 h-5 mr-2 text-stone-400" /> {t.history}
+                        </h3>
+                        <span className="text-xs font-bold bg-stone-100 text-stone-500 px-2 py-1 rounded-full">{userActivities.length} Events</span>
                     </div>
+                    
+                    {userActivities.length === 0 ? (
+                         <div className="text-center py-8 text-stone-400 text-sm">
+                             No recent activity. Make a payment to get started!
+                         </div>
+                    ) : (
+                        <div className="relative border-l-2 border-stone-100 ml-3 space-y-8 py-2">
+                            {userActivities.map((item, i) => (
+                               <div key={item.id} className="relative pl-8">
+                                  {/* Timeline Dot */}
+                                  <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm ${
+                                      item.status === 'success' ? 'bg-emerald-500' : 
+                                      item.status === 'error' ? 'bg-red-500' : 
+                                      item.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                                  }`}></div>
+                                  
+                                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
+                                      <h4 className="font-bold text-stone-800 text-sm flex items-center">
+                                          {getActivityIcon(item.type, item.status)}
+                                          <span className="ml-2">{item.title}</span>
+                                      </h4>
+                                      <span className="text-xs text-stone-400 font-mono mt-1 sm:mt-0">{item.date}</span>
+                                  </div>
+                                  <p className="text-xs text-stone-500 leading-relaxed bg-stone-50 p-2 rounded border border-stone-100 inline-block">
+                                      {item.desc}
+                                  </p>
+                               </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
