@@ -26,10 +26,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const [tickets, setTickets] = useState<{number: string, isTaken: boolean}[]>([]);
   const t = TRANSLATIONS[language];
   
-  // Fetch Realtime Tickets
+  // Fetch Realtime Tickets with Dynamic Rolling Expansion
   useEffect(() => {
-    const gridSize = 100; // Show 100 tickets on the board
-    
     // Subscribe to real-time ticket updates for current cycle
     const q = query(
         collection(db, 'tickets'), 
@@ -39,13 +37,24 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const takenSet = new Set<number>();
+        let highestTaken = 0;
+        
         snapshot.forEach(doc => {
-            const data = doc.data();
-            takenSet.add(data.ticketNumber);
+            const num = doc.data().ticketNumber;
+            takenSet.add(num);
+            if (num > highestTaken) highestTaken = num;
         });
 
-        // Generate grid
-        const newGrid = Array.from({ length: gridSize }, (_, i) => ({
+        /**
+         * ROLLING LOGIC:
+         * Start at 100.
+         * For every ticket taken, ensure we show at least 20 numbers beyond the highest taken one.
+         * We round up to the nearest 10 for a clean grid look.
+         */
+        const baseLimit = 100;
+        const dynamicLimit = Math.max(baseLimit, Math.ceil((highestTaken + 20) / 10) * 10);
+        
+        const newGrid = Array.from({ length: dynamicLimit }, (_, i) => ({
             number: (i + 1).toString(),
             isTaken: takenSet.has(i + 1)
         }));
@@ -232,7 +241,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                  {/* Decorative background glow */}
                  <div className="absolute inset-0 bg-amber-500/5 blur-3xl rounded-full pointer-events-none"></div>
 
-                 <div className="relative grid grid-cols-10 sm:grid-cols-25 gap-1 p-2 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-4xl mx-auto">
+                 <div className="relative grid grid-cols-10 sm:grid-cols-25 gap-1 p-2 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-5xl mx-auto">
                     {tickets.map((ticket, i) => (
                         <div key={i} className={`
                             aspect-square rounded flex items-center justify-center font-bold text-[8px] sm:text-[10px] border transition-all duration-500

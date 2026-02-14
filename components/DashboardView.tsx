@@ -36,7 +36,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [copied, setCopied] = useState(false);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   
-  // Real ticket data from DB
+  // Real ticket data from DB with Dynamic Expansion
   const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
 
   // Lucky Search State
@@ -50,24 +50,53 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   useEffect(() => {
     if (!user || !user.id) return;
 
-    // Listen to changes in the current user's document
     const userRef = doc(db, 'users', user.id.toString());
     const unsub = onSnapshot(userRef, (docSnap) => {
         if (docSnap.exists()) {
             const data = docSnap.data();
-            // Merge with local user state to update Status/Contribution/PrizeNumber
             setUser(prev => ({ ...prev!, ...data }));
         }
     });
 
     return () => unsub();
-  }, [user?.id]); // Depend on ID to set up listener
+  }, [user?.id]);
 
-  // --- Fetch User Specific Activities (Payments, etc) ---
+  // --- Dynamic Rolling Ticket Fetch ---
+  useEffect(() => {
+    const q = query(
+        collection(db, 'tickets'), 
+        where('cycle', '==', settings.cycle),
+        where('status', '==', 'ACTIVE')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const takenSet = new Set<number>();
+        let highestTaken = 0;
+        
+        snapshot.forEach(doc => {
+            const num = doc.data().ticketNumber;
+            takenSet.add(num);
+            if (num > highestTaken) highestTaken = num;
+        });
+
+        // Rolling Logic: Minimum 100, expand as needed with buffer
+        const baseLimit = 100;
+        const dynamicLimit = Math.max(baseLimit, Math.ceil((highestTaken + 20) / 10) * 10);
+
+        const allTickets = Array.from({ length: dynamicLimit }, (_, i) => ({
+            number: i + 1,
+            taken: takenSet.has(i + 1)
+        }));
+        setTickets(allTickets);
+    });
+
+    return () => unsubscribe();
+  }, [settings.cycle]);
+
+  // --- Fetch User Specific Activities ---
   useEffect(() => {
     if (!user || !user.id) return;
 
-    // Listen to payment requests for this user
     const q = query(collection(db, 'payment_requests'), where('userId', '==', user.id));
     
     const unsub = onSnapshot(q, (snapshot) => {
@@ -78,10 +107,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             data: doc.data()
         }));
 
-        // Construct timeline
         const timeline = [];
 
-        // 1. Joined
         timeline.push({
             id: 'joined',
             type: 'JOINED',
@@ -91,7 +118,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             status: 'success'
         });
 
-        // 2. Payments
         paymentActs.forEach(pay => {
             let statusColor = 'text-amber-500';
             let statusText = language === 'en' ? 'Pending' : 'በመጠባበቅ ላይ';
@@ -114,7 +140,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             });
         });
 
-        // 3. Ticket
         if (user.prizeNumber) {
             timeline.push({
                 id: 'ticket-assigned',
@@ -126,29 +151,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             });
         }
 
-        // Sort roughly (Strings dates are hard to sort perfectly without parsing, but putting newest first generally)
-        // Since we build it, let's reverse to show Ticket -> Payment -> Join
         setUserActivities(timeline.reverse());
     });
 
     return () => unsub();
   }, [user.id, user.prizeNumber, language]);
 
-  // --- Mock Feed & Tickets Init ---
+  // --- Mock Feed Init ---
   useEffect(() => {
-    // Generate some mock feed
     setFeed([generateMockFeed(t), generateMockFeed(t)]);
     const interval = setInterval(() => {
       setFeed(prev => [generateMockFeed(t), ...prev.slice(0, 4)]);
     }, 4000);
-
-    // Initialize Tickets (Mock 1-100) - In a real app, fetch from 'tickets' collection
-    const allTickets = Array.from({ length: 300 }, (_, i) => ({
-        number: i + 1,
-        taken: Math.random() > 0.8 // Random taken status
-    }));
-    setTickets(allTickets);
-
     return () => clearInterval(interval);
   }, [language, t]);
 
@@ -157,25 +171,21 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     setUploading(true);
 
     try {
-        // Create Payment Request in Firestore
         await addDoc(collection(db, 'payment_requests'), {
-            userId: user.id, // Store ID as string from Firestore
+            userId: user.id,
             userName: user.name,
             userPhone: user.phone,
             amount: 5000,
             date: new Date().toLocaleDateString(),
-            receiptUrl: "https://via.placeholder.com/150", // Placeholder until file upload is implemented
+            receiptUrl: "https://via.placeholder.com/150",
             status: 'PENDING',
-            requestedTicket: selectedTempTicket // If user selected a ticket before paying (optional flow)
+            requestedTicket: selectedTempTicket
         });
 
-        // UI Feedback
         setTimeout(() => {
             setUploading(false);
             setPaymentMethod(null);
             setPaymentConfirmed(false);
-            // We don't verify user immediately anymore. Admin must verify.
-            // But we can show success message.
             alert(language === 'en' ? "Receipt uploaded successfully! Waiting for admin verification." : "ደረሰኝ በተሳካ ሁኔታ ተላከ! አስተዳዳሪው እስኪያረጋግጥ ይጠብቁ።");
         }, 1000);
 
@@ -197,7 +207,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Lucky Search Handler
   const handleLuckySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setLuckySearch(val);
@@ -218,17 +227,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     if (ticket) {
         setLuckyStatus(ticket.taken ? 'TAKEN' : 'AVAILABLE');
     } else {
-        setLuckyStatus('INVALID');
+        setLuckyStatus('IDLE');
     }
   };
 
   const formatTime = (date: any) => {
-    // Handle Firestore Timestamp or JS Date
     const d = date?.toDate ? date.toDate() : new Date(date);
-    
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
-    
     if (diffInSeconds < 60) return language === 'en' ? 'Just now' : 'አሁን';
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return language === 'en' ? `${diffInMinutes}m ago` : `ከ${diffInMinutes} ደቂቃ በፊት`;
@@ -239,23 +245,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
-
-  // Dynamic Data from Settings
   const paymentDueDate = language === 'en' ? settings.nextDrawDateEn : settings.nextDrawDateAm;
   const cycleText = language === 'en' ? `Cycle ${settings.cycle}` : `ዙር ${settings.cycle}`;
 
-  const hallOfFame1 = language === 'en' 
-      ? { name: "Dawit M.", desc: "Won Toyota Vitz (Tir)" }
-      : { name: "ዳዊት መ.", desc: "ቶዮታ ቪትዝ አሸንፏል (ጥር)" };
-      
-  const hallOfFame2 = language === 'en'
-      ? { name: "Sara T.", desc: "Won Hyundai (Tahsas)" }
-      : { name: "ሳራ ት.", desc: "ሂዩንዳይ አሸንፏል (ታህሳስ)" };
-  
-  // Helper to format ticket number
   const formatTicket = (num: number) => num.toString();
 
-  // Helper icons for activity
   const getActivityIcon = (type: string, status: string) => {
       if (type === 'TICKET') return <Ticket className="w-5 h-5 text-emerald-600" />;
       if (type === 'JOINED') return <UserPlus className="w-5 h-5 text-blue-500" />;
@@ -273,9 +267,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
       {/* Notifications Modal Window */}
       {showNotifications && (
         <div className="fixed inset-0 z-[60] flex items-start justify-end px-4 sm:px-8 pt-20" onClick={() => setShowNotifications(false)}>
-           {/* Backdrop */}
            <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
-           
            <div 
              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-down border border-stone-200 mt-2"
              onClick={e => e.stopPropagation()}
@@ -430,7 +422,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                      </div>
                   )}
                   
-                  {/* Overlay Button for External App */}
                   <div className="absolute bottom-4 right-4">
                      <a 
                        href={settings.liveStreamUrl} 
@@ -448,8 +439,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            
-            {/* Card 1: Status */}
             <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300">
                <h3 className="text-stone-500 text-sm font-semibold uppercase mb-2">{t.status_card_title}</h3>
                <div className="flex items-center justify-between mb-4">
@@ -477,7 +466,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                )}
             </div>
 
-            {/* Card 2: Contribution */}
             <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-emerald-600 opacity-0 animate-fade-in-up delay-[100ms] hover:shadow-lg transition-shadow duration-300">
                <h3 className="text-stone-500 text-sm font-semibold uppercase mb-2">{t.contribution}</h3>
                <div className="flex items-center justify-between mb-4">
@@ -492,17 +480,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Left: Action & History */}
             <div className="lg:col-span-2 space-y-6">
-                
-                {/* Hero / Action Section */}
                 <div className="bg-gradient-to-r from-stone-800 to-stone-900 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden shadow-xl opacity-0 animate-fade-in-up delay-[300ms]">
                     <div className="absolute right-0 bottom-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mb-16"></div>
-                    
                     <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                        
-                        {/* Left Column: Texts & Actions */}
                         <div className="space-y-6">
                            <div className="text-center md:text-left">
                                <div className="inline-block bg-red-900/80 px-3 py-1 rounded text-xs font-bold mb-3 border border-red-700 animate-pulse">
@@ -512,7 +493,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                <p className="text-stone-300 text-sm md:text-base">{t.win_desc}</p>
                            </div>
 
-                           {/* Payment / Upload Section */}
                            <div className="bg-white/5 rounded-xl p-5 border border-white/10 backdrop-blur-sm">
                                 <div className="flex items-center justify-between mb-4">
                                      <h3 className="font-bold text-sm text-emerald-300 uppercase tracking-wide flex items-center">
@@ -555,7 +535,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                                <button onClick={() => { setPaymentMethod(null); setPaymentConfirmed(false); }} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white">
                                                   <ArrowLeft className="w-3 h-3 mr-1" /> {t.change_method}
                                                </button>
-                                               
                                                {paymentMethod === 'CBE' ? (
                                                    <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
                                                        <p className="text-stone-400 text-xs mb-1">{t.account_no}</p>
@@ -579,25 +558,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                                         <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Equb Service</p>
                                                    </div>
                                                )}
-
                                                {!paymentConfirmed ? (
-                                                   <button 
-                                                     onClick={() => setPaymentConfirmed(true)}
-                                                     className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg"
-                                                   >
+                                                   <button onClick={() => setPaymentConfirmed(true)} className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg">
                                                       <CheckCircle className="w-5 h-5 mr-2" /> {t.confirm_paid}
                                                    </button>
                                                ) : (
-                                                   <button 
-                                                     onClick={handlePayment} 
-                                                     disabled={uploading}
-                                                     className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg animate-fade-in-up"
-                                                   >
-                                                     {uploading ? (
-                                                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</>
-                                                     ) : (
-                                                        <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>
-                                                     )}
+                                                   <button onClick={handlePayment} disabled={uploading} className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg animate-fade-in-up">
+                                                     {uploading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</> : <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>}
                                                    </button>
                                                )}
                                             </div>
@@ -606,38 +573,23 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                 )}
                            </div>
                         </div>
-                        
-                        {/* Right Column: Prize Card */}
                         <div className="relative w-full flex justify-center">
                           <div className="relative z-10 w-full max-w-sm bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
                             <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group">
                                 <div className="h-48 bg-stone-700 flex items-center justify-center relative overflow-hidden">
                                     <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
-                                    
-                                    {/* Ribbon Overlay */}
                                     <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
-                                              <img 
-                                                src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" 
-                                                alt="Ribbon" 
-                                                className="w-full h-full object-contain drop-shadow-2xl scale-[1.5]"
-                                              />
+                                              <img src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" alt="Ribbon" className="w-full h-full object-contain drop-shadow-2xl scale-[1.5]" />
                                         </div>
                                     </div>
-
-                                    <img 
-                                      src={settings.prizeImage}
-                                      alt={settings.prizeName} 
-                                      className="absolute inset-0 w-full h-full object-cover z-0"
-                                    />
-                                    
+                                    <img src={settings.prizeImage} alt={settings.prizeName} className="absolute inset-0 w-full h-full object-cover z-0" />
                                     <div className="absolute inset-0 flex items-end justify-end z-20 p-2">
                                         <span className="text-stone-100 font-bold text-xs border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-2 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
                                             {settings.prizeName}
                                         </span>
                                     </div>
                                 </div>
-                                
                                 <div className="p-4">
                                     <div className="flex justify-between items-end">
                                         <div>
@@ -653,11 +605,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                             </div>
                           </div>
                         </div>
-
                     </div>
                 </div>
 
-                {/* Activity Tracker (Conditions) */}
                 <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[400ms]">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-bold text-stone-800 flex items-center">
@@ -665,22 +615,17 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                         </h3>
                         <span className="text-xs font-bold bg-stone-100 text-stone-500 px-2 py-1 rounded-full">{userActivities.length} Events</span>
                     </div>
-                    
                     {userActivities.length === 0 ? (
-                         <div className="text-center py-8 text-stone-400 text-sm">
-                             No recent activity. Make a payment to get started!
-                         </div>
+                         <div className="text-center py-8 text-stone-400 text-sm">No recent activity. Make a payment to get started!</div>
                     ) : (
                         <div className="relative border-l-2 border-stone-100 ml-3 space-y-8 py-2">
                             {userActivities.map((item, i) => (
                                <div key={item.id} className="relative pl-8">
-                                  {/* Timeline Dot */}
                                   <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm ${
                                       item.status === 'success' ? 'bg-emerald-500' : 
                                       item.status === 'error' ? 'bg-red-500' : 
                                       item.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
                                   }`}></div>
-                                  
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
                                       <h4 className="font-bold text-stone-800 text-sm flex items-center">
                                           {getActivityIcon(item.type, item.status)}
@@ -698,10 +643,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                 </div>
             </div>
 
-            {/* Right: Live Feed & Winners */}
             <div className="space-y-6">
-
-               {/* Lucky Number Search Section - NEW */}
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 animate-fade-in-up delay-[450ms]">
                   <h3 className="font-bold text-stone-800 mb-4 flex items-center">
                       <Search className="w-4 h-4 mr-2 text-emerald-600" /> 
@@ -712,7 +654,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           type="number" 
                           value={luckySearch}
                           onChange={handleLuckySearch}
-                          placeholder={language === 'en' ? "Enter number (e.g. 42)" : "ቁጥር ያስገቡ (ምሳሌ 42)"}
+                          placeholder={language === 'en' ? "Enter number" : "ቁጥር ያስገቡ"}
                           className={`w-full pl-4 pr-10 py-3 border rounded-lg outline-none transition-all ${
                               luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/30' :
                               luckyStatus === 'TAKEN' ? 'border-red-300 ring-1 ring-red-200 bg-red-50/30' :
@@ -724,57 +666,34 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                            {luckyStatus === 'TAKEN' && <XCircle className="w-5 h-5 text-red-500" />}
                       </div>
                   </div>
-                  
                   {luckyStatus === 'AVAILABLE' && (
                       <div className="mt-3 animate-fade-in-down">
                           <p className="text-xs text-emerald-600 font-bold mb-3 flex items-center">
-                              <CheckCircle className="w-3 h-3 mr-1" /> 
-                              {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
+                              <CheckCircle className="w-3 h-3 mr-1" /> {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
                           </p>
-                          <button 
-                              onClick={() => {
-                                  setSelectedTempTicket(parseInt(luckySearch));
-                                  setShowTicketModal(true);
-                              }}
-                              className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-500 shadow-md transition-all transform active:scale-95"
-                          >
+                          <button onClick={() => { setSelectedTempTicket(parseInt(luckySearch)); setShowTicketModal(true); }} className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-500 shadow-md transition-all transform active:scale-95">
                               {language === 'en' ? `Select #${luckySearch}` : `#${luckySearch} ምረጥ`}
                           </button>
                       </div>
                   )}
-                  
                   {luckyStatus === 'TAKEN' && (
                       <div className="mt-3 bg-red-50 p-3 rounded-lg border border-red-100 animate-fade-in-down">
                           <p className="text-xs text-red-600 font-bold flex items-center">
-                              <XCircle className="w-3 h-3 mr-1" />
-                              {language === 'en' ? 'Sorry, this number is taken.' : 'ይቅርታ፣ ይህ ቁጥር ተይዟል።'}
-                          </p>
-                          <p className="text-[10px] text-red-400 mt-1 ml-4">
-                              {language === 'en' ? 'Please try another number.' : 'እባክዎ ሌላ ቁጥር ይሞክሩ።'}
+                              <XCircle className="w-3 h-3 mr-1" /> {language === 'en' ? 'Sorry, this number is taken.' : 'ይቅርታ፣ ይህ ቁጥር ተይዟል።'}
                           </p>
                       </div>
-                  )}
-
-                  {luckyStatus === 'INVALID' && (
-                      <p className="mt-2 text-xs text-stone-400 ml-1">
-                          {language === 'en' ? 'Please enter a valid ticket number.' : 'እባክዎ ትክክለኛ ቁጥር ያስገቡ።'}
-                      </p>
                   )}
                </div>
 
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[500ms]">
                   <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">{t.live_activity}</h3>
                   <div className="space-y-4 max-h-[300px] overflow-hidden relative">
-                     {/* Fade overlay at bottom */}
                      <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
-                     
                      {feed.map((item) => (
                         <div key={item.id} className="flex items-start animate-fade-in-down">
                            <div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 mr-3 animate-pulse"></div>
                            <div>
-                              <p className="text-sm font-medium text-stone-800">
-                                 <span className="font-bold">{item.name}</span> {item.action}
-                              </p>
+                              <p className="text-sm font-medium text-stone-800"><span className="font-bold">{item.name}</span> {item.action}</p>
                               <p className="text-xs text-stone-400">{item.time}</p>
                            </div>
                         </div>
@@ -789,15 +708,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                   <div className="flex items-center space-x-3 mb-3 p-2 hover:bg-amber-100 rounded-lg transition-colors cursor-default">
                       <div className="w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center text-amber-800 font-bold">D</div>
                       <div>
-                         <p className="text-sm font-bold text-amber-900">{hallOfFame1.name}</p>
-                         <p className="text-xs text-amber-700">{hallOfFame1.desc}</p>
-                      </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-2 hover:bg-amber-100 rounded-lg transition-colors cursor-default">
-                      <div className="w-10 h-10 bg-stone-200 rounded-full flex items-center justify-center text-stone-600 font-bold">S</div>
-                      <div>
-                         <p className="text-sm font-bold text-stone-800">{hallOfFame2.name}</p>
-                         <p className="text-xs text-stone-500">{hallOfFame2.desc}</p>
+                         <p className="text-sm font-bold text-amber-900">Dawit M.</p>
+                         <p className="text-xs text-amber-700">Won Toyota Vitz (Tir)</p>
                       </div>
                   </div>
                </div>
