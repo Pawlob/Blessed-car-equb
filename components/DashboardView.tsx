@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info } from 'lucide-react';
-import { User, Language, FeedItem, AppSettings } from '../types';
+import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS } from '../constants';
 
 interface DashboardViewProps {
@@ -8,6 +8,8 @@ interface DashboardViewProps {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   language: Language;
   settings: AppSettings;
+  notifications: AppNotification[];
+  markAllAsRead: () => void;
 }
 
 const generateMockFeed = (t: any): FeedItem => {
@@ -21,7 +23,7 @@ const generateMockFeed = (t: any): FeedItem => {
   };
 };
 
-const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, settings }) => {
+const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, settings, notifications, markAllAsRead }) => {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
@@ -79,6 +81,21 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const formatTime = (date: Date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return language === 'en' ? 'Just now' : 'አሁን';
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return language === 'en' ? `${diffInMinutes}m ago` : `ከ${diffInMinutes} ደቂቃ በፊት`;
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return language === 'en' ? `${diffInHours}h ago` : `ከ${diffInHours} ሰዓት በፊት`;
+    const diffInDays = Math.floor(diffInHours / 24);
+    return language === 'en' ? `${diffInDays}d ago` : `ከ${diffInDays} ቀን በፊት`;
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   // Dynamic Data from Settings
   const paymentDueDate = language === 'en' ? settings.nextDrawDateEn : settings.nextDrawDateAm;
   const cycleText = language === 'en' ? `Cycle ${settings.cycle}` : `ዙር ${settings.cycle}`;
@@ -100,37 +117,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   
   // Helper to format ticket number
   const formatTicket = (num: number) => num.toString();
-
-  // Mock Notifications Data
-  const notifications = [
-    { 
-      id: 1,
-      title: language === 'en' ? "Payment Reminder" : "የክፍያ ማስታወሻ", 
-      desc: language === 'en' 
-        ? `Your contribution for Cycle ${settings.cycle} is due in 3 days. Please settle to remain eligible.`
-        : `የዙር ${settings.cycle} ክፍያዎ በ3 ቀናት ውስጥ መጠናቀቅ አለበት። ለእጣው ብቁ ለመሆን እባክዎ ክፍያ ይፈጽሙ።`,
-      time: language === 'en' ? "2 hours ago" : "ከ2 ሰዓት በፊት",
-      urgent: true 
-    },
-    { 
-      id: 2,
-      title: language === 'en' ? "System Update" : "የሲስተም ማሻሻያ", 
-      desc: language === 'en'
-        ? "We have added Telebirr direct payment integration for faster processing."
-        : "ለፈጣን አገልግሎት የቴሌብር ቀጥታ ክፍያ አማራጭ አካተናል።",
-      time: language === 'en' ? "1 day ago" : "ከ1 ቀን በፊት",
-      urgent: false 
-    },
-    { 
-      id: 3,
-      title: language === 'en' ? "Welcome!" : "እንኳን ደህና መጡ!", 
-      desc: language === 'en'
-        ? "Thank you for joining Blessed Digital Equb. Please complete your profile."
-        : "ብለስድ ዲጂታል እቁብን ስለተቀላቀሉ እናመሰግናለን። እባክዎ መገለጫዎን ያሟሉ።",
-      time: language === 'en' ? "3 days ago" : "ከ3 ቀን በፊት",
-      urgent: false 
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
@@ -158,12 +144,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
               <div className="max-h-[400px] overflow-y-auto">
                  {notifications.length > 0 ? (
                     notifications.map((note) => (
-                        <div key={note.id} className={`p-4 border-b border-stone-100 hover:bg-stone-50 transition-colors ${note.urgent ? 'bg-amber-50/40' : ''}`}>
+                        <div key={note.id} className={`p-4 border-b border-stone-100 hover:bg-stone-50 transition-colors ${note.urgent ? 'bg-amber-50/40' : ''} ${!note.read ? 'bg-emerald-50/20' : ''}`}>
                         <div className="flex justify-between items-start mb-1">
-                            <h4 className={`text-sm font-bold ${note.urgent ? 'text-amber-800' : 'text-stone-800'}`}>{note.title}</h4>
-                            <span className="text-[10px] text-stone-400 whitespace-nowrap ml-2">{note.time}</span>
+                            <h4 className={`text-sm font-bold flex items-center ${note.urgent ? 'text-amber-800' : 'text-stone-800'}`}>
+                                {!note.read && <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>}
+                                {language === 'en' ? note.title.en : note.title.am}
+                            </h4>
+                            <span className="text-[10px] text-stone-400 whitespace-nowrap ml-2">{formatTime(note.time)}</span>
                         </div>
-                        <p className="text-xs text-stone-600 leading-relaxed">{note.desc}</p>
+                        <p className="text-xs text-stone-600 leading-relaxed">{language === 'en' ? note.desc.en : note.desc.am}</p>
                         </div>
                     ))
                  ) : (
@@ -173,7 +162,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                  )}
               </div>
               <div className="p-3 bg-stone-50 text-center border-t border-stone-200">
-                 <button className="text-emerald-700 text-xs font-bold hover:underline">
+                 <button onClick={markAllAsRead} className="text-emerald-700 text-xs font-bold hover:underline">
                     {language === 'en' ? "Mark all as read" : "ሁሉንም እንዳነበብኩ ቁጠር"}
                  </button>
               </div>
@@ -252,7 +241,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                 className="p-2 bg-white rounded-full shadow hover:bg-stone-100 text-stone-600 relative transition-transform hover:scale-110"
               >
                  <Bell className="w-5 h-5" />
-                 <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                 {unreadCount > 0 && (
+                     <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                 )}
               </button>
            </div>
         </div>

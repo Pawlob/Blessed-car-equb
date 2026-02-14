@@ -15,6 +15,15 @@ export interface Winner {
   locationAm: string;
 }
 
+export interface AppNotification {
+  id: number;
+  title: { en: string; am: string };
+  desc: { en: string; am: string };
+  time: Date;
+  urgent: boolean;
+  read: boolean;
+}
+
 export interface AppSettings {
   nextDrawDateEn: string;
   nextDrawDateAm: string;

@@ -1,16 +1,16 @@
-// ... (imports remain same)
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
   Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter
 } from 'lucide-react';
-import { User, AppSettings, ViewState } from '../types';
+import { User, AppSettings, ViewState, AppNotification } from '../types';
 
 interface AdminViewProps {
   setView: (view: ViewState) => void;
   settings: AppSettings;
   setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
+  addNotification: (notification: AppNotification) => void;
 }
 
 interface PaymentRequest {
@@ -146,7 +146,7 @@ const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
   }
 ];
 
-const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings }) => {
+const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'settings' | 'payments'>('dashboard');
@@ -228,7 +228,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     title: '',
     message: ''
   });
-  // ... (rest of the component remains the same)
+  
   // Alert Helpers
   const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
     setAlertConfig({ isOpen: true, type, title, message });
@@ -382,6 +382,20 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
 
         // 3. Clear Pending Requests
         setPaymentRequests([]);
+
+        // 4. Notify All Members
+        const newNotification: AppNotification = {
+          id: Date.now(),
+          title: { en: `Cycle ${nextCycle} Started`, am: `ዙር ${nextCycle} ተጀምሯል` },
+          desc: { 
+            en: `Cycle ${nextCycle} has officially begun! The next draw is scheduled for ${nextDrawDateEn}. Please settle your payments.`,
+            am: `ዙር ${nextCycle} በይፋ ተጀምሯል! ቀጣዩ እጣ የሚወጣው ${nextDrawDateAm} ነው። እባክዎ ክፍያዎን ያጠናቅቁ።` 
+          },
+          time: new Date(),
+          urgent: true,
+          read: false
+        };
+        addNotification(newNotification);
 
         showAlert('success', 'Cycle Started', `Cycle ${nextCycle} has been started successfully! Next draw set for ${nextDrawDateEn}.`);
       }
@@ -762,6 +776,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                 </div>
             )}
 
+            {/* ... (Rest of tabs remain unchanged) ... */}
             {/* --- USERS TAB --- */}
             {activeTab === 'users' && (
                 <div className="space-y-6 animate-fade-in-up">
@@ -905,8 +920,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                     </div>
                 </div>
             )}
-            
-            {/* ... (rest of the component remains the same) */}
+
             {/* --- PAYMENTS TAB --- */}
             {activeTab === 'payments' && (
                 <div className="space-y-6 animate-fade-in-up">

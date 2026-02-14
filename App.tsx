@@ -7,7 +7,7 @@ import AdminView from './components/AdminView';
 import PrizesView from './components/PrizesView';
 import TermsView from './components/TermsView';
 import Footer from './components/Footer';
-import { User, ViewState, Language, AppSettings } from './types';
+import { User, ViewState, Language, AppSettings, AppNotification } from './types';
 
 const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
@@ -19,6 +19,51 @@ const App: React.FC = () => {
   const initialTargetDate = new Date();
   initialTargetDate.setDate(initialTargetDate.getDate() + 14);
   const initialDateString = initialTargetDate.toISOString().split('T')[0];
+
+  // Initial Mock Notifications
+  const [notifications, setNotifications] = useState<AppNotification[]>([
+    { 
+      id: 1,
+      title: { en: "Payment Reminder", am: "የክፍያ ማስታወሻ" },
+      desc: { 
+        en: "Your contribution for the current cycle is due. Please settle to remain eligible.",
+        am: "የአሁኑ ዙር ክፍያ ጊዜው እየደረሰ ነው። ለእጣው ብቁ ለመሆን እባክዎ ክፍያ ይፈጽሙ።"
+      },
+      time: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+      urgent: true,
+      read: false
+    },
+    { 
+      id: 2,
+      title: { en: "System Update", am: "የሲስተም ማሻሻያ" },
+      desc: { 
+        en: "We have added Telebirr direct payment integration for faster processing.",
+        am: "ለፈጣን አገልግሎት የቴሌብር ቀጥታ ክፍያ አማራጭ አካተናል።"
+      },
+      time: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+      urgent: false,
+      read: true
+    },
+    { 
+      id: 3,
+      title: { en: "Welcome!", am: "እንኳን ደህና መጡ!" },
+      desc: { 
+        en: "Thank you for joining Blessed Digital Equb. Please complete your profile.",
+        am: "ብለስድ ዲጂታል እቁብን ስለተቀላቀሉ እናመሰግናለን። እባክዎ መገለጫዎን ያሟሉ።"
+      },
+      time: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+      urgent: false,
+      read: true
+    }
+  ]);
+
+  const addNotification = (notification: AppNotification) => {
+    setNotifications(prev => [notification, ...prev]);
+  };
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
 
   // Global Settings State to be controlled by Admin
   const [appSettings, setAppSettings] = useState<AppSettings>({
@@ -158,6 +203,7 @@ const App: React.FC = () => {
         setView={handleSetView} 
         settings={appSettings} 
         setSettings={setAppSettings} 
+        addNotification={addNotification}
       />
     );
   }
@@ -199,6 +245,8 @@ const App: React.FC = () => {
             setUser={setUser} 
             language={language} 
             settings={appSettings}
+            notifications={notifications}
+            markAllAsRead={markAllNotificationsAsRead}
           />
         )}
 
