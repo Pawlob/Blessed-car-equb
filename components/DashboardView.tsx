@@ -59,7 +59,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     });
 
     return () => unsub();
-  }, [user?.id]);
+  }, [user?.id, setUser]);
 
   // --- Dynamic Rolling Ticket Fetch ---
   useEffect(() => {
@@ -119,14 +119,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         });
 
         paymentActs.forEach(pay => {
-            let statusColor = 'text-amber-500';
             let statusText = language === 'en' ? 'Pending' : 'በመጠባበቅ ላይ';
-            
             if (pay.data.status === 'APPROVED') {
-                statusColor = 'text-emerald-500';
                 statusText = language === 'en' ? 'Approved' : 'ተረጋግጧል';
             } else if (pay.data.status === 'REJECTED') {
-                statusColor = 'text-red-500';
                 statusText = language === 'en' ? 'Rejected' : 'ተሰርዟል';
             }
 
@@ -155,7 +151,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     });
 
     return () => unsub();
-  }, [user.id, user.prizeNumber, language]);
+  }, [user.id, user.prizeNumber, language, user.joinedDate]);
 
   // --- Mock Feed Init ---
   useEffect(() => {
@@ -223,7 +219,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     }
 
     const ticket = tickets.find(t => t.number === num);
-    
     if (ticket) {
         setLuckyStatus(ticket.taken ? 'TAKEN' : 'AVAILABLE');
     } else {
@@ -243,6 +238,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     const diffInDays = Math.floor(diffInHours / 24);
     return language === 'en' ? `${diffInDays}d ago` : `ከ${diffInDays} ቀን በፊት`;
   };
+
+  if (!user) return null; // Safety check during transition
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const paymentDueDate = language === 'en' ? settings.nextDrawDateEn : settings.nextDrawDateAm;

@@ -56,15 +56,40 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 const App: React.FC = () => {
-  const [view, setView] = useState<ViewState>('landing');
-  const [user, setUser] = useState<User | null>(null);
-  const [language, setLanguage] = useState<Language>('am');
+  // --- Initialize State from LocalStorage for persistence ---
+  const [view, setView] = useState<ViewState>(() => {
+    const hash = window.location.hash.replace('#', '');
+    const validViews: ViewState[] = ['landing', 'login', 'dashboard', 'admin', 'prizes', 'terms'];
+    return (validViews.includes(hash as ViewState) ? (hash as ViewState) : 'landing');
+  });
+
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('blessed_session_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const [language, setLanguage] = useState<Language>(() => {
+    const savedLang = localStorage.getItem('blessed_language');
+    return (savedLang === 'en' || savedLang === 'am') ? savedLang : 'am';
+  });
+
   const [hasShownPreloader, setHasShownPreloader] = useState(false);
-  
-  // App Settings State
   const [appSettings, setAppSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
 
-  // Initial Mock Notifications (Can be moved to DB later)
+  // Sync user and language to LocalStorage
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('blessed_session_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('blessed_session_user');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('blessed_language', language);
+  }, [language]);
+
+  // Initial Mock Notifications
   const [notifications, setNotifications] = useState<AppNotification[]>([
     { 
       id: 1,
@@ -82,40 +107,27 @@ const App: React.FC = () => {
   // --- Firestore Integration for Settings ---
   useEffect(() => {
     const settingsRef = doc(db, 'settings', 'global');
-    
-    // Subscribe to real-time updates
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
         setAppSettings(docSnap.data() as AppSettings);
       } else {
-        // If document doesn't exist, create it with defaults
         setDoc(settingsRef, DEFAULT_SETTINGS).catch(console.error);
       }
     }, (error) => {
       console.error("Error fetching settings:", error);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Sync updated settings back to Firestore when changed via Admin
   const handleSettingsUpdate = async (newSettings: React.SetStateAction<AppSettings>) => {
-      // Resolve the state update if it's a function
-      const resolvedSettings = typeof newSettings === 'function' 
-        ? newSettings(appSettings) 
-        : newSettings;
-      
-      // Update local state immediately for UI responsiveness
+      const resolvedSettings = typeof newSettings === 'function' ? newSettings(appSettings) : newSettings;
       setAppSettings(resolvedSettings);
-
-      // Persist to Firestore
       try {
         await setDoc(doc(db, 'settings', 'global'), resolvedSettings, { merge: true });
       } catch (err) {
         console.error("Failed to save settings to DB", err);
       }
   };
-
 
   const addNotification = (notification: AppNotification) => {
     setNotifications(prev => [notification, ...prev]);
@@ -129,69 +141,51 @@ const App: React.FC = () => {
   useEffect(() => {
     const updateCountdown = () => {
       if (!appSettings.drawDate) return;
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
       const target = new Date(appSettings.drawDate);
       target.setHours(0, 0, 0, 0);
-      
       const diffTime = target.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
       const finalDays = diffDays > 0 ? diffDays : 0;
-      
-      // Only update if changed (and sync to DB to keep everyone on same page)
       if (finalDays !== appSettings.daysRemaining) {
          setAppSettings(prev => ({ ...prev, daysRemaining: finalDays }));
-         // Optional: We might not want to write to DB every second from every client.
-         // Usually, a cloud function or the Admin updates this. 
-         // For this demo, we'll let the AdminView handle the DB write for daysRemaining
-         // or rely on local calculation for display.
       }
     };
-
     updateCountdown();
     const timer = setInterval(updateCountdown, 60000); 
-    
     return () => clearInterval(timer);
   }, [appSettings.drawDate, appSettings.daysRemaining]);
 
-  // Handle History and Back Button
+  // Route Protection & Popstate handling
   useEffect(() => {
-    const getInitialView = (): ViewState => {
-       try {
-         const hash = window.location.hash.replace('#', '');
-         const validViews: ViewState[] = ['landing', 'login', 'dashboard', 'admin', 'prizes', 'terms'];
-         return validViews.includes(hash as ViewState) ? (hash as ViewState) : 'landing';
-       } catch (e) {
-         return 'landing';
-       }
-    };
-
-    const currentView = getInitialView();
-    setView(currentView);
-    
-    try {
-      if (!window.history.state) {
-        window.history.replaceState({ view: currentView }, '', `#${currentView}`);
-      }
-    } catch (e) {}
-
     const handlePopState = (event: PopStateEvent) => {
         if (event.state && event.state.view) {
             setView(event.state.view);
         } else {
-            setView(getInitialView());
+            const hash = window.location.hash.replace('#', '');
+            setView(hash as ViewState || 'landing');
         }
     };
 
+    // Protect dashboard view on fresh reload
+    if (view === 'dashboard' && !user) {
+        setView('login');
+        window.history.replaceState({ view: 'login' }, '', '#login');
+    }
+
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [user, view]);
 
   const handleSetView = (newView: ViewState) => {
     if (view === newView) return;
+    // Prevent unauthorized dashboard access
+    if (newView === 'dashboard' && !user) {
+        setView('login');
+        window.history.pushState({ view: 'login' }, '', '#login');
+        return;
+    }
     setView(newView);
     try {
       window.history.pushState({ view: newView }, '', `#${newView}`);
@@ -202,6 +196,7 @@ const App: React.FC = () => {
   };
 
   const logout = () => {
+    localStorage.removeItem('blessed_session_user');
     setUser(null);
     handleSetView('landing');
   };
