@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target, Ticket, Download, Ban, MousePointerClick
 } from 'lucide-react';
 import { User, AppSettings, ViewState, AppNotification } from '../types';
 
@@ -22,6 +22,17 @@ interface PaymentRequest {
   date: string;
   receiptUrl: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
+}
+
+interface TicketType {
+  id: string;
+  ticketNumber: number;
+  userId: number;
+  userName: string;
+  cycle: number;
+  status: 'ACTIVE' | 'VOID';
+  assignedDate: string;
+  assignedBy: 'SYSTEM' | 'ADMIN';
 }
 
 // --- Ethiopian Calendar Utils ---
@@ -146,12 +157,30 @@ const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
   }
 ];
 
+const MOCK_TICKETS: TicketType[] = [
+  { id: 't-101', ticketNumber: 14, userId: 101, userName: "Abebe Kebede", cycle: 14, status: 'ACTIVE', assignedDate: '2024-02-15', assignedBy: 'SYSTEM' },
+  { id: 't-103', ticketNumber: 42, userId: 103, userName: "Dawit Mulugeta", cycle: 14, status: 'ACTIVE', assignedDate: '2024-02-16', assignedBy: 'SYSTEM' },
+  { id: 't-105', ticketNumber: 5, userId: 105, userName: "Yonas Alemu", cycle: 14, status: 'ACTIVE', assignedDate: '2024-02-18', assignedBy: 'SYSTEM' },
+  { id: 't-106', ticketNumber: 88, userId: 108, userName: "Meron Tadesse", cycle: 13, status: 'ACTIVE', assignedDate: '2024-01-10', assignedBy: 'SYSTEM' },
+  { id: 't-107', ticketNumber: 3, userId: 109, userName: "Kebede Alemu", cycle: 14, status: 'VOID', assignedDate: '2024-02-20', assignedBy: 'ADMIN' },
+];
+
 const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'competition' | 'users' | 'settings' | 'payments'>('dashboard');
+  
+  // Competition Sub-tabs
+  const [compSubTab, setCompSubTab] = useState<'settings' | 'tickets'>('settings');
+  
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(MOCK_PAYMENT_REQUESTS);
+  
+  // Ticket Management State
+  const [tickets, setTickets] = useState<TicketType[]>(MOCK_TICKETS);
+  const [ticketSearch, setTicketSearch] = useState('');
+  const [ticketCycleFilter, setTicketCycleFilter] = useState<number | 'ALL'>('ALL');
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -255,6 +284,66 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         }
     );
   };
+
+  // Ticket Management Handlers
+  const handleVoidTicket = (ticketId: string) => {
+      showConfirm(
+          'Void Ticket',
+          'Are you sure you want to void this ticket? This action cannot be undone and will remove the user from the current draw.',
+          () => {
+              setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: 'VOID' } : t));
+              showAlert('success', 'Ticket Voided', 'The ticket has been successfully voided.');
+          }
+      );
+  };
+
+  const handleManualAssign = () => {
+      // Mock Manual Assignment flow
+      showConfirm(
+          'Manual Ticket Assignment',
+          'This will assign a new randomized ticket to a selected user. Continue?',
+          () => {
+              const newTicket: TicketType = {
+                  id: `t-${Date.now()}`,
+                  ticketNumber: Math.floor(Math.random() * 100) + 1,
+                  userId: 999,
+                  userName: "Manually Assigned User",
+                  cycle: settings.cycle,
+                  status: 'ACTIVE',
+                  assignedDate: new Date().toISOString().split('T')[0],
+                  assignedBy: 'ADMIN'
+              };
+              setTickets(prev => [newTicket, ...prev]);
+              showAlert('success', 'Ticket Assigned', `Ticket #${newTicket.ticketNumber} assigned successfully.`);
+          }
+      );
+  };
+
+  const handleExportTickets = () => {
+      // Create CSV content
+      const headers = "Ticket ID,Ticket Number,User Name,Cycle,Status,Assigned Date,Assigned By\n";
+      const rows = tickets.map(t => 
+          `${t.id},${t.ticketNumber},"${t.userName}",${t.cycle},${t.status},${t.assignedDate},${t.assignedBy}`
+      ).join("\n");
+      
+      const csvContent = "data:text/csv;charset=utf-8," + headers + rows;
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `tickets_cycle_${settings.cycle}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showAlert('success', 'Export Successful', 'Ticket data exported to CSV.');
+  };
+
+  const filteredTickets = tickets.filter(t => {
+      const matchesSearch = t.userName.toLowerCase().includes(ticketSearch.toLowerCase()) || t.ticketNumber.toString().includes(ticketSearch);
+      const matchesCycle = ticketCycleFilter === 'ALL' || t.cycle === ticketCycleFilter;
+      return matchesSearch && matchesCycle;
+  });
+
 
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
@@ -789,162 +878,314 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
 
             {/* --- COMPETITION MANAGEMENT TAB --- */}
             {activeTab === 'competition' && (
-                <div className="space-y-6 animate-fade-in-up max-w-4xl mx-auto">
-                    <h1 className="text-2xl font-bold text-stone-800">Competition Management</h1>
-
-                    {/* Draw Schedule Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
-                        </h2>
+                <div className="space-y-6 animate-fade-in-up max-w-5xl mx-auto">
+                    <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-6">
+                        <h1 className="text-2xl font-bold text-stone-800 mb-4 md:mb-0">Competition Management</h1>
                         
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
-                                <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
-                                <div className="flex space-x-2">
-                                    <select 
-                                        value={ethDate.month}
-                                        onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
-                                        className="flex-1 p-2 border border-stone-300 rounded-lg"
-                                    >
-                                        {ETHIOPIAN_MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
-                                    </select>
-                                    <select 
-                                        value={ethDate.day}
-                                        onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
-                                        className="w-20 p-2 border border-stone-300 rounded-lg"
-                                    >
-                                        {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-                                    </select>
-                                    <input 
-                                        type="number" 
-                                        value={ethDate.year}
-                                        onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
-                                        className="w-24 p-2 border border-stone-300 rounded-lg"
-                                    />
-                                </div>
-                                <p className="text-xs text-stone-500">
-                                    This will automatically update the countdown and Gregorian date.
-                                </p>
-                            </div>
-
-                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
-                                <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">Preview</h3>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-stone-600">Amharic Date:</span>
-                                        <span className="font-bold text-stone-800">{settings.nextDrawDateAm}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-stone-600">English Date:</span>
-                                        <span className="font-bold text-stone-800">{settings.nextDrawDateEn}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-stone-600">Gregorian (System):</span>
-                                        <span className="font-mono text-stone-800">{settings.drawDate}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
-                             <button onClick={() => handleSaveSection('Draw Schedule')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
-                             </button>
+                        {/* Sub-tabs Navigation */}
+                        <div className="bg-white p-1 rounded-xl shadow-sm border border-stone-200 flex">
+                            <button 
+                                onClick={() => setCompSubTab('settings')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                                    compSubTab === 'settings' 
+                                    ? 'bg-stone-800 text-white shadow-md' 
+                                    : 'text-stone-500 hover:bg-stone-50'
+                                }`}
+                            >
+                                General Settings
+                            </button>
+                            <button 
+                                onClick={() => setCompSubTab('tickets')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center ${
+                                    compSubTab === 'tickets' 
+                                    ? 'bg-emerald-600 text-white shadow-md' 
+                                    : 'text-stone-500 hover:bg-stone-50'
+                                }`}
+                            >
+                                <Ticket className="w-4 h-4 mr-2" /> Ticket Management
+                            </button>
                         </div>
                     </div>
 
-                    {/* Prize Settings Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
-                        </h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
-                                    <input 
-                                        type="text" 
-                                        value={settings.prizeName}
-                                        onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
-                                        className="w-full p-2 border border-stone-300 rounded-lg"
-                                    />
+                    {/* === GENERAL SETTINGS SUB-TAB === */}
+                    {compSubTab === 'settings' && (
+                        <div className="space-y-6 animate-fade-in-down">
+                            {/* Draw Schedule Card */}
+                            <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                                <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                                    <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
+                                </h2>
+                                
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
+                                        <div className="flex space-x-2">
+                                            <select 
+                                                value={ethDate.month}
+                                                onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
+                                                className="flex-1 p-2 border border-stone-300 rounded-lg"
+                                            >
+                                                {ETHIOPIAN_MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
+                                            </select>
+                                            <select 
+                                                value={ethDate.day}
+                                                onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
+                                                className="w-20 p-2 border border-stone-300 rounded-lg"
+                                            >
+                                                {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                                            </select>
+                                            <input 
+                                                type="number" 
+                                                value={ethDate.year}
+                                                onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
+                                                className="w-24 p-2 border border-stone-300 rounded-lg"
+                                            />
+                                        </div>
+                                        <p className="text-xs text-stone-500">
+                                            This will automatically update the countdown and Gregorian date.
+                                        </p>
+                                    </div>
+
+                                    <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                        <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">Preview</h3>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between">
+                                                <span className="text-stone-600">Amharic Date:</span>
+                                                <span className="font-bold text-stone-800">{settings.nextDrawDateAm}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-stone-600">English Date:</span>
+                                                <span className="font-bold text-stone-800">{settings.nextDrawDateEn}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-stone-600">Gregorian (System):</span>
+                                                <span className="font-mono text-stone-800">{settings.drawDate}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value Display</label>
-                                    <input 
-                                        type="text" 
-                                        value={settings.prizeValue}
-                                        onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
-                                        className="w-full p-2 border border-stone-300 rounded-lg"
-                                    />
+                                <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                                    <button onClick={() => handleSaveSection('Draw Schedule')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                        <Save className="w-4 h-4 mr-2" /> Save Changes
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            value={settings.prizeImage}
-                                            onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
-                                            className="w-full p-2 border border-stone-300 rounded-lg text-sm"
-                                        />
-                                        <button className="p-2 bg-stone-100 rounded border border-stone-300">
-                                            <ImageIcon className="w-5 h-5 text-stone-600" />
+                            </div>
+
+                            {/* Prize Settings Card */}
+                            <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                                <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                                    <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
+                                </h2>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
+                                            <input 
+                                                type="text" 
+                                                value={settings.prizeName}
+                                                onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
+                                                className="w-full p-2 border border-stone-300 rounded-lg"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value Display</label>
+                                            <input 
+                                                type="text" 
+                                                value={settings.prizeValue}
+                                                onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
+                                                className="w-full p-2 border border-stone-300 rounded-lg"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    type="text" 
+                                                    value={settings.prizeImage}
+                                                    onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
+                                                    className="w-full p-2 border border-stone-300 rounded-lg text-sm"
+                                                />
+                                                <button className="p-2 bg-stone-100 rounded border border-stone-300">
+                                                    <ImageIcon className="w-5 h-5 text-stone-600" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
+                                        <img src={settings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
+                                        <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
+                                            Preview
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                                    <button onClick={() => handleSaveSection('Current Prize')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                        <Save className="w-4 h-4 mr-2" /> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Live Stream Settings Card */}
+                            <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                                <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                                    <Video className="w-5 h-5 mr-2 text-red-600" /> Live Stream Configuration
+                                </h2>
+                                
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                        <div>
+                                            <h3 className="font-bold text-stone-800">Live Status</h3>
+                                            <p className="text-sm text-stone-500">Toggle this ON when the draw event starts</p>
+                                        </div>
+                                        <button 
+                                        onClick={() => setSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
                                         </button>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold text-stone-700 mb-1">Embed URL / Stream Link</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="https://www.youtube.com/embed/..."
+                                            value={settings.liveStreamUrl}
+                                            onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
+                                            className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
+                                        />
+                                        <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
+                                    </div>
+                                </div>
+                                <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                                    <button onClick={() => handleSaveSection('Live Stream Config')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                        <Save className="w-4 h-4 mr-2" /> Save Changes
+                                    </button>
                                 </div>
                             </div>
-                            <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
-                                <img src={settings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
-                                <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
-                                    Preview
+                        </div>
+                    )}
+
+                    {/* === TICKET MANAGEMENT SUB-TAB === */}
+                    {compSubTab === 'tickets' && (
+                        <div className="space-y-6 animate-fade-in-down">
+                            
+                            {/* Toolbar */}
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+                                <div className="flex gap-4 w-full md:w-auto">
+                                    <div className="relative flex-grow md:w-64">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="Search ticket # or user..." 
+                                            value={ticketSearch}
+                                            onChange={(e) => setTicketSearch(e.target.value)}
+                                            className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full"
+                                        />
+                                    </div>
+                                    <select 
+                                        value={ticketCycleFilter}
+                                        onChange={(e) => setTicketCycleFilter(e.target.value === 'ALL' ? 'ALL' : parseInt(e.target.value))}
+                                        className="px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white"
+                                    >
+                                        <option value="ALL">All Cycles</option>
+                                        <option value={settings.cycle}>Current Cycle ({settings.cycle})</option>
+                                        <option value={settings.cycle - 1}>Previous Cycle ({settings.cycle - 1})</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex gap-2 w-full md:w-auto">
+                                    <button 
+                                        onClick={handleManualAssign}
+                                        className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 font-bold transition-colors"
+                                    >
+                                        <MousePointerClick className="w-4 h-4 mr-2" /> Assign Ticket
+                                    </button>
+                                    <button 
+                                        onClick={handleExportTickets}
+                                        className="flex-1 md:flex-none flex items-center justify-center px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200 font-bold transition-colors border border-emerald-200"
+                                    >
+                                        <Download className="w-4 h-4 mr-2" /> Export CSV
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Ticket List */}
+                            <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left whitespace-nowrap">
+                                        <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
+                                            <tr>
+                                                <th className="px-6 py-3">Ticket #</th>
+                                                <th className="px-6 py-3">User</th>
+                                                <th className="px-6 py-3">Cycle</th>
+                                                <th className="px-6 py-3">Status</th>
+                                                <th className="px-6 py-3">Assigned Date</th>
+                                                <th className="px-6 py-3">Type</th>
+                                                <th className="px-6 py-3 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-stone-100">
+                                            {filteredTickets.map((ticket) => (
+                                                <tr key={ticket.id} className="hover:bg-stone-50 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <span className="font-mono font-bold text-lg text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                                                            #{ticket.ticketNumber}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="font-bold text-stone-800">{ticket.userName}</p>
+                                                        <p className="text-xs text-stone-400">ID: {ticket.userId}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded font-bold">
+                                                            Cycle {ticket.cycle}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                                            ticket.status === 'ACTIVE' 
+                                                            ? 'bg-emerald-100 text-emerald-800' 
+                                                            : 'bg-red-100 text-red-800'
+                                                        }`}>
+                                                            {ticket.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-stone-500 text-sm">
+                                                        {ticket.assignedDate}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs font-bold text-stone-400 uppercase">
+                                                        {ticket.assignedBy}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {ticket.status === 'ACTIVE' && (
+                                                            <button 
+                                                                onClick={() => handleVoidTicket(ticket.id)}
+                                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                                                title="Void Ticket"
+                                                            >
+                                                                <Ban className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {filteredTickets.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={7} className="text-center py-12 text-stone-500">
+                                                        No tickets found matching your filters.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="bg-stone-50 px-6 py-3 border-t border-stone-200 text-xs text-stone-500 flex justify-between items-center">
+                                    <span>Showing {filteredTickets.length} tickets</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
-                             <button onClick={() => handleSaveSection('Current Prize')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
-                             </button>
-                        </div>
-                    </div>
-
-                    {/* Live Stream Settings Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Video className="w-5 h-5 mr-2 text-red-600" /> Live Stream Configuration
-                        </h2>
-                        
-                        <div className="space-y-4">
-                             <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
-                                 <div>
-                                     <h3 className="font-bold text-stone-800">Live Status</h3>
-                                     <p className="text-sm text-stone-500">Toggle this ON when the draw event starts</p>
-                                 </div>
-                                 <button 
-                                   onClick={() => setSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
-                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
-                                 >
-                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
-                                 </button>
-                             </div>
-
-                             <div>
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Embed URL / Stream Link</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="https://www.youtube.com/embed/..."
-                                    value={settings.liveStreamUrl}
-                                    onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
-                                    className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
-                                />
-                                <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
-                             </div>
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
-                             <button onClick={() => handleSaveSection('Live Stream Config')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
-                             </button>
-                        </div>
-                    </div>
+                    )}
                 </div>
             )}
 
