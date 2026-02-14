@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User as UserIcon, CheckSquare, Square, AlertCircle } from 'lucide-react';
+import { User as UserIcon, CheckSquare, Square, AlertCircle, Lock, Phone, Eye, EyeOff } from 'lucide-react';
 import { ViewState, User, Language, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
@@ -15,6 +15,8 @@ interface LoginViewProps {
 const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, settings }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,6 +29,11 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
 
     if (isRegistering && !agreed) {
         setError(language === 'en' ? 'You must agree to the terms.' : 'በውሎች እና ሁኔታዎች መስማማት አለብዎት።');
+        return;
+    }
+
+    if (password.length < 4) {
+        setError(language === 'en' ? 'Password must be at least 4 characters.' : 'የይለፍ ቃል ቢያንስ 4 ሆሄያት መሆን አለበት።');
         return;
     }
 
@@ -45,9 +52,10 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
                 return;
             }
 
-            const newUser: User = {
+            const newUser: any = {
                 name: name,
                 phone: phone,
+                password: password, // Note: In a production app, never store passwords in plain text!
                 status: 'PENDING',
                 contribution: 0,
                 joinedDate: new Date().toLocaleDateString('en-US')
@@ -56,8 +64,9 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
             // Add to Firestore
             const docRef = await addDoc(collection(db, 'users'), newUser);
             
-            // Set Local State
-            setUser({ ...newUser, id: docRef.id as any }); // Using doc ID as user ID
+            // Set Local State (exclude password from state)
+            const { password: _, ...userState } = newUser;
+            setUser({ ...userState, id: docRef.id as any }); 
             setView('dashboard');
 
         } else {
@@ -70,9 +79,18 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
 
             // Get the first matching user
             const userDoc = querySnapshot.docs[0];
-            const userData = userDoc.data() as User;
-            // Append Firestore ID
-            setUser({ ...userData, id: userDoc.id as any });
+            const userData = userDoc.data();
+
+            // Verify Password
+            if (userData.password !== password) {
+                setError(language === 'en' ? 'Incorrect password.' : 'የተሳሳተ የይለፍ ቃል');
+                setLoading(false);
+                return;
+            }
+
+            // Append Firestore ID and set user
+            const { password: _, ...userState } = userData;
+            setUser({ ...userState, id: userDoc.id } as User);
             setView('dashboard');
         }
 
@@ -92,6 +110,8 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
       setIsRegistering(!isRegistering);
       setError('');
       setAgreed(false);
+      setPassword('');
+      setShowPassword(false);
   };
 
   return (
@@ -118,27 +138,36 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
         )}
 
         <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">{t.label_name}</label>
-            <input 
-              type="text" 
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
-              placeholder="e.g. Abebe Kebede"
-            />
-            {isRegistering && (
-              <p className="text-xs text-amber-600 mt-1.5 flex items-center font-medium">
-                 <AlertCircle className="w-3 h-3 mr-1.5" />
-                 {t.name_notice}
-              </p>
-            )}
-          </div>
+          
+          {/* Full Name - Only for Registration */}
+          {isRegistering && (
+            <div className="animate-fade-in-down">
+                <label className="block text-sm font-medium text-stone-700 mb-1">{t.label_name}</label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <UserIcon className="h-5 w-5 text-stone-400" />
+                    </div>
+                    <input 
+                    type="text" 
+                    required={isRegistering}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    placeholder="e.g. Abebe Kebede"
+                    />
+                </div>
+                <p className="text-xs text-amber-600 mt-1.5 flex items-center font-medium">
+                    <AlertCircle className="w-3 h-3 mr-1.5" />
+                    {t.name_notice}
+                </p>
+            </div>
+          )}
+
+          {/* Phone Number */}
           <div>
             <label className="block text-sm font-medium text-stone-700 mb-1">{t.label_phone}</label>
-            <div className="flex">
-               <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-stone-300 bg-stone-50 text-stone-500 text-sm">
+            <div className="flex relative">
+               <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-stone-300 bg-stone-50 text-stone-500 text-sm font-medium">
                   +251
                </span>
                <input 
@@ -149,6 +178,34 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
                 className="w-full px-4 py-3 rounded-r-lg border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 placeholder="911 234 567"
               />
+            </div>
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label className="block text-sm font-medium text-stone-700 mb-1">
+                {language === 'en' ? 'Password' : 'የይለፍ ቃል'}
+            </label>
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-stone-400" />
+                </div>
+                <input 
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-10 pr-12 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                    placeholder="••••••••"
+                />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-600 focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
             </div>
           </div>
 
