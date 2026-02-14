@@ -243,11 +243,14 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
                  <div className="relative grid grid-cols-10 sm:grid-cols-25 gap-1 p-2 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-5xl mx-auto">
                     {tickets.map((ticket, i) => (
-                        <div key={i} className={`
-                            aspect-square rounded flex items-center justify-center font-bold text-[8px] sm:text-[10px] border transition-all duration-500
+                        <div 
+                          key={i} 
+                          onClick={scrollToWaitlist}
+                          className={`
+                            aspect-square rounded flex items-center justify-center font-bold text-[8px] sm:text-[10px] border transition-all duration-500 cursor-pointer
                             ${ticket.isTaken 
                             ? 'bg-amber-950/40 border-amber-900/30 text-stone-600' 
-                            : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10 cursor-default'}
+                            : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10'}
                         `}>
                             {ticket.number}
                         </div>
