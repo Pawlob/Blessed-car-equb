@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<ViewState>('landing');
   const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState<Language>('am');
+  const [hasShownPreloader, setHasShownPreloader] = useState(false);
 
   // Calculate initial target date (14 days from now for demo purposes)
   const initialTargetDate = new Date();
@@ -35,6 +36,8 @@ const App: React.FC = () => {
     prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
     liveStreamUrl: '',
     isLive: false,
+    registrationEnabled: true,
+    adminPassword: 'admin123',
     recentWinners: [
       { 
         id: 1, 
@@ -176,6 +179,8 @@ const App: React.FC = () => {
             language={language} 
             setView={handleSetView} 
             settings={appSettings}
+            enablePreloader={!hasShownPreloader}
+            onPreloaderComplete={() => setHasShownPreloader(true)}
           />
         )}
 
@@ -183,7 +188,8 @@ const App: React.FC = () => {
           <LoginView 
             setView={handleSetView} 
             setUser={setUser} 
-            language={language} 
+            language={language}
+            settings={appSettings}
           />
         )}
 

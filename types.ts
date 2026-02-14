@@ -31,6 +31,8 @@ export interface AppSettings {
   recentWinners: Winner[];
   liveStreamUrl: string;
   isLive: boolean;
+  registrationEnabled: boolean;
+  adminPassword?: string;
 }
 
 export interface User {

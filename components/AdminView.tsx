@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield
 } from 'lucide-react';
 import { User, AppSettings, ViewState } from '../types';
 
@@ -218,7 +218,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
   // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'admin123') {
+    const adminPass = settings.adminPassword || 'admin123';
+    if (password === adminPass) {
       setIsAuthenticated(true);
     } else {
       showAlert('error', 'Login Failed', 'The access key you provided is incorrect. Please try again.');
@@ -716,6 +717,60 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                 <div className="space-y-6 animate-fade-in-up max-w-4xl mx-auto">
                     <h1 className="text-2xl font-bold text-stone-800">App Settings</h1>
                     
+                    {/* Account & Security Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Shield className="w-5 h-5 mr-2 text-stone-600" /> Account & Security
+                        </h2>
+                        
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Registration Control */}
+                            <div className="space-y-4">
+                                 <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                     <div>
+                                         <h3 className="font-bold text-stone-800">User Registration</h3>
+                                         <p className="text-sm text-stone-500">Allow new users to create accounts</p>
+                                     </div>
+                                     <button 
+                                       onClick={() => setSettings(prev => ({ ...prev, registrationEnabled: !prev.registrationEnabled }))}
+                                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.registrationEnabled ? 'bg-emerald-600' : 'bg-stone-300'}`}
+                                     >
+                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.registrationEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                     </button>
+                                 </div>
+                                 <p className="text-xs text-stone-500">
+                                    When disabled, the registration form will be hidden on the login page.
+                                 </p>
+                            </div>
+
+                            {/* Password Change */}
+                            <div className="space-y-4">
+                                <label className="block text-sm font-bold text-stone-700">Change Admin Password</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="password" 
+                                        placeholder="New Password"
+                                        className="flex-1 p-2 border border-stone-300 rounded-lg"
+                                        id="new-admin-password" 
+                                    />
+                                    <button 
+                                        onClick={() => {
+                                            const input = document.getElementById('new-admin-password') as HTMLInputElement;
+                                            if(input.value) {
+                                                 setSettings(prev => ({ ...prev, adminPassword: input.value }));
+                                                 input.value = '';
+                                                 showAlert('success', 'Password Updated', 'Admin access key has been changed.');
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-stone-800 text-white font-bold rounded-lg hover:bg-stone-700"
+                                    >
+                                        Update
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Draw Schedule Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">

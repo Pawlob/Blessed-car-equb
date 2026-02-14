@@ -9,10 +9,18 @@ interface LandingPageProps {
   language: Language;
   setView: (view: ViewState) => void;
   settings: AppSettings;
+  enablePreloader?: boolean;
+  onPreloaderComplete?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }) => {
-  const [isLoading, setIsLoading] = useState(true);
+const LandingPage: React.FC<LandingPageProps> = ({ 
+  language, 
+  setView, 
+  settings, 
+  enablePreloader = true, 
+  onPreloaderComplete 
+}) => {
+  const [isLoading, setIsLoading] = useState(enablePreloader);
   const t = TRANSLATIONS[language];
   
   // Generate mock tickets for the marquee - Ticket Roll System (1-30)
@@ -22,11 +30,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
   }));
 
   useEffect(() => {
+    if (!enablePreloader) {
+      setIsLoading(false);
+      return;
+    }
+
     const timer = setTimeout(() => {
       setIsLoading(false);
+      if (onPreloaderComplete) onPreloaderComplete();
     }, 2500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [enablePreloader, onPreloaderComplete]);
+
+  const scrollToWaitlist = () => {
+    const element = document.getElementById('waitlist-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -98,7 +119,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
             
             <div className="flex flex-row items-center space-x-3 justify-center md:justify-start pt-4 w-full sm:w-auto animate-fade-in-up delay-[200ms]">
               <button 
-                onClick={() => setView('login')}
+                onClick={scrollToWaitlist}
                 className="flex-1 sm:flex-none sm:w-auto px-4 sm:px-8 py-4 bg-red-900 hover:bg-red-800 text-white rounded-lg font-bold text-sm sm:text-lg shadow-xl shadow-red-900/20 transition-all hover:-translate-y-1 flex items-center justify-center whitespace-nowrap"
               >
                 {t.hero.cta}
@@ -217,10 +238,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ language, setView, settings }
       <Features language={language} />
       <SocialProofSection language={language} />
       
-      <section className="py-16 bg-white text-center">
+      <section id="waitlist-section" className="py-16 bg-white text-center">
           <div className="max-w-4xl mx-auto px-4">
               <h2 className="text-3xl font-bold text-emerald-900 mb-6">{t.cta_section.heading}</h2>
-              <p className="text-stone-600 mb-8">{t.cta_section.desc}</p>
+              {t.cta_section.desc && <p className="text-stone-600 mb-8">{t.cta_section.desc}</p>}
               <button onClick={() => setView('login')} className="px-10 py-4 bg-red-900 hover:bg-red-800 text-white rounded-full font-bold text-xl shadow-xl transform transition-transform hover:scale-105">
                   {t.cta_section.btn}
               </button>

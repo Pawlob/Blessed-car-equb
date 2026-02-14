@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { User as UserIcon, CheckSquare, Square, AlertCircle } from 'lucide-react';
-import { ViewState, User, Language } from '../types';
+import { ViewState, User, Language, AppSettings } from '../types';
 import { TRANSLATIONS } from '../constants';
 
 interface LoginViewProps {
   setView: (view: ViewState) => void;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   language: Language;
+  settings: AppSettings;
 }
 
-const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => {
+const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, settings }) => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -42,6 +43,10 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
   };
 
   const toggleMode = () => {
+      if (!isRegistering && !settings.registrationEnabled) {
+          setError(language === 'en' ? 'Registration is currently closed.' : 'ምዝገባ ለጊዜው ተዘግቷል።');
+          return;
+      }
       setIsRegistering(!isRegistering);
       setError('');
       setAgreed(false);
@@ -147,12 +152,18 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language }) => 
             </span>
             <button 
               type="button" 
-              className="text-emerald-700 font-bold text-sm hover:text-emerald-900 hover:underline"
+              className={`font-bold text-sm hover:underline ${!settings.registrationEnabled && !isRegistering ? 'text-stone-400 cursor-not-allowed' : 'text-emerald-700 hover:text-emerald-900'}`}
               onClick={toggleMode}
             >
               {isRegistering ? t.btn_login_link : t.btn_register}
             </button>
           </div>
+          
+          {!settings.registrationEnabled && !isRegistering && (
+             <div className="text-center text-xs text-amber-600 mt-2">
+                 Registration is currently disabled by admin.
+             </div>
+          )}
 
         </form>
         <div className="mt-6 text-center border-t border-stone-100 pt-4 flex justify-center items-center">

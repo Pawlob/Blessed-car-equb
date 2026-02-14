@@ -24,7 +24,7 @@ export const TRANSLATIONS = {
     },
     cta_section: {
         heading: "Ready to Drive Your Dream Car?",
-        desc: "Join 2,150+ members who are securing their financial future with Blessed.",
+        desc: "",
         btn: "Join the Waitlist"
     },
     prizes_page: {
@@ -156,7 +156,7 @@ export const TRANSLATIONS = {
     },
     cta_section: {
         heading: "የህልም መኪናዎን ለመንዳት ዝግጁ ነዎት?",
-        desc: "የፋይናንስ ነጻነታቸውን እያረጋገጡ ያሉ ከ2,150 በላይ አባላትን ይቀላቀሉ።",
+        desc: "",
         btn: "አሁኑኑ ይመዝገቡ"
     },
     prizes_page: {
