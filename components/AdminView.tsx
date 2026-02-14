@@ -512,7 +512,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                            </select>
                        </div>
                        <div className="col-span-2 md:col-span-1">
-                           <label className="block text-sm font-bold text-stone-700 mb-1">Contribution (ETB)</label>
+                           <label className="block text-sm font-bold text-stone-700 mb-1">Total Contribution (ETB)</label>
                            <input 
                              type="number" 
                              value={editingUser.contribution || 0}
@@ -821,7 +821,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                         <th className="px-6 py-3">Name</th>
                                         <th className="px-6 py-3">Phone</th>
                                         <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3">Contribution</th>
+                                        <th className="px-6 py-3">This Month</th>
+                                        <th className="px-6 py-3">Total Contrib.</th>
                                         <th className="px-6 py-3">Ticket #</th>
                                         <th className="px-6 py-3">Joined</th>
                                         <th className="px-6 py-3 text-right">Actions</th>
@@ -840,7 +841,14 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                                     {user.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 font-mono">{user.contribution.toLocaleString()}</td>
+                                            <td className="px-6 py-4 font-medium">
+                                                {user.status === 'VERIFIED' ? (
+                                                    <span className="text-emerald-600 font-bold">+5,000</span>
+                                                ) : (
+                                                    <span className="text-stone-300">0</span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 font-mono text-stone-500">{user.contribution.toLocaleString()}</td>
                                             <td className="px-6 py-4">
                                                 {user.prizeNumber ? (
                                                     <span className="bg-stone-800 text-white px-2 py-1 rounded text-xs font-bold">
@@ -871,7 +879,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                                     ))}
                                     {filteredUsers.length === 0 && (
                                         <tr>
-                                            <td colSpan={8} className="text-center py-12 text-stone-500">
+                                            <td colSpan={9} className="text-center py-12 text-stone-500">
                                                 <div className="flex flex-col items-center justify-center">
                                                     <Search className="w-8 h-8 text-stone-300 mb-2" />
                                                     <p>No users found matching your search.</p>
