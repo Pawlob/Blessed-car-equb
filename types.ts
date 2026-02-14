@@ -4,7 +4,7 @@ export type Language = 'en' | 'am';
 export type ViewState = 'landing' | 'login' | 'dashboard' | 'admin' | 'prizes' | 'terms';
 
 export interface Winner {
-  id: number;
+  id: number | string;
   name: string;
   nameAm: string;
   prize: string;
@@ -16,7 +16,7 @@ export interface Winner {
 }
 
 export interface AppNotification {
-  id: number;
+  id: number | string;
   title: { en: string; am: string };
   desc: { en: string; am: string };
   time: Date;
@@ -45,7 +45,7 @@ export interface AppSettings {
 }
 
 export interface User {
-  id?: number;
+  id?: number | string;
   name: string;
   phone: string;
   status: 'PENDING' | 'VERIFIED';

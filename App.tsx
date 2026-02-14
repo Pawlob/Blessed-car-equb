@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   nextDrawDateAm: 'የካቲት 21፣ 2018',
   potValue: 50450000,
   totalMembers: 2150,
-  cycle: 14,
+  cycle: 1,
   daysRemaining: 14,
   drawDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString().split('T')[0],
   carsDelivered: 142,

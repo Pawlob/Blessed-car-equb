@@ -27,8 +27,22 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
     e.preventDefault();
     setError('');
 
-    if (isRegistering && !agreed) {
-        setError(language === 'en' ? 'You must agree to the terms.' : 'በውሎች እና ሁኔታዎች መስማማት አለብዎት።');
+    // --- 1. Input Normalization ---
+    let cleanPhone = phone.replace(/\D/g, ''); // Remove non-digits
+    
+    // Handle "9..." input (9 digits) by adding leading '0'
+    if (cleanPhone.length === 9 && (cleanPhone.startsWith('9') || cleanPhone.startsWith('7'))) {
+        cleanPhone = '0' + cleanPhone;
+    }
+
+    // --- 2. Input Validation ---
+    
+    // Validate Phone Format: Must be 10 digits starting with 09 or 07
+    const phoneRegex = /^0(9|7)\d{8}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+        setError(language === 'en' 
+            ? 'Invalid phone number. Use format 09... or 9...' 
+            : 'ትክክለኛ ስልክ ቁጥር ያስገቡ። (09... ወይም 07...)');
         return;
     }
 
@@ -37,11 +51,23 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
         return;
     }
 
+    if (isRegistering) {
+        if (!name.trim()) {
+             setError(language === 'en' ? 'Full name is required.' : 'ሙሉ ስም ማስገባት ግዴታ ነው።');
+             return;
+        }
+        if (!agreed) {
+            setError(language === 'en' ? 'You must agree to the terms.' : 'በውሎች እና ሁኔታዎች መስማማት አለብዎት።');
+            return;
+        }
+    }
+
     setLoading(true);
 
     try {
         const usersRef = collection(db, 'users');
-        const q = query(usersRef, where("phone", "==", phone));
+        // Query using the normalized phone number
+        const q = query(usersRef, where("phone", "==", cleanPhone));
         const querySnapshot = await getDocs(q);
 
         if (isRegistering) {
@@ -53,8 +79,8 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
             }
 
             const newUser: any = {
-                name: name,
-                phone: phone,
+                name: name.trim(),
+                phone: cleanPhone,
                 password: password, // Note: In a production app, never store passwords in plain text!
                 status: 'PENDING',
                 contribution: 0,
@@ -66,7 +92,7 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
             
             // Set Local State (exclude password from state)
             const { password: _, ...userState } = newUser;
-            setUser({ ...userState, id: docRef.id as any }); 
+            setUser({ ...userState, id: docRef.id }); 
             setView('dashboard');
 
         } else {

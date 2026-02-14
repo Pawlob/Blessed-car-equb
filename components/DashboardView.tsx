@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -38,6 +38,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   
   // Real ticket data from DB
   const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
+
+  // Lucky Search State
+  const [luckySearch, setLuckySearch] = useState('');
+  const [luckyStatus, setLuckyStatus] = useState<'IDLE' | 'AVAILABLE' | 'TAKEN' | 'INVALID'>('IDLE');
 
   const t = TRANSLATIONS[language].dashboard;
   const heroT = TRANSLATIONS[language].hero;
@@ -139,7 +143,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     }, 4000);
 
     // Initialize Tickets (Mock 1-100) - In a real app, fetch from 'tickets' collection
-    const allTickets = Array.from({ length: 100 }, (_, i) => ({
+    const allTickets = Array.from({ length: 300 }, (_, i) => ({
         number: i + 1,
         taken: Math.random() > 0.8 // Random taken status
     }));
@@ -191,6 +195,31 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Lucky Search Handler
+  const handleLuckySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLuckySearch(val);
+    
+    if (!val) {
+        setLuckyStatus('IDLE');
+        return;
+    }
+
+    const num = parseInt(val);
+    if (isNaN(num)) {
+         setLuckyStatus('IDLE');
+         return;
+    }
+
+    const ticket = tickets.find(t => t.number === num);
+    
+    if (ticket) {
+        setLuckyStatus(ticket.taken ? 'TAKEN' : 'AVAILABLE');
+    } else {
+        setLuckyStatus('INVALID');
+    }
   };
 
   const formatTime = (date: any) => {
@@ -671,6 +700,68 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
             {/* Right: Live Feed & Winners */}
             <div className="space-y-6">
+
+               {/* Lucky Number Search Section - NEW */}
+               <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 animate-fade-in-up delay-[450ms]">
+                  <h3 className="font-bold text-stone-800 mb-4 flex items-center">
+                      <Search className="w-4 h-4 mr-2 text-emerald-600" /> 
+                      {language === 'en' ? 'Check Lucky Number' : 'እድለኛ ቁጥር ይፈልጉ'}
+                  </h3>
+                  <div className="relative">
+                      <input 
+                          type="number" 
+                          value={luckySearch}
+                          onChange={handleLuckySearch}
+                          placeholder={language === 'en' ? "Enter number (e.g. 42)" : "ቁጥር ያስገቡ (ምሳሌ 42)"}
+                          className={`w-full pl-4 pr-10 py-3 border rounded-lg outline-none transition-all ${
+                              luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/30' :
+                              luckyStatus === 'TAKEN' ? 'border-red-300 ring-1 ring-red-200 bg-red-50/30' :
+                              'border-stone-300 focus:ring-2 focus:ring-emerald-500'
+                          }`}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                           {luckyStatus === 'AVAILABLE' && <CheckCircle className="w-5 h-5 text-emerald-500 animate-bounce" />}
+                           {luckyStatus === 'TAKEN' && <XCircle className="w-5 h-5 text-red-500" />}
+                      </div>
+                  </div>
+                  
+                  {luckyStatus === 'AVAILABLE' && (
+                      <div className="mt-3 animate-fade-in-down">
+                          <p className="text-xs text-emerald-600 font-bold mb-3 flex items-center">
+                              <CheckCircle className="w-3 h-3 mr-1" /> 
+                              {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
+                          </p>
+                          <button 
+                              onClick={() => {
+                                  setSelectedTempTicket(parseInt(luckySearch));
+                                  setShowTicketModal(true);
+                              }}
+                              className="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-500 shadow-md transition-all transform active:scale-95"
+                          >
+                              {language === 'en' ? `Select #${luckySearch}` : `#${luckySearch} ምረጥ`}
+                          </button>
+                      </div>
+                  )}
+                  
+                  {luckyStatus === 'TAKEN' && (
+                      <div className="mt-3 bg-red-50 p-3 rounded-lg border border-red-100 animate-fade-in-down">
+                          <p className="text-xs text-red-600 font-bold flex items-center">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              {language === 'en' ? 'Sorry, this number is taken.' : 'ይቅርታ፣ ይህ ቁጥር ተይዟል።'}
+                          </p>
+                          <p className="text-[10px] text-red-400 mt-1 ml-4">
+                              {language === 'en' ? 'Please try another number.' : 'እባክዎ ሌላ ቁጥር ይሞክሩ።'}
+                          </p>
+                      </div>
+                  )}
+
+                  {luckyStatus === 'INVALID' && (
+                      <p className="mt-2 text-xs text-stone-400 ml-1">
+                          {language === 'en' ? 'Please enter a valid ticket number.' : 'እባክዎ ትክክለኛ ቁጥር ያስገቡ።'}
+                      </p>
+                  )}
+               </div>
+
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[500ms]">
                   <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">{t.live_activity}</h3>
                   <div className="space-y-4 max-h-[300px] overflow-hidden relative">
