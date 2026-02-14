@@ -336,15 +336,38 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     
     showConfirm(
       'Start New Cycle?',
-      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n• Pot Value to 0\n• Member Contributions to 0\n• Member Status to Pending\n• Clear all Tickets & Requests`,
+      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n• Pot Value to 0\n• Member Contributions to 0\n• Member Status to Pending\n• Clear all Tickets & Requests\n• Next Draw Date to +30 days`,
       () => {
+        // Calculate new draw date (30 days from now)
+        const today = new Date();
+        const nextDraw = new Date(today);
+        nextDraw.setDate(today.getDate() + 30);
+        const nextDrawIso = nextDraw.toISOString().split('T')[0];
+
+        // Calculate Ethiopian date for the new draw date
+        const newEthDate = getEthiopianFromGregorian(nextDrawIso);
+        
+        // Format display strings
+        const monthIndex = newEthDate.month - 1;
+        const monthNameEn = ETHIOPIAN_MONTHS[monthIndex]?.name.split(' ')[0] || '';
+        const monthNameAm = AMHARIC_MONTHS[monthIndex] || '';
+
+        const nextDrawDateEn = `${monthNameEn} ${newEthDate.day}, ${newEthDate.year}`;
+        const nextDrawDateAm = `${monthNameAm} ${newEthDate.day}፣ ${newEthDate.year}`;
+
         // 1. Reset Global Settings
         // Note: Pot Value and Total Members will be auto-calculated by useEffect when users are reset
         setSettings(prev => ({
           ...prev,
           cycle: nextCycle,
           daysRemaining: 30, // Reset timer to default 30 days
+          drawDate: nextDrawIso,
+          nextDrawDateEn: nextDrawDateEn,
+          nextDrawDateAm: nextDrawDateAm
         }));
+
+        // Update local state for the date picker inputs
+        setEthDate(newEthDate);
 
         // 2. Reset All Users
         setUsers(prevUsers => prevUsers.map(u => ({
@@ -357,7 +380,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
         // 3. Clear Pending Requests
         setPaymentRequests([]);
 
-        showAlert('success', 'Cycle Started', `Cycle ${nextCycle} has been started successfully!`);
+        showAlert('success', 'Cycle Started', `Cycle ${nextCycle} has been started successfully! Next draw set for ${nextDrawDateEn}.`);
       }
     );
   };
