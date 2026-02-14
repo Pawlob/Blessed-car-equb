@@ -4,6 +4,8 @@ import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS } from '../constants';
 import { Language, ViewState, AppSettings } from '../types';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface LandingPageProps {
   language: Language;
@@ -21,13 +23,37 @@ const LandingPage: React.FC<LandingPageProps> = ({
   onPreloaderComplete 
 }) => {
   const [isLoading, setIsLoading] = useState(enablePreloader);
+  const [tickets, setTickets] = useState<{number: string, isTaken: boolean}[]>([]);
   const t = TRANSLATIONS[language];
   
-  // Generate mock tickets for the marquee - Ticket Roll System (1-30)
-  const tickets = [...Array(30)].map((_, i) => ({
-    number: (i + 1).toString(),
-    isTaken: i % 3 !== 0 // Mock pattern: 2 taken, 1 lucky
-  }));
+  // Fetch Realtime Tickets
+  useEffect(() => {
+    const gridSize = 100; // Show 100 tickets on the board
+    
+    // Subscribe to real-time ticket updates for current cycle
+    const q = query(
+        collection(db, 'tickets'), 
+        where('cycle', '==', settings.cycle),
+        where('status', '==', 'ACTIVE')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const takenSet = new Set<number>();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            takenSet.add(data.ticketNumber);
+        });
+
+        // Generate grid
+        const newGrid = Array.from({ length: gridSize }, (_, i) => ({
+            number: (i + 1).toString(),
+            isTaken: takenSet.has(i + 1)
+        }));
+        setTickets(newGrid);
+    });
+
+    return () => unsubscribe();
+  }, [settings.cycle]);
 
   useEffect(() => {
     if (!enablePreloader) {
@@ -181,56 +207,49 @@ const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Ticket Status Bar */}
-      <div className="bg-amber-900 text-white py-8 relative z-20 -mt-8 shadow-xl overflow-hidden">
+      {/* Ticket Status Bar - TABLE BOARD DISPLAY */}
+      <div className="bg-amber-900 text-white py-12 relative z-20 -mt-8 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-8">
                 <h3 className="text-xl font-bold flex items-center mb-4 md:mb-0">
                 <Ticket className="w-6 h-6 mr-2 text-amber-400" />
                 {language === 'en' ? "Live Ticket Status" : "የእጣ ቁጥሮች ሁኔታ"}
                 </h3>
-                <div className="flex space-x-6 text-sm">
-                <div className="flex items-center">
-                    <span className="w-3 h-3 rounded-full bg-stone-700 border border-stone-500 mr-2"></span>
-                    <span className="text-stone-300 font-medium">{t.stats.taken}</span>
-                </div>
-                <div className="flex items-center">
-                    <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] mr-2"></span>
-                    <span className="text-emerald-200 font-medium">{t.stats.lucky}</span>
-                </div>
+                <div className="flex space-x-6 text-sm bg-black/20 px-4 py-2 rounded-full">
+                  <div className="flex items-center">
+                      <span className="w-3 h-3 rounded bg-amber-900/50 border border-amber-700 mr-2"></span>
+                      <span className="text-stone-300 font-medium">{t.stats.taken}</span>
+                  </div>
+                  <div className="flex items-center">
+                      <span className="w-3 h-3 rounded bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] mr-2"></span>
+                      <span className="text-emerald-200 font-medium">{t.stats.lucky}</span>
+                  </div>
                 </div>
             </div>
 
-            {/* Marquee Container */}
-            <div className="relative w-full overflow-hidden"> 
-                {/* Fade edges */}
-                <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-amber-900 to-transparent z-10 pointer-events-none"></div>
-                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-amber-900 to-transparent z-10 pointer-events-none"></div>
+            {/* Ticket Table Board */}
+            <div className="relative">
+                 {/* Decorative background glow */}
+                 <div className="absolute inset-0 bg-amber-500/5 blur-3xl rounded-full pointer-events-none"></div>
 
-                <div className="flex animate-scroll space-x-4 w-max hover:[animation-play-state:paused]">
-                    {/* First Loop */}
+                 <div className="relative grid grid-cols-10 sm:grid-cols-20 gap-1 sm:gap-1.5 p-3 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-5xl mx-auto">
                     {tickets.map((ticket, i) => (
                         <div key={i} className={`
-                            w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg border-2 cursor-default transition-transform hover:scale-110
+                            aspect-square rounded flex items-center justify-center font-bold text-[10px] sm:text-xs border transition-all duration-500
                             ${ticket.isTaken 
-                            ? 'bg-amber-950/60 border-amber-900 text-amber-800/60' 
-                            : 'bg-emerald-900/80 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]'}
-                        `}>
-                            {ticket.number}
-                        </div>
-                    ))}
-                    {/* Second Loop for seamless scroll */}
-                    {tickets.map((ticket, i) => (
-                        <div key={`dup-${i}`} className={`
-                            w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg border-2 cursor-default transition-transform hover:scale-110
-                            ${ticket.isTaken 
-                            ? 'bg-amber-950/60 border-amber-900 text-amber-800/60' 
-                            : 'bg-emerald-900/80 border-emerald-400 text-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.3)]'}
+                            ? 'bg-amber-950/40 border-amber-900/30 text-stone-600' 
+                            : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10 cursor-default'}
                         `}>
                             {ticket.number}
                         </div>
                     ))}
                 </div>
+            </div>
+            
+            <div className="text-center mt-6">
+                <p className="text-amber-200/60 text-xs uppercase tracking-widest">
+                  {language === 'en' ? 'Real-time Availability' : 'የእጣ ቁጥሮች ሁኔታ በቅጽበት'}
+                </p>
             </div>
         </div>
       </div>
