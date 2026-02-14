@@ -374,7 +374,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 animate-fade-in-down">
            <div>
               <h1 className="text-2xl font-bold text-emerald-900">{t.welcome} {user.name}</h1>
-              <p className="text-stone-500">Member ID: #{user.id?.toString().slice(0,6)}... • {cycleText}</p>
+              <p className="text-stone-500 text-xs sm:text-base">Member ID: #{user.id?.toString().slice(0,6)}... • {cycleText}</p>
            </div>
            <div className="mt-4 md:mt-0 flex space-x-3">
               <button 
@@ -437,44 +437,46 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
           </div>
         )}
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300">
-               <h3 className="text-stone-500 text-sm font-semibold uppercase mb-2">{t.status_card_title}</h3>
-               <div className="flex items-center justify-between mb-4">
-                  <span className={`text-2xl font-bold ${user.status === 'VERIFIED' ? 'text-emerald-600' : 'text-red-500'}`}>
+        {/* Dashboard Grid - Status and Contribution Cards Side-by-Side on Mobile */}
+        <div className="grid grid-cols-2 gap-3 md:gap-6 mb-8">
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300">
+               <h3 className="text-stone-400 text-[10px] md:text-sm font-semibold uppercase mb-1 md:mb-2 leading-tight">{t.status_card_title}</h3>
+               <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <span className={`text-base md:text-2xl font-bold truncate pr-1 ${user.status === 'VERIFIED' ? 'text-emerald-600' : 'text-red-500'}`}>
                     {user.status === 'VERIFIED' ? t.status_verified : t.status_pending}
                   </span>
-                  {user.status === 'VERIFIED' ? <CheckCircle className="w-8 h-8 text-emerald-500" /> : <Clock className="w-8 h-8 text-red-500" />}
+                  {user.status === 'VERIFIED' ? <CheckCircle className="w-5 h-5 md:w-8 md:h-8 text-emerald-500 flex-shrink-0" /> : <Clock className="w-5 h-5 md:w-8 md:h-8 text-red-500 flex-shrink-0" />}
                </div>
                
                {user.prizeNumber ? (
-                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex items-center justify-between animate-fade-in-down">
-                      <div className="flex items-center">
-                          <Ticket className="w-5 h-5 text-amber-600 mr-2" />
-                          <span className="text-amber-800 font-medium text-sm">{t.my_ticket}</span>
+                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-2 md:p-3 flex items-center justify-between animate-fade-in-down overflow-hidden">
+                      <div className="flex items-center min-w-0">
+                          <Ticket className="w-3 h-3 md:w-5 md:h-5 text-amber-600 mr-1 md:mr-2 flex-shrink-0" />
+                          <span className="text-amber-800 font-medium text-[10px] md:text-sm truncate">{t.my_ticket}</span>
                       </div>
-                      <span className="text-xl font-bold text-amber-600">#{formatTicket(user.prizeNumber)}</span>
+                      <span className="text-xs md:text-xl font-bold text-amber-600 flex-shrink-0 ml-1">#{formatTicket(user.prizeNumber)}</span>
                    </div>
                ) : (
                    <>
-                       <div className="w-full bg-stone-100 rounded-full h-2 mb-2">
-                          <div className={`h-2 rounded-full ${user.status === 'VERIFIED' ? 'bg-emerald-500 w-full' : 'bg-red-400 w-[10%]'}`}></div>
+                       <div className="w-full bg-stone-100 rounded-full h-1.5 md:h-2 mb-1 md:mb-2">
+                          <div className={`h-1.5 md:h-2 rounded-full ${user.status === 'VERIFIED' ? 'bg-emerald-500 w-full' : 'bg-red-400 w-[10%]'}`}></div>
                        </div>
-                       <p className="text-xs text-stone-400">{t.payment_due}: {paymentDueDate}</p>
+                       <p className="text-[10px] md:text-xs text-stone-400 truncate">{t.payment_due}: {paymentDueDate}</p>
                    </>
                )}
             </div>
 
-            <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-emerald-600 opacity-0 animate-fade-in-up delay-[100ms] hover:shadow-lg transition-shadow duration-300">
-               <h3 className="text-stone-500 text-sm font-semibold uppercase mb-2">{t.contribution}</h3>
-               <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl font-bold text-stone-800">{user.contribution.toLocaleString()} <span className="text-sm font-normal text-stone-400">ETB</span></span>
-                  <div className="bg-emerald-100 p-2 rounded-lg">
-                    <Trophy className="w-6 h-6 text-emerald-600" />
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-emerald-600 opacity-0 animate-fade-in-up delay-[100ms] hover:shadow-lg transition-shadow duration-300">
+               <h3 className="text-stone-400 text-[10px] md:text-sm font-semibold uppercase mb-1 md:mb-2 leading-tight">{t.contribution}</h3>
+               <div className="flex items-center justify-between mb-2 md:mb-4">
+                  <span className="text-lg md:text-3xl font-bold text-stone-800 truncate pr-1">
+                    {user.contribution.toLocaleString()} <span className="text-[10px] md:text-sm font-normal text-stone-400">ETB</span>
+                  </span>
+                  <div className="bg-emerald-100 p-1.5 md:p-2 rounded-lg flex-shrink-0">
+                    <Trophy className="w-4 h-4 md:w-6 md:h-6 text-emerald-600" />
                   </div>
                </div>
-               <p className="text-sm text-emerald-600 font-medium">{t.contribution_sub}</p>
+               <p className="text-[10px] md:text-sm text-emerald-600 font-medium leading-tight truncate">{t.contribution_sub}</p>
             </div>
         </div>
 
