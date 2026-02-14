@@ -644,7 +644,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
           >
             <div className="relative mr-3">
                <DollarSign className="w-5 h-5" />
-               {paymentRequests.length > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>}
+               {paymentRequests.length > 0 && (
+                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1 h-4 min-w-[16px] flex items-center justify-center rounded-full animate-pulse">
+                       {paymentRequests.length}
+                   </span>
+               )}
             </div>
             Verify Payments
           </button>
@@ -776,7 +780,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 </div>
             )}
 
-            {/* ... (Rest of tabs remain unchanged) ... */}
             {/* --- USERS TAB --- */}
             {activeTab === 'users' && (
                 <div className="space-y-6 animate-fade-in-up">
