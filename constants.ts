@@ -3,7 +3,7 @@
 export const TRANSLATIONS = {
   en: {
     nav: { home: "Home", how: "How It Works", prizes: "Prizes", join: "Join Now", login: "Login", logout: "Logout", dashboard: "Dashboard", secure: "Secure Session", profile: "Profile" },
-    hero: { subtitle: "Next Draw in:", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Join Ethiopia's most trusted digital Equb. With over 2,000 members, Blessed turns your monthly savings into a life-changing prize.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "Toyota Corolla Cross 2025" },
+    hero: { subtitle: "Next Draw in:", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "Toyota Corolla Cross 2025" },
     stats: { members: "Active Members", cars: "Cars Delivered", pot: "Total Pot Value", trust: "Trust Score", taken: "Taken Numbers", lucky: "Lucky Numbers" },
     features: {
         heading_sub: "How It Works",
@@ -18,7 +18,7 @@ export const TRANSLATIONS = {
         step3_desc: "Participate in our transparent monthly live draw."
     },
     social_proof: {
-        heading: "Trusted by 2,000+ Members",
+        heading: "Built on Trust",
         subheading: "Join a community built on trust, transparency, and shared prosperity.",
         winner_badge: "Win"
     },
@@ -135,7 +135,7 @@ export const TRANSLATIONS = {
   },
   am: {
     nav: { home: "መነሻ", how: "አሰራሩ", prizes: "ሽልማቶች", join: "ይቀላቀሉ", login: "ይግቡ", logout: "ውጣ", dashboard: "ዳሽቦርድ", secure: "ደህንነቱ የተጠበቀ", profile: "መገለጫ" },
-    hero: { subtitle: "ቀጣይ እጣ በ:", title1: "የህልም መኪናዎን ያሽከርክሩ።", title2: "የወደፊት ህይወቶን ያስጠብቁ።", desc: "በኢትዮጵያ እምነት የሚጣልበት ዘመናዊ ዲጂታል እቁብ። ከ2,000 በላይ አባላት ጋር፣ ብለስድ ወራዊ ቁጠባዎን ወደ ህይወት ቀያሪ ሽልማት ይለውጣል።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "ቶዮታ ኮሮላ ክሮስ 2025" },
+    hero: { subtitle: "ቀጣይ እጣ በ:", title1: "የህልም መኪናዎን ያሽከርክሩ።", title2: "የወደፊት ህይወቶን ያስጠብቁ።", desc: "የኢትዮጵያን ባህላዊ እቁብ ከዘመናዊ ቴክኖሎጂ ጋር አቀናጅተናል። ወራዊ ቁጠባዎን በአስተማማኝ ሁኔታ በማስቀመጥ የህልም መኪናዎን ባለቤት ይሁኑ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "ቶዮታ ኮሮላ ክሮስ 2025" },
     stats: { members: "ንቁ አባላት", cars: "የተረከቡ መኪኖች", pot: "ጠቅላላ የእቁብ መጠን", trust: "የታማኝነት ነጥብ", taken: "የተያዙ ቁጥሮች", lucky: "እድለኛ ቁጥሮች" },
     features: {
         heading_sub: "እንዴት ይሰራል?",
@@ -150,7 +150,7 @@ export const TRANSLATIONS = {
         step3_desc: "በየወሩ በሚካሄደው ግልጽ የእጣ ማውጣት ስነስርዓት ላይ ይሳተፉ።"
     },
     social_proof: {
-        heading: "ከ2,000 በላይ አባላት ታማኝነትን ያተረፈ",
+        heading: "በታማኝነት የተገነባ",
         subheading: "በታማኝነት፣ በግልፅነት እና በጋራ እድገት ላይ የተገነባውን ማህበረሰብ ይቀላቀሉ።",
         winner_badge: "አሸናፊ"
     },
