@@ -135,6 +135,14 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   // Competition Sub-tabs
   const [compSubTab, setCompSubTab] = useState<'settings' | 'tickets'>('settings');
   
+  // Local Settings State (Buffer)
+  const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
+
+  // Sync local settings with global settings when they change (e.g. from DB)
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
   // Real-time Data State
   const [users, setUsers] = useState<User[]>([]);
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
@@ -205,8 +213,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
       const nextDrawDateEn = `${monthNameEn} ${newEthDate.day}, ${newEthDate.year}`;
       const nextDrawDateAm = `${monthNameAm} ${newEthDate.day}፣ ${newEthDate.year}`;
       
-      // Update global settings via passed function (which handles Firestore)
-      setSettings(prev => ({ 
+      // Update LOCAL settings buffer
+      setLocalSettings(prev => ({ 
           ...prev, 
           drawDate: newGregString,
           nextDrawDateEn,
@@ -266,9 +274,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     showConfirm(
         'Save Changes',
         `Are you sure you want to save changes to ${sectionName}?`,
-        () => {
-             // Real settings save happens in App.tsx via setSettings passed down
-             // Just show confirmation here
+        async () => {
+             // Commit local settings to Global Firestore State
+             await setSettings(localSettings);
              showAlert('success', 'Changes Saved', `${sectionName} settings updated.`);
         }
     );
@@ -1003,15 +1011,15 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         <div className="space-y-2">
                                             <div className="flex justify-between">
                                                 <span className="text-stone-600">Amharic Date:</span>
-                                                <span className="font-bold text-stone-800">{settings.nextDrawDateAm}</span>
+                                                <span className="font-bold text-stone-800">{localSettings.nextDrawDateAm}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-stone-600">English Date:</span>
-                                                <span className="font-bold text-stone-800">{settings.nextDrawDateEn}</span>
+                                                <span className="font-bold text-stone-800">{localSettings.nextDrawDateEn}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-stone-600">Gregorian (System):</span>
-                                                <span className="font-mono text-stone-800">{settings.drawDate}</span>
+                                                <span className="font-mono text-stone-800">{localSettings.drawDate}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1034,8 +1042,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
                                             <input 
                                                 type="text" 
-                                                value={settings.prizeName}
-                                                onChange={(e) => setSettings(prev => ({...prev, prizeName: e.target.value}))}
+                                                value={localSettings.prizeName}
+                                                onChange={(e) => setLocalSettings(prev => ({...prev, prizeName: e.target.value}))}
                                                 className="w-full p-2 border border-stone-300 rounded-lg"
                                             />
                                         </div>
@@ -1043,8 +1051,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value Display</label>
                                             <input 
                                                 type="text" 
-                                                value={settings.prizeValue}
-                                                onChange={(e) => setSettings(prev => ({...prev, prizeValue: e.target.value}))}
+                                                value={localSettings.prizeValue}
+                                                onChange={(e) => setLocalSettings(prev => ({...prev, prizeValue: e.target.value}))}
                                                 className="w-full p-2 border border-stone-300 rounded-lg"
                                             />
                                         </div>
@@ -1053,8 +1061,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <div className="flex gap-2">
                                                 <input 
                                                     type="text" 
-                                                    value={settings.prizeImage}
-                                                    onChange={(e) => setSettings(prev => ({...prev, prizeImage: e.target.value}))}
+                                                    value={localSettings.prizeImage}
+                                                    onChange={(e) => setLocalSettings(prev => ({...prev, prizeImage: e.target.value}))}
                                                     className="w-full p-2 border border-stone-300 rounded-lg text-sm"
                                                 />
                                                 <button className="p-2 bg-stone-100 rounded border border-stone-300">
@@ -1064,7 +1072,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         </div>
                                     </div>
                                     <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
-                                        <img src={settings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
+                                        <img src={localSettings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
                                         <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
                                             Preview
                                         </div>
@@ -1090,10 +1098,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <p className="text-sm text-stone-500">Toggle this ON when the draw event starts</p>
                                         </div>
                                         <button 
-                                        onClick={() => setSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
-                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
+                                        onClick={() => setLocalSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${localSettings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
                                         >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${localSettings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
                                         </button>
                                     </div>
 
@@ -1102,8 +1110,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         <input 
                                             type="text" 
                                             placeholder="https://www.youtube.com/embed/..."
-                                            value={settings.liveStreamUrl}
-                                            onChange={(e) => setSettings(prev => ({...prev, liveStreamUrl: e.target.value}))}
+                                            value={localSettings.liveStreamUrl}
+                                            onChange={(e) => setLocalSettings(prev => ({...prev, liveStreamUrl: e.target.value}))}
                                             className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
                                         />
                                         <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
@@ -1241,9 +1249,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 </div>
             )}
 
-            {/* ... (Existing USERS, PAYMENTS, SETTINGS tabs remain mostly same structure but using live data) ... */}
-            {/* The render logic for other tabs uses 'filteredUsers', 'paymentRequests' which are now state driven by Firestore */}
-            
             {/* --- USERS TAB --- */}
             {activeTab === 'users' && (
                 <div className="space-y-6 animate-fade-in-up">
@@ -1451,10 +1456,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                          <p className="text-sm text-stone-500">Allow new users to create accounts</p>
                                      </div>
                                      <button 
-                                       onClick={() => setSettings(prev => ({ ...prev, registrationEnabled: !prev.registrationEnabled }))}
-                                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.registrationEnabled ? 'bg-emerald-600' : 'bg-stone-300'}`}
+                                       onClick={() => setLocalSettings(prev => ({ ...prev, registrationEnabled: !prev.registrationEnabled }))}
+                                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${localSettings.registrationEnabled ? 'bg-emerald-600' : 'bg-stone-300'}`}
                                      >
-                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.registrationEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${localSettings.registrationEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
                                      </button>
                                  </div>
                                  <p className="text-xs text-stone-500">
