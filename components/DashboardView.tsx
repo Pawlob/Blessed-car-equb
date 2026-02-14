@@ -36,7 +36,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [copied, setCopied] = useState(false);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   
-  // Real ticket data from DB with Rolling Growth Logic
+  // Real ticket data from DB with Rolling Growth Logic (2% trigger)
   const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
 
   // Lucky Search State
@@ -61,7 +61,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     return () => unsub();
   }, [user?.id, setUser]);
 
-  // --- Rolling Growth Ticket Fetch ---
+  // --- Rolling Growth Ticket Fetch (Trigger at 2% Saturation) ---
   useEffect(() => {
     const q = query(
         collection(db, 'tickets'), 
@@ -77,15 +77,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         });
 
         /**
-         * ROLLING GROWTH LOGIC:
+         * ROLLING GROWTH LOGIC (Trigger at 2% Saturation):
          * 1. Start with 100 tickets.
-         * 2. Trigger: Expansion happens ONLY when 98% full.
+         * 2. Trigger: Expansion happens ONLY when 2% full (every 2 tickets sold per 100 capacity).
          * 3. Action: Add 100 more spots.
-         * 
-         * Formula: 100 * (Math.floor(takenCount / 98) + 1)
+         * Formula: 100 * (floor(takenCount / 2) + 1)
          */
         const takenCount = takenSet.size;
-        const dynamicLimit = 100 * (Math.floor(takenCount / 98) + 1);
+        const dynamicLimit = 100 * (Math.floor(takenCount / 2) + 1);
 
         const allTickets = Array.from({ length: dynamicLimit }, (_, i) => ({
             number: i + 1,
@@ -337,7 +336,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           disabled={ticket.taken}
                           onClick={() => setSelectedTempTicket(ticket.number)}
                           className={`
-                             aspect-square rounded-xl flex items-center justify-center text-xl font-extrabold transition-all shadow-sm
+                             aspect-square rounded-xl flex items-center justify-center text-2xl font-black transition-all shadow-sm
                              ${ticket.taken 
                                 ? 'bg-stone-100 text-stone-300 cursor-not-allowed opacity-50' 
                                 : selectedTempTicket === ticket.number 
@@ -352,7 +351,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
                 <div className="bg-emerald-50 p-5 rounded-2xl flex items-center justify-between mb-6 border border-emerald-100">
                     <span className="text-emerald-900 font-bold">{t.my_ticket}:</span>
-                    <span className="text-4xl font-black text-emerald-700 tracking-tighter">
+                    <span className="text-5xl font-black text-emerald-700 tracking-tighter">
                         {selectedTempTicket ? `#${formatTicket(selectedTempTicket)}` : '-'}
                     </span>
                 </div>
@@ -674,6 +673,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           <p className="text-sm text-emerald-600 font-extrabold mb-3 flex items-center">
                               <CheckCircle className="w-4 h-4 mr-1" /> {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
                           </p>
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-3 flex items-center justify-center">
+                               <span className="text-6xl font-black text-emerald-700">#{luckySearch}</span>
+                          </div>
                           <button onClick={() => { setSelectedTempTicket(parseInt(luckySearch)); setShowTicketModal(true); }} className="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold text-base hover:bg-emerald-500 shadow-md transition-all transform active:scale-95">
                               {language === 'en' ? `Select #${luckySearch}` : `#${luckySearch} ምረጥ`}
                           </button>

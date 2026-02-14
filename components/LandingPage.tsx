@@ -26,7 +26,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const [tickets, setTickets] = useState<{number: string, isTaken: boolean}[]>([]);
   const t = TRANSLATIONS[language];
   
-  // Fetch Realtime Tickets with Rolling Growth Logic
+  // Fetch Realtime Tickets with Rolling Growth Logic (2% trigger)
   useEffect(() => {
     // Subscribe to real-time ticket updates for current cycle
     const q = query(
@@ -44,14 +44,13 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
         /**
          * ROLLING GROWTH LOGIC:
-         * 1. Start with 100 tickets.
-         * 2. Trigger: Expansion happens ONLY when 98% full.
-         * 3. Action: Add 100 more spots.
-         * 
-         * Formula: 100 * (Math.floor(takenCount / 98) + 1)
+         * - Starts at 100.
+         * - Triggers ONLY when 2% are full (takenCount reaches 2% of the current limit).
+         * - Adds 100 more tickets each time.
+         * Formula: 100 * (floor(takenCount / 2) + 1)
          */
         const takenCount = takenSet.size;
-        const dynamicLimit = 100 * (Math.floor(takenCount / 98) + 1);
+        const dynamicLimit = 100 * (Math.floor(takenCount / 2) + 1);
         
         const newGrid = Array.from({ length: dynamicLimit }, (_, i) => ({
             number: (i + 1).toString(),
@@ -246,7 +245,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                           key={i} 
                           onClick={scrollToWaitlist}
                           className={`
-                            aspect-square rounded flex items-center justify-center font-extrabold text-[12px] sm:text-lg border transition-all duration-500 cursor-pointer
+                            aspect-square rounded flex items-center justify-center font-black text-[16px] sm:text-2xl border transition-all duration-500 cursor-pointer
                             ${ticket.isTaken 
                             ? 'bg-amber-950/40 border-amber-900/30 text-stone-600' 
                             : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10'}
