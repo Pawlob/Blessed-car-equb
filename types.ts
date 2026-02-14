@@ -42,6 +42,7 @@ export interface AppSettings {
   isLive: boolean;
   registrationEnabled: boolean;
   adminPassword?: string;
+  maxTickets: number;
 }
 
 export interface User {

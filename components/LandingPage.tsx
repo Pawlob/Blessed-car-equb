@@ -28,8 +28,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
   
   // Fetch Realtime Tickets
   useEffect(() => {
-    const gridSize = 100; // Show 100 tickets on the board
-    
     // Subscribe to real-time ticket updates for current cycle
     const q = query(
         collection(db, 'tickets'), 
@@ -44,7 +42,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
             takenSet.add(data.ticketNumber);
         });
 
-        // Generate grid
+        // Generate grid based on settings.maxTickets (max 100 for landing preview usually, but let's make it fully dynamic)
+        const gridSize = settings.maxTickets;
         const newGrid = Array.from({ length: gridSize }, (_, i) => ({
             number: (i + 1).toString(),
             isTaken: takenSet.has(i + 1)
@@ -53,7 +52,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
     });
 
     return () => unsubscribe();
-  }, [settings.cycle]);
+  }, [settings.cycle, settings.maxTickets]);
 
   useEffect(() => {
     if (!enablePreloader) {
@@ -232,13 +231,13 @@ const LandingPage: React.FC<LandingPageProps> = ({
                  {/* Decorative background glow */}
                  <div className="absolute inset-0 bg-amber-500/5 blur-3xl rounded-full pointer-events-none"></div>
 
-                 <div className="relative grid grid-cols-10 sm:grid-cols-20 gap-1 sm:gap-1.5 p-3 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-5xl mx-auto">
-                    {tickets.map((ticket, i) => (
+                 <div className="relative grid grid-cols-10 sm:grid-cols-25 gap-1 p-2 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-4xl mx-auto">
+                    {tickets.slice(0, 300).map((ticket, i) => (
                         <div key={i} className={`
-                            aspect-square rounded flex items-center justify-center font-bold text-[10px] sm:text-xs border transition-all duration-500
+                            aspect-square rounded flex items-center justify-center font-bold text-[8px] sm:text-[10px] border transition-all duration-500
                             ${ticket.isTaken 
                             ? 'bg-amber-950/40 border-amber-900/30 text-stone-600' 
-                            : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_10px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10 cursor-default'}
+                            : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10 cursor-default'}
                         `}>
                             {ticket.number}
                         </div>
