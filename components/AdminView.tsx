@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target
 } from 'lucide-react';
 import { User, AppSettings, ViewState, AppNotification } from '../types';
 
@@ -149,7 +149,7 @@ const MOCK_PAYMENT_REQUESTS: PaymentRequest[] = [
 const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'settings' | 'payments'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'competition' | 'users' | 'settings' | 'payments'>('dashboard');
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>(MOCK_PAYMENT_REQUESTS);
   const [searchTerm, setSearchTerm] = useState('');
@@ -633,6 +633,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
           </button>
           <button 
+            onClick={() => handleTabChange('competition')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'competition' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
+          >
+            <Trophy className="w-5 h-5 mr-3" /> Competition
+          </button>
+          <button 
             onClick={() => handleTabChange('users')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'users' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
@@ -677,6 +683,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
            <button onClick={() => setIsSidebarOpen(true)}><Menu className="w-6 h-6 text-stone-700" /></button>
            <h1 className="font-bold text-stone-800">
               {activeTab === 'dashboard' ? 'Dashboard' : 
+               activeTab === 'competition' ? 'Competition Management' :
                activeTab === 'users' ? 'User Management' : 
                activeTab === 'payments' ? 'Payment Verification' : 'Settings'}
            </h1>
@@ -776,6 +783,167 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 </tbody>
                             </table>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- COMPETITION MANAGEMENT TAB --- */}
+            {activeTab === 'competition' && (
+                <div className="space-y-6 animate-fade-in-up max-w-4xl mx-auto">
+                    <h1 className="text-2xl font-bold text-stone-800">Competition Management</h1>
+
+                    {/* Draw Schedule Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
+                        </h2>
+                        
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
+                                <div className="flex space-x-2">
+                                    <select 
+                                        value={ethDate.month}
+                                        onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
+                                        className="flex-1 p-2 border border-stone-300 rounded-lg"
+                                    >
+                                        {ETHIOPIAN_MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
+                                    </select>
+                                    <select 
+                                        value={ethDate.day}
+                                        onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
+                                        className="w-20 p-2 border border-stone-300 rounded-lg"
+                                    >
+                                        {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                                    </select>
+                                    <input 
+                                        type="number" 
+                                        value={ethDate.year}
+                                        onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
+                                        className="w-24 p-2 border border-stone-300 rounded-lg"
+                                    />
+                                </div>
+                                <p className="text-xs text-stone-500">
+                                    This will automatically update the countdown and Gregorian date.
+                                </p>
+                            </div>
+
+                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">Preview</h3>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-stone-600">Amharic Date:</span>
+                                        <span className="font-bold text-stone-800">{settings.nextDrawDateAm}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-stone-600">English Date:</span>
+                                        <span className="font-bold text-stone-800">{settings.nextDrawDateEn}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-stone-600">Gregorian (System):</span>
+                                        <span className="font-mono text-stone-800">{settings.drawDate}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Draw Schedule')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
+                        </div>
+                    </div>
+
+                    {/* Prize Settings Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
+                        </h2>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.prizeName}
+                                        onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
+                                        className="w-full p-2 border border-stone-300 rounded-lg"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value Display</label>
+                                    <input 
+                                        type="text" 
+                                        value={settings.prizeValue}
+                                        onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
+                                        className="w-full p-2 border border-stone-300 rounded-lg"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            value={settings.prizeImage}
+                                            onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
+                                            className="w-full p-2 border border-stone-300 rounded-lg text-sm"
+                                        />
+                                        <button className="p-2 bg-stone-100 rounded border border-stone-300">
+                                            <ImageIcon className="w-5 h-5 text-stone-600" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
+                                <img src={settings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
+                                <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
+                                    Preview
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Current Prize')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
+                        </div>
+                    </div>
+
+                    {/* Live Stream Settings Card */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Video className="w-5 h-5 mr-2 text-red-600" /> Live Stream Configuration
+                        </h2>
+                        
+                        <div className="space-y-4">
+                             <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                 <div>
+                                     <h3 className="font-bold text-stone-800">Live Status</h3>
+                                     <p className="text-sm text-stone-500">Toggle this ON when the draw event starts</p>
+                                 </div>
+                                 <button 
+                                   onClick={() => setSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
+                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
+                                 >
+                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
+                                 </button>
+                             </div>
+
+                             <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Embed URL / Stream Link</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="https://www.youtube.com/embed/..."
+                                    value={settings.liveStreamUrl}
+                                    onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
+                                    className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
+                                />
+                                <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
+                             </div>
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
+                             <button onClick={() => handleSaveSection('Live Stream Config')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
+                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                             </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -1039,160 +1207,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                         </div>
                         <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
                              <button onClick={() => handleSaveSection('Account & Security')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
-                             </button>
-                        </div>
-                    </div>
-
-                    {/* Draw Schedule Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
-                        </h2>
-                        
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="space-y-4">
-                                <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
-                                <div className="flex space-x-2">
-                                    <select 
-                                        value={ethDate.month}
-                                        onChange={(e) => handleEthDateChange('month', parseInt(e.target.value))}
-                                        className="flex-1 p-2 border border-stone-300 rounded-lg"
-                                    >
-                                        {ETHIOPIAN_MONTHS.map(m => <option key={m.val} value={m.val}>{m.name}</option>)}
-                                    </select>
-                                    <select 
-                                        value={ethDate.day}
-                                        onChange={(e) => handleEthDateChange('day', parseInt(e.target.value))}
-                                        className="w-20 p-2 border border-stone-300 rounded-lg"
-                                    >
-                                        {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
-                                    </select>
-                                    <input 
-                                        type="number" 
-                                        value={ethDate.year}
-                                        onChange={(e) => handleEthDateChange('year', parseInt(e.target.value))}
-                                        className="w-24 p-2 border border-stone-300 rounded-lg"
-                                    />
-                                </div>
-                                <p className="text-xs text-stone-500">
-                                    This will automatically update the countdown and Gregorian date.
-                                </p>
-                            </div>
-
-                            <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
-                                <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">Preview</h3>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-stone-600">Amharic Date:</span>
-                                        <span className="font-bold text-stone-800">{settings.nextDrawDateAm}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-stone-600">English Date:</span>
-                                        <span className="font-bold text-stone-800">{settings.nextDrawDateEn}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-stone-600">Gregorian (System):</span>
-                                        <span className="font-mono text-stone-800">{settings.drawDate}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
-                             <button onClick={() => handleSaveSection('Draw Schedule')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
-                             </button>
-                        </div>
-                    </div>
-
-                    {/* Prize Settings Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
-                        </h2>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
-                                    <input 
-                                        type="text" 
-                                        value={settings.prizeName}
-                                        onChange={(e) => setSettings({...settings, prizeName: e.target.value})}
-                                        className="w-full p-2 border border-stone-300 rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value Display</label>
-                                    <input 
-                                        type="text" 
-                                        value={settings.prizeValue}
-                                        onChange={(e) => setSettings({...settings, prizeValue: e.target.value})}
-                                        className="w-full p-2 border border-stone-300 rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
-                                    <div className="flex gap-2">
-                                        <input 
-                                            type="text" 
-                                            value={settings.prizeImage}
-                                            onChange={(e) => setSettings({...settings, prizeImage: e.target.value})}
-                                            className="w-full p-2 border border-stone-300 rounded-lg text-sm"
-                                        />
-                                        <button className="p-2 bg-stone-100 rounded border border-stone-300">
-                                            <ImageIcon className="w-5 h-5 text-stone-600" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
-                                <img src={settings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
-                                <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
-                                    Preview
-                                </div>
-                            </div>
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
-                             <button onClick={() => handleSaveSection('Current Prize')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
-                             </button>
-                        </div>
-                    </div>
-
-                    {/* Live Stream Settings Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
-                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Video className="w-5 h-5 mr-2 text-red-600" /> Live Stream Configuration
-                        </h2>
-                        
-                        <div className="space-y-4">
-                             <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
-                                 <div>
-                                     <h3 className="font-bold text-stone-800">Live Status</h3>
-                                     <p className="text-sm text-stone-500">Toggle this ON when the draw event starts</p>
-                                 </div>
-                                 <button 
-                                   onClick={() => setSettings(prev => ({ ...prev, isLive: !prev.isLive }))}
-                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${settings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}
-                                 >
-                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.isLive ? 'translate-x-6' : 'translate-x-1'}`} />
-                                 </button>
-                             </div>
-
-                             <div>
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Embed URL / Stream Link</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="https://www.youtube.com/embed/..."
-                                    value={settings.liveStreamUrl}
-                                    onChange={(e) => setSettings({...settings, liveStreamUrl: e.target.value})}
-                                    className="w-full p-2 border border-stone-300 rounded-lg font-mono text-sm"
-                                />
-                                <p className="text-xs text-stone-500 mt-1">Supports YouTube Embeds, Facebook Video links, or custom stream URLs.</p>
-                             </div>
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
-                             <button onClick={() => handleSaveSection('Live Stream Config')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
                                 <Save className="w-4 h-4 mr-2" /> Save Changes
                              </button>
                         </div>
