@@ -28,6 +28,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
   
   // Fetch Realtime Tickets
   useEffect(() => {
+    const gridSize = 100; // Show 100 tickets on the board
+    
     // Subscribe to real-time ticket updates for current cycle
     const q = query(
         collection(db, 'tickets'), 
@@ -42,8 +44,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
             takenSet.add(data.ticketNumber);
         });
 
-        // Generate grid based on settings.maxTickets (max 100 for landing preview usually, but let's make it fully dynamic)
-        const gridSize = settings.maxTickets;
+        // Generate grid
         const newGrid = Array.from({ length: gridSize }, (_, i) => ({
             number: (i + 1).toString(),
             isTaken: takenSet.has(i + 1)
@@ -52,7 +53,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
     });
 
     return () => unsubscribe();
-  }, [settings.cycle, settings.maxTickets]);
+  }, [settings.cycle]);
 
   useEffect(() => {
     if (!enablePreloader) {
@@ -232,7 +233,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                  <div className="absolute inset-0 bg-amber-500/5 blur-3xl rounded-full pointer-events-none"></div>
 
                  <div className="relative grid grid-cols-10 sm:grid-cols-25 gap-1 p-2 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-4xl mx-auto">
-                    {tickets.slice(0, 300).map((ticket, i) => (
+                    {tickets.map((ticket, i) => (
                         <div key={i} className={`
                             aspect-square rounded flex items-center justify-center font-bold text-[8px] sm:text-[10px] border transition-all duration-500
                             ${ticket.isTaken 

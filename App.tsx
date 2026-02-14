@@ -29,7 +29,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   isLive: false,
   registrationEnabled: true,
   adminPassword: 'admin123',
-  maxTickets: 300,
   recentWinners: [
     { 
       id: 1, 
@@ -145,6 +144,10 @@ const App: React.FC = () => {
       // Only update if changed (and sync to DB to keep everyone on same page)
       if (finalDays !== appSettings.daysRemaining) {
          setAppSettings(prev => ({ ...prev, daysRemaining: finalDays }));
+         // Optional: We might not want to write to DB every second from every client.
+         // Usually, a cloud function or the Admin updates this. 
+         // For this demo, we'll let the AdminView handle the DB write for daysRemaining
+         // or rely on local calculation for display.
       }
     };
 
