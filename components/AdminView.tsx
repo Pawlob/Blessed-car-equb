@@ -1,3 +1,4 @@
+// ... (imports remain same)
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
@@ -197,8 +198,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
 
   // Auto-calculate Pot Value and Total Members based on Users
   useEffect(() => {
+    // Calculate pot value based on verified users in the current cycle.
+    // Assuming a fixed contribution of 5,000 ETB per verified member for the current cycle.
     const activePot = users.reduce((sum, user) => 
-        user.status === 'VERIFIED' ? sum + user.contribution : sum, 0
+        user.status === 'VERIFIED' ? sum + 5000 : sum, 0
     );
     const memberCount = users.length;
 
@@ -225,7 +228,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
     title: '',
     message: ''
   });
-
+  // ... (rest of the component remains the same)
   // Alert Helpers
   const showAlert = (type: 'success' | 'error' | 'warning' | 'info', title: string, message: string) => {
     setAlertConfig({ isOpen: true, type, title, message });
@@ -902,7 +905,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings })
                     </div>
                 </div>
             )}
-
+            
+            {/* ... (rest of the component remains the same) */}
             {/* --- PAYMENTS TAB --- */}
             {activeTab === 'payments' && (
                 <div className="space-y-6 animate-fade-in-up">
