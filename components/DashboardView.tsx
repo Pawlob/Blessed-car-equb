@@ -36,7 +36,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [copied, setCopied] = useState(false);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   
-  // Real ticket data from DB with Dynamic Expansion
+  // Real ticket data from DB with Rolling Growth Logic
   const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
 
   // Lucky Search State
@@ -61,7 +61,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     return () => unsub();
   }, [user?.id, setUser]);
 
-  // --- Dynamic Rolling Ticket Fetch ---
+  // --- Rolling Growth Ticket Fetch ---
   useEffect(() => {
     const q = query(
         collection(db, 'tickets'), 
@@ -71,17 +71,21 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const takenSet = new Set<number>();
-        let highestTaken = 0;
         
         snapshot.forEach(doc => {
-            const num = doc.data().ticketNumber;
-            takenSet.add(num);
-            if (num > highestTaken) highestTaken = num;
+            takenSet.add(doc.data().ticketNumber);
         });
 
-        // Rolling Logic: Minimum 100, expand as needed with buffer
-        const baseLimit = 100;
-        const dynamicLimit = Math.max(baseLimit, Math.ceil((highestTaken + 20) / 10) * 10);
+        /**
+         * ROLLING GROWTH LOGIC:
+         * 1. Start with 100 tickets.
+         * 2. Trigger: Expansion happens ONLY when 98% full.
+         * 3. Action: Add 100 more spots.
+         * 
+         * Formula: 100 * (Math.floor(takenCount / 98) + 1)
+         */
+        const takenCount = takenSet.size;
+        const dynamicLimit = 100 * (Math.floor(takenCount / 98) + 1);
 
         const allTickets = Array.from({ length: dynamicLimit }, (_, i) => ({
             number: i + 1,

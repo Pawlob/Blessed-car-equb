@@ -26,7 +26,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const [tickets, setTickets] = useState<{number: string, isTaken: boolean}[]>([]);
   const t = TRANSLATIONS[language];
   
-  // Fetch Realtime Tickets with Dynamic Rolling Expansion
+  // Fetch Realtime Tickets with Rolling Growth Logic
   useEffect(() => {
     // Subscribe to real-time ticket updates for current cycle
     const q = query(
@@ -37,22 +37,21 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const takenSet = new Set<number>();
-        let highestTaken = 0;
         
         snapshot.forEach(doc => {
-            const num = doc.data().ticketNumber;
-            takenSet.add(num);
-            if (num > highestTaken) highestTaken = num;
+            takenSet.add(doc.data().ticketNumber);
         });
 
         /**
-         * ROLLING LOGIC:
-         * Start at 100.
-         * For every ticket taken, ensure we show at least 20 numbers beyond the highest taken one.
-         * We round up to the nearest 10 for a clean grid look.
+         * ROLLING GROWTH LOGIC:
+         * 1. Start with 100 tickets.
+         * 2. Trigger: Expansion happens ONLY when 98% full.
+         * 3. Action: Add 100 more spots.
+         * 
+         * Formula: 100 * (Math.floor(takenCount / 98) + 1)
          */
-        const baseLimit = 100;
-        const dynamicLimit = Math.max(baseLimit, Math.ceil((highestTaken + 20) / 10) * 10);
+        const takenCount = takenSet.size;
+        const dynamicLimit = 100 * (Math.floor(takenCount / 98) + 1);
         
         const newGrid = Array.from({ length: dynamicLimit }, (_, i) => ({
             number: (i + 1).toString(),
