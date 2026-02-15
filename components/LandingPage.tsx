@@ -200,8 +200,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="relative -mt-8 md:mt-0 animate-fade-in-up delay-[300ms]">
             <div className="relative z-10 bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
-              <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group">
-                  <div className="h-64 md:h-80 bg-stone-700 flex items-center justify-center relative overflow-hidden">
+              <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group isolate">
+                  <div className="h-64 md:h-80 bg-stone-700 flex items-center justify-center relative overflow-hidden rounded-t-xl">
                       <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
                       
                       {/* Ribbon Overlay */}
@@ -222,7 +222,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                           key={index}
                           src={img}
                           alt={`${settings.prizeName} view ${index + 1}`}
-                          className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                          className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out rounded-t-xl ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
                         />
                       ))}
                       

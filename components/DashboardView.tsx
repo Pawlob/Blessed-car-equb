@@ -701,8 +701,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                         </div>
                         <div className="relative w-full flex justify-center">
                           <div className="relative z-10 w-full max-w-sm bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
-                            <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group">
-                                <div className="h-48 bg-stone-700 flex items-center justify-center relative overflow-hidden">
+                            <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group isolate">
+                                <div className="h-48 bg-stone-700 flex items-center justify-center relative overflow-hidden rounded-t-xl">
                                     <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
                                     <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
                                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
@@ -716,7 +716,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                         key={index}
                                         src={img}
                                         alt={`${settings.prizeName} view ${index + 1}`}
-                                        className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                                        className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out rounded-t-xl ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
                                         />
                                     ))}
 
