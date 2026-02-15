@@ -2,7 +2,7 @@
 export const TRANSLATIONS = {
   en: {
     nav: { home: "Home", how: "How It Works", prizes: "Prizes", join: "Join Now", login: "Login", logout: "Logout", dashboard: "Dashboard", secure: "Secure Session", profile: "Profile" },
-    hero: { subtitle: "TO DRAW THIS CYCLES PRIZE:", subtitle_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "BYD E2 Luxury 2025" },
+    hero: { subtitle: "TO DRAW THIS CYCLES PRIZE:", subtitle_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "BYD E2 Luxury 2025", winner_label: "WINNER ANNOUNCED!", ticket_label: "Winning Ticket" },
     stats: { members: "Active Members", cars: "Cars Delivered", pot: "Total Pot Value", trust: "Trust Score", taken: "Taken Numbers", lucky: "Lucky Numbers" },
     features: {
         heading_sub: "How It Works",
@@ -139,7 +139,7 @@ export const TRANSLATIONS = {
   },
   am: {
     nav: { home: "መነሻ", how: "እንዴት ይሰራል", prizes: "ሽልማቶች", join: "ይመዝገቡ", login: "ይግቡ", logout: "ውጣ", dashboard: "ዳሽቦርድ", secure: "ደህንነቱ የተጠበቀ", profile: "ፕሮፋይል" },
-    hero: { subtitle: "የዚህ ዙር እጣ ሊወጣ የቀረው ጊዜ:", subtitle_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል", title1: "ህልምዎን ይንዱ።", title2: "ነገዎን ያረጋግጡ።", desc: "የቁጠባ ባህልን ከዘመናዊ ቴክኖሎጂ ጋር በማጣመር የህልም መኪናዎን ባለቤት የሚያደርግዎ የኢትዮጵያ ቀዳሚ ዲጂታል እቁብ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "BYD E2 Luxury 2025" },
+    hero: { subtitle: "የዚህ ዙር እጣ ሊወጣ የቀረው ጊዜ:", subtitle_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል", title1: "ህልምዎን ይንዱ።", title2: "ነገዎን ያረጋግጡ።", desc: "የቁጠባ ባህልን ከዘመናዊ ቴክኖሎጂ ጋር በማጣመር የህልም መኪናዎን ባለቤት የሚያደርግዎ የኢትዮጵያ ቀዳሚ ዲጂታል እቁብ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "BYD E2 Luxury 2025", winner_label: "አሸናፊው ታውቋል!", ticket_label: "አሸናፊ ቲኬት" },
     stats: { members: "ንቁ አባላት", cars: "የተሰጡ መኪኖች", pot: "ጠቅላላ የገንዘብ መጠን", trust: "የታማኝነት ነጥብ", taken: "የተያዙ ቁጥሮች", lucky: "እድለኛ ቁጥሮች" },
     features: {
         heading_sub: "እንዴት ይሰራል",
