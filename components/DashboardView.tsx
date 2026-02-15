@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle, Car } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
@@ -265,7 +266,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             userName: user.name,
             userPhone: user.phone,
             amount: 5000,
-            date: new Date().toLocaleDateString(),
+            date: new Date().toISOString(), // Use ISO string to capture time
             receiptUrl: "https://via.placeholder.com/150", 
             status: 'PENDING',
             requestedTicket: selectedTempTicket

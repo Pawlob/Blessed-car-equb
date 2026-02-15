@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CheckCircle, ZoomIn, Ticket } from 'lucide-react';
+import { CheckCircle, ZoomIn, Ticket, Clock } from 'lucide-react';
 import { AppSettings, User } from '../../types';
 import { doc, updateDoc, addDoc, deleteDoc, collection } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
@@ -14,6 +14,44 @@ interface AdminPaymentsProps {
   setSelectedReceipt: (url: string | null) => void;
   t: any;
 }
+
+const getEthiopianDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+
+    const gregYear = date.getFullYear();
+    const nextGregYear = gregYear + 1;
+    const isNextGregLeap = (nextGregYear % 4 === 0 && nextGregYear % 100 !== 0) || (nextGregYear % 400 === 0);
+    const newYearDayInThisGregYear = isNextGregLeap ? 12 : 11;
+    const ethNewYearDate = new Date(gregYear, 8, newYearDayInThisGregYear);
+    
+    let ethYear, diffDays;
+
+    if (date >= ethNewYearDate) {
+        ethYear = gregYear - 7;
+        const diffTime = date.getTime() - ethNewYearDate.getTime();
+        diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    } else {
+        ethYear = gregYear - 8;
+        const currentGregLeap = (gregYear % 4 === 0 && gregYear % 100 !== 0) || (gregYear % 400 === 0);
+        const prevNewYearDay = currentGregLeap ? 12 : 11;
+        const prevEthNewYearDate = new Date(gregYear - 1, 8, prevNewYearDay);
+        
+        const diffTime = date.getTime() - prevEthNewYearDate.getTime();
+        diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    const ethMonthIndex = Math.floor(diffDays / 30);
+    const ethDay = (diffDays % 30) + 1;
+    
+    const ET_MONTHS = ["Meskerem", "Tikimt", "Hidar", "Tahsas", "Tir", "Yekatit", "Megabit", "Miyazia", "Ginbot", "Sene", "Hamle", "Nehase", "Pagume"];
+    const monthName = ET_MONTHS[ethMonthIndex] || "Unknown";
+    
+    // Format Time
+    const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    
+    return `${monthName} ${ethDay}, ${ethYear} at ${time}`;
+};
 
 const AdminPayments: React.FC<AdminPaymentsProps> = ({
   paymentRequests,
@@ -181,6 +219,9 @@ const AdminPayments: React.FC<AdminPaymentsProps> = ({
                                 <div>
                                     <h3 className="font-bold text-lg text-stone-800">{req.userName}</h3>
                                     <p className="text-stone-500 text-sm">{req.userPhone}</p>
+                                    <p className="text-xs text-stone-400 mt-1 flex items-center">
+                                        <Clock className="w-3 h-3 mr-1" /> {getEthiopianDate(req.date)}
+                                    </p>
                                 </div>
                                 <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">PENDING</span>
                             </div>
