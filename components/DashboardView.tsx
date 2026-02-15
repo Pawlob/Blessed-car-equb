@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -25,16 +25,21 @@ const generateMockFeed = (t: any): FeedItem => {
   };
 };
 
+type PaymentStep = 'IDLE' | 'METHOD' | 'DETAILS' | 'UPLOAD' | 'PROCESSING' | 'SUCCESS';
+
 const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, settings, notifications, markAllAsRead }) => {
   const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [uploading, setUploading] = useState(false);
+  
+  // Payment Flow State
+  const [paymentStep, setPaymentStep] = useState<PaymentStep>('IDLE');
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  
   const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
+  
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Timeline Data State
@@ -83,14 +88,28 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     const q = query(
         collection(db, 'tickets'), 
         where('cycle', '==', settings.cycle),
-        where('status', '==', 'ACTIVE')
+        // We fetch ACTIVE, RESERVED, and PENDING to show them as taken
+        where('status', 'in', ['ACTIVE', 'PENDING', 'RESERVED']) 
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Note: 'in' query supports up to 10 values. 
+    // If specific indexes are missing, Firebase console will provide a link to create them.
+    // Fallback: If 'in' fails due to index, just fetch cycle and filter in memory.
+    
+    // Simplification for reliability: Fetch all for cycle, filter locally or rely on 'status != VOID' logic implicitly via existence
+    const qSimple = query(
+        collection(db, 'tickets'), 
+        where('cycle', '==', settings.cycle)
+    );
+
+    const unsubscribe = onSnapshot(qSimple, (snapshot) => {
         const takenSet = new Set<number>();
         
         snapshot.forEach(doc => {
-            takenSet.add(doc.data().ticketNumber);
+            const data = doc.data();
+            if (data.status !== 'VOID') {
+                takenSet.add(data.ticketNumber);
+            }
         });
 
         const takenCount = takenSet.size;
@@ -121,7 +140,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     });
 
     // 2. Fetch ALL Tickets for this user (History)
-    // We check for string or number ID match just in case
     const qTickets = query(collection(db, 'tickets'), where('userId', '==', user.id));
     const unsubTickets = onSnapshot(qTickets, (snapshot) => {
         const userTix = snapshot.docs.map(doc => ({
@@ -172,31 +190,41 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
           });
       });
 
-      // C. Tickets (Active & Past)
+      // C. Tickets
       rawUserTickets.forEach(t => {
           const isCurrentCycle = t.cycle === settings.cycle;
           const isActive = t.status === 'ACTIVE';
-          const isLucky = isActive && isCurrentCycle;
-
+          const isPending = t.status === 'PENDING';
+          
           let title = '';
           let desc = '';
           let status = 'neutral';
 
           if (language === 'en') {
-              title = isLucky ? `Lucky Ticket #${t.ticketNumber}` : `Ticket #${t.ticketNumber} (Cycle ${t.cycle})`;
-              if (t.status === 'VOID') desc = 'Voided / Cancelled';
-              else if (!isCurrentCycle) desc = `Past Cycle Participation`;
-              else desc = 'Active for Upcoming Draw';
+              title = (isActive || isPending) && isCurrentCycle ? `Lucky Ticket #${t.ticketNumber}` : `Ticket #${t.ticketNumber}`;
+              if (t.status === 'VOID') {
+                  desc = 'Voided / Cancelled';
+                  status = 'error';
+              } else if (isPending) {
+                  desc = 'Reservation Pending Payment';
+                  status = 'warning';
+              } else {
+                  desc = 'Active for Upcoming Draw';
+                  status = 'success';
+              }
           } else {
-              title = isLucky ? `እድለኛ ቁጥር #${t.ticketNumber}` : `እጣ ቁጥር #${t.ticketNumber} (ዙር ${t.cycle})`;
-              if (t.status === 'VOID') desc = 'ተሰርዟል';
-              else if (!isCurrentCycle) desc = `የያለፈ ዙር ተሳትፎ`;
-              else desc = 'ንቁ እና ለእጣው ዝግጁ';
+              title = (isActive || isPending) && isCurrentCycle ? `እድለኛ ቁጥር #${t.ticketNumber}` : `እጣ ቁጥር #${t.ticketNumber}`;
+              if (t.status === 'VOID') {
+                  desc = 'ተሰርዟል';
+                  status = 'error';
+              } else if (isPending) {
+                  desc = 'ክፍያ በመጠባበቅ ላይ ያለ';
+                  status = 'warning';
+              } else {
+                  desc = 'ንቁ እና ለእጣው ዝግጁ';
+                  status = 'success';
+              }
           }
-
-          if (t.status === 'VOID') status = 'error';
-          else if (isLucky) status = 'success';
-          else status = 'neutral';
 
           timeline.push({
               id: t.id,
@@ -209,9 +237,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
           });
       });
 
-      // Sort by date descending (newest first)
+      // Sort by date descending
       timeline.sort((a, b) => {
-           // Simple date string compare or fallback
            return new Date(b.date).getTime() - new Date(a.date).getTime();
       });
 
@@ -229,37 +256,51 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   }, [language, t]);
 
   const handlePayment = async () => {
-    if (!user || !user.id) return;
-    setUploading(true);
+    if (!user || !user.id || !selectedTempTicket) return;
+    setPaymentStep('PROCESSING');
 
     try {
+        // 1. Create Payment Request
         await addDoc(collection(db, 'payment_requests'), {
             userId: user.id,
             userName: user.name,
             userPhone: user.phone,
             amount: 5000,
             date: new Date().toLocaleDateString(),
-            receiptUrl: "https://via.placeholder.com/150",
+            receiptUrl: "https://via.placeholder.com/150", // In real app, this would be the uploaded URL
             status: 'PENDING',
             requestedTicket: selectedTempTicket
         });
 
+        // 2. Reserve the Ticket Immediately (Status: PENDING)
+        // This ensures the grid shows it as "Taken"
+        await addDoc(collection(db, 'tickets'), {
+            ticketNumber: selectedTempTicket,
+            userId: user.id,
+            userName: user.name,
+            cycle: settings.cycle,
+            status: 'PENDING', // Reserved state
+            assignedDate: new Date().toISOString().split('T')[0],
+            assignedBy: 'USER'
+        });
+
         setTimeout(() => {
-            setUploading(false);
-            setPaymentMethod(null);
-            setPaymentConfirmed(false);
-            alert(language === 'en' ? "Receipt uploaded successfully! Waiting for admin verification." : "ደረሰኝ በተሳካ ሁኔታ ተላከ! አስተዳዳሪው እስኪያረጋግጥ ይጠብቁ።");
-        }, 1000);
+            setPaymentStep('SUCCESS');
+        }, 1500);
 
     } catch (error) {
         console.error("Payment Error", error);
-        setUploading(false);
+        setPaymentStep('UPLOAD'); // Go back on error
+        alert("Transaction failed. Please try again.");
     }
   };
 
-  const confirmTicket = async () => {
+  // Called when user clicks "Confirm Number" in the initial grid modal
+  const confirmTicketSelection = () => {
     if (selectedTempTicket && user && user.id) {
         setShowTicketModal(false);
+        // Start the Payment Wizard in the main dashboard view
+        setPaymentStep('METHOD');
     }
   };
 
@@ -317,6 +358,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
       if (type === 'TICKET_HISTORY') {
           if (status === 'success') return <Ticket className="w-5 h-5 text-emerald-600" />;
           if (status === 'error') return <Ban className="w-5 h-5 text-red-500" />;
+          if (status === 'warning') return <Clock className="w-5 h-5 text-amber-500" />;
           return <Ticket className="w-5 h-5 text-stone-400" />;
       }
       if (type === 'TICKET') return <Ticket className="w-5 h-5 text-emerald-600" />;
@@ -379,7 +421,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         </div>
       )}
 
-      {/* Ticket Selection Modal */}
+      {/* Ticket Selection Modal (Only for initial picking) */}
       {showTicketModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
@@ -425,11 +467,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                 </div>
 
                 <button 
-                  onClick={confirmTicket}
+                  onClick={confirmTicketSelection}
                   disabled={!selectedTempTicket}
-                  className="w-full py-4 bg-emerald-900 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold text-lg rounded-xl transition-all shadow-xl active:scale-95"
+                  className="w-full py-4 bg-emerald-900 hover:bg-emerald-800 disabled:bg-stone-300 disabled:cursor-not-allowed text-white font-bold text-lg rounded-xl transition-all shadow-xl active:scale-95 flex items-center justify-center"
                 >
-                    {t.confirm_ticket}
+                    {language === 'en' ? 'Pay to Reserve' : 'ክፍያ ፈጽመው ይያዙ'} <ArrowRight className="ml-2 w-5 h-5" />
                 </button>
             </div>
           </div>
@@ -516,6 +558,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         {settings.isLive && (
           <div className="mb-8 animate-fade-in-down">
             <div className="bg-stone-900 rounded-2xl overflow-hidden shadow-2xl border border-stone-800 relative">
+               {/* ... Live stream content ... */}
                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-amber-500 to-red-500 animate-pulse"></div>
                <div className="p-4 bg-stone-800 flex items-center justify-between">
                   <div className="flex items-center text-white">
@@ -562,11 +605,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
         {/* Dashboard Grid - Status and Contribution Cards Side-by-Side on Mobile */}
         <div className="grid grid-cols-2 gap-3 md:gap-6 mb-8">
+            {/* Status Card */}
             <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300">
                <h3 className="text-stone-400 text-[10px] md:text-sm font-semibold uppercase mb-1 md:mb-2 leading-tight">{t.status_card_title}</h3>
+               
+               {/* Conditional Status Display based on Flow */}
                <div className="flex items-center justify-between mb-2 md:mb-4">
                   <span className={`text-base md:text-2xl font-bold truncate pr-1 ${user.status === 'VERIFIED' ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {user.status === 'VERIFIED' ? t.status_verified : t.status_pending}
+                    {user.status === 'VERIFIED' ? t.status_verified : 
+                     (paymentStep !== 'IDLE' && paymentStep !== 'SUCCESS') ? (language === 'en' ? 'Completing Payment' : 'ክፍያ በመፈጸም ላይ') :
+                     t.status_pending}
                   </span>
                   {user.status === 'VERIFIED' ? <CheckCircle className="w-5 h-5 md:w-8 md:h-8 text-emerald-500 flex-shrink-0" /> : <Clock className="w-5 h-5 md:w-8 md:h-8 text-red-500 flex-shrink-0" />}
                </div>
@@ -584,11 +632,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                        <div className="w-full bg-stone-100 rounded-full h-1.5 md:h-2 mb-1 md:mb-2">
                           <div className={`h-1.5 md:h-2 rounded-full ${user.status === 'VERIFIED' ? 'bg-emerald-500 w-full' : 'bg-red-400 w-[10%]'}`}></div>
                        </div>
-                       <p className="text-[10px] md:text-xs text-stone-400 truncate">{t.payment_due}: {paymentDueDate}</p>
+                       
+                       {/* If in payment flow, show pending ticket reservation */}
+                       {(paymentStep !== 'IDLE' && paymentStep !== 'SUCCESS' && selectedTempTicket) ? (
+                           <p className="text-[10px] md:text-xs text-amber-600 font-bold truncate animate-pulse">
+                               {language === 'en' ? `Reserving Ticket #${selectedTempTicket}...` : `ቁጥር #${selectedTempTicket} በመያዝ ላይ...`}
+                           </p>
+                       ) : (
+                           <p className="text-[10px] md:text-xs text-stone-400 truncate">{t.payment_due}: {paymentDueDate}</p>
+                       )}
                    </>
                )}
             </div>
 
+            {/* Contribution Card */}
             <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-emerald-600 opacity-0 animate-fade-in-up delay-[100ms] hover:shadow-lg transition-shadow duration-300">
                <h3 className="text-stone-400 text-[10px] md:text-sm font-semibold uppercase mb-1 md:mb-2 leading-tight">{t.contribution}</h3>
                <div className="flex items-center justify-between mb-2 md:mb-4">
@@ -632,35 +689,52 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                      </span>
                                 </div>
                                 
-                                {user.status === 'VERIFIED' && !user.prizeNumber ? (
-                                    <div className="flex flex-col gap-3">
-                                        <button 
-                                            onClick={() => setShowTicketModal(true)}
-                                            className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
-                                        >
-                                            <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
-                                        </button>
-                                    </div>
-                                ) : user.status === 'VERIFIED' ? (
+                                {user.status === 'VERIFIED' ? (
                                     <button disabled className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 text-white rounded-lg font-bold cursor-default">
                                          <CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}
                                     </button>
                                 ) : (
                                     <div className="flex flex-col gap-3">
-                                        {!paymentMethod ? (
-                                            <>
-                                                <button onClick={() => { setPaymentMethod('CBE'); setPaymentConfirmed(false); }} className="w-full flex justify-between items-center px-4 py-3 bg-purple-900/50 hover:bg-purple-900 border border-purple-500/30 text-white rounded-lg transition-all group">
-                                                    <span className="flex items-center"><Building className="w-5 h-5 mr-3 text-purple-300" /> {t.pay_cbe}</span>
-                                                    <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
-                                                </button>
-                                                <button onClick={() => { setPaymentMethod('TELEBIRR'); setPaymentConfirmed(false); }} className="w-full flex justify-between items-center px-4 py-3 bg-blue-900/50 hover:bg-blue-900 border border-blue-500/30 text-white rounded-lg transition-all group">
-                                                    <span className="flex items-center"><Smartphone className="w-5 h-5 mr-3 text-blue-300" /> {t.pay_telebirr}</span>
-                                                    <ChevronRight className="w-4 h-4 text-blue-300 group-hover:translate-x-1 transition-transform" />
-                                                </button>
-                                            </>
-                                        ) : (
+                                        {/* --- PAYMENT WIZARD --- */}
+                                        
+                                        {/* STEP 0: IDLE - Show Select Ticket Button */}
+                                        {paymentStep === 'IDLE' && (
+                                            <button 
+                                                onClick={() => setShowTicketModal(true)}
+                                                className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
+                                            >
+                                                <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
+                                            </button>
+                                        )}
+
+                                        {/* STEP 1: METHOD SELECTION */}
+                                        {paymentStep === 'METHOD' && (
                                             <div className="animate-fade-in-up">
-                                               <button onClick={() => { setPaymentMethod(null); setPaymentConfirmed(false); }} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white">
+                                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-3 text-center">
+                                                    <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+                                                        {language === 'en' ? 'Selected Lucky Number' : 'የተመረጠው እድለኛ ቁጥር'}
+                                                    </p>
+                                                    <p className="text-2xl font-black text-amber-400">#{selectedTempTicket}</p>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    <p className="text-stone-300 text-xs text-center mb-1">Select Payment Method</p>
+                                                    <button onClick={() => { setPaymentMethod('CBE'); setPaymentStep('DETAILS'); }} className="w-full flex justify-between items-center px-4 py-3 bg-purple-900/50 hover:bg-purple-900 border border-purple-500/30 text-white rounded-lg transition-all group">
+                                                        <span className="flex items-center"><Building className="w-5 h-5 mr-3 text-purple-300" /> {t.pay_cbe}</span>
+                                                        <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
+                                                    </button>
+                                                    <button onClick={() => { setPaymentMethod('TELEBIRR'); setPaymentStep('DETAILS'); }} className="w-full flex justify-between items-center px-4 py-3 bg-blue-900/50 hover:bg-blue-900 border border-blue-500/30 text-white rounded-lg transition-all group">
+                                                        <span className="flex items-center"><Smartphone className="w-5 h-5 mr-3 text-blue-300" /> {t.pay_telebirr}</span>
+                                                        <ChevronRight className="w-4 h-4 text-blue-300 group-hover:translate-x-1 transition-transform" />
+                                                    </button>
+                                                    <button onClick={() => setPaymentStep('IDLE')} className="text-stone-400 text-xs hover:text-white mt-2">Cancel Selection</button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* STEP 2: PAYMENT DETAILS */}
+                                        {paymentStep === 'DETAILS' && (
+                                            <div className="animate-fade-in-up">
+                                               <button onClick={() => setPaymentStep('METHOD')} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white">
                                                   <ArrowLeft className="w-3 h-3 mr-1" /> {t.change_method}
                                                </button>
                                                {paymentMethod === 'CBE' ? (
@@ -686,15 +760,40 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                                         <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Equb Service</p>
                                                    </div>
                                                )}
-                                               {!paymentConfirmed ? (
-                                                   <button onClick={() => setPaymentConfirmed(true)} className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg">
-                                                      <CheckCircle className="w-5 h-5 mr-2" /> {t.confirm_paid}
-                                                   </button>
-                                               ) : (
-                                                   <button onClick={handlePayment} disabled={uploading} className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg animate-fade-in-up">
-                                                     {uploading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</> : <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>}
-                                                   </button>
-                                               )}
+                                               <button onClick={() => setPaymentStep('UPLOAD')} className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg">
+                                                  <CheckCircle className="w-5 h-5 mr-2" /> {t.confirm_paid}
+                                               </button>
+                                            </div>
+                                        )}
+
+                                        {/* STEP 3: UPLOAD & PROCESSING */}
+                                        {(paymentStep === 'UPLOAD' || paymentStep === 'PROCESSING') && (
+                                            <div className="animate-fade-in-up">
+                                                <button onClick={() => setPaymentStep('DETAILS')} disabled={paymentStep === 'PROCESSING'} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white disabled:opacity-50">
+                                                  <ArrowLeft className="w-3 h-3 mr-1" /> Back to Details
+                                                </button>
+                                                <div className="bg-white/10 p-4 rounded-lg mb-4 border border-dashed border-white/30 text-center">
+                                                    <Upload className="w-8 h-8 text-stone-400 mx-auto mb-2" />
+                                                    <p className="text-stone-300 text-sm mb-1">Upload Receipt Screenshot</p>
+                                                    <p className="text-stone-500 text-xs">For Ticket #{selectedTempTicket}</p>
+                                                </div>
+                                                <button onClick={handlePayment} disabled={paymentStep === 'PROCESSING'} className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg">
+                                                     {paymentStep === 'PROCESSING' ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</> : <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>}
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* STEP 4: SUCCESS */}
+                                        {paymentStep === 'SUCCESS' && (
+                                            <div className="animate-fade-in-up text-center py-2">
+                                                <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30">
+                                                    <CheckCircle className="w-6 h-6 text-white" />
+                                                </div>
+                                                <h3 className="font-bold text-white text-lg">Submission Received!</h3>
+                                                <p className="text-stone-300 text-xs mb-4">Ticket #{selectedTempTicket} is reserved pending approval.</p>
+                                                <button onClick={() => setPaymentStep('IDLE')} className="text-amber-400 text-sm font-bold hover:underline">
+                                                    Close
+                                                </button>
                                             </div>
                                         )}
                                     </div>
