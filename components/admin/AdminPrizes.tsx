@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { PartyPopper, Video, CheckCircle, Trophy, Star, Plus, Trash2, X } from 'lucide-react';
+import { PartyPopper, Video, CheckCircle, Trophy, Star, Plus, Trash2, X, Eye } from 'lucide-react';
 import { AppSettings, User, Winner } from '../../types';
 
 interface AdminPrizesProps {
@@ -110,6 +110,10 @@ const AdminPrizes: React.FC<AdminPrizesProps> = ({
       });
   };
 
+  const toggleWinnerAnnouncementMode = () => {
+      setSettings(prev => ({ ...prev, winnerAnnouncementMode: !prev.winnerAnnouncementMode }));
+  };
+
   return (
     <div className="space-y-8 animate-fade-in-up max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold text-stone-800">{t.prizes.title}</h1>
@@ -126,6 +130,20 @@ const AdminPrizes: React.FC<AdminPrizesProps> = ({
                 </p>
                 
                 <div className="bg-white/10 p-6 rounded-xl backdrop-blur-md border border-white/10 max-w-xl">
+                    {/* Mode Toggle */}
+                    <div className="flex items-center justify-between mb-6 pb-6 border-b border-white/10">
+                        <div>
+                            <h3 className="font-bold text-white flex items-center"><Eye className="w-4 h-4 mr-2" /> Display Winner on Cards</h3>
+                            <p className="text-xs text-stone-400 mt-1">Replaces prize preview cards with winner announcement.</p>
+                        </div>
+                        <button 
+                            onClick={toggleWinnerAnnouncementMode}
+                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.winnerAnnouncementMode ? 'bg-emerald-500' : 'bg-stone-600'}`}
+                        >
+                            <span className={`block w-4 h-4 bg-white rounded-full transition-transform absolute top-1 left-1 ${settings.winnerAnnouncementMode ? 'translate-x-6' : ''}`} />
+                        </button>
+                    </div>
+
                     <label className="block text-sm font-bold text-stone-300 mb-2">{t.prizes.winTicket}</label>
                     <div className="flex gap-4 mb-6">
                         <input 

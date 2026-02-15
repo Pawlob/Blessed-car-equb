@@ -33,6 +33,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   registrationEnabled: true,
   adminPassword: 'admin123',
   ticketSelectionEnabled: true, // Default to enabled
+  winnerAnnouncementMode: false, // Default to disabled
   recentWinners: [
     { 
       id: 1, 
@@ -137,6 +138,10 @@ const App: React.FC = () => {
         // Ensure ticketSelectionEnabled exists
         if (typeof data.ticketSelectionEnabled === 'undefined') {
             data.ticketSelectionEnabled = true;
+        }
+        // Ensure winnerAnnouncementMode exists
+        if (typeof data.winnerAnnouncementMode === 'undefined') {
+            data.winnerAnnouncementMode = false;
         }
         setAppSettings(data);
       } else {

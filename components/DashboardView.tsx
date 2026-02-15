@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle, Car, Lock } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle, Car, Lock, PartyPopper } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -876,44 +876,80 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                         </div>
                         <div className="relative w-full flex justify-center">
                           <div className="relative z-10 w-full max-w-sm bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
-                            <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group isolate">
-                                <div className="h-48 bg-stone-700 flex items-center justify-center relative overflow-hidden rounded-t-xl">
-                                    <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
-                                    <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
-                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
-                                              <img src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" alt="Ribbon" className="w-full h-full object-contain drop-shadow-2xl scale-[1.5]" />
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Carousel Images */}
-                                    {displayImages.map((img, index) => (
-                                        <img 
-                                        key={index}
-                                        src={img}
-                                        alt={`${settings.prizeName} view ${index + 1}`}
-                                        className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out rounded-t-xl ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
-                                        />
+                            
+                            {/* Conditional Rendering: Winner Card vs Prize Carousel */}
+                            {settings.winnerAnnouncementMode && settings.currentWinner ? (
+                                // --- WINNER ANNOUNCEMENT CARD ---
+                                <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-48 flex flex-col items-center justify-center text-center p-4">
+                                    {/* Confetti Background */}
+                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none"></div>
+                                    {Array.from({ length: 15 }).map((_, i) => (
+                                      <div 
+                                        key={i} 
+                                        className="absolute w-1.5 h-1.5 bg-white rounded-full animate-pulse"
+                                        style={{
+                                          left: `${Math.random() * 100}%`,
+                                          top: `${Math.random() * 100}%`,
+                                          animationDelay: `${Math.random() * 2}s`
+                                        }}
+                                      />
                                     ))}
+                                    
+                                    <div className="relative z-20">
+                                        <div className="inline-flex items-center justify-center p-2 bg-white rounded-full mb-2 shadow-xl animate-bounce">
+                                            <PartyPopper className="w-6 h-6 text-amber-600" />
+                                        </div>
+                                        <h2 className="text-xl font-black text-white uppercase tracking-wider mb-1 drop-shadow-md">
+                                            {language === 'en' ? 'Winner Announced!' : 'አሸናፊው ታውቋል!'}
+                                        </h2>
+                                        
+                                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 w-full max-w-xs mx-auto">
+                                            <div className="text-2xl font-black text-white mb-0">#{settings.currentWinner.ticketNumber}</div>
+                                            <div className="text-sm font-bold text-amber-100">{settings.currentWinner.userName}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                // --- STANDARD PRIZE CAROUSEL ---
+                                <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group isolate">
+                                    <div className="h-48 bg-stone-700 flex items-center justify-center relative overflow-hidden rounded-t-xl">
+                                        <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
+                                        <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 flex items-center justify-center z-20">
+                                                  <img src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" alt="Ribbon" className="w-full h-full object-contain drop-shadow-2xl scale-[1.5]" />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Carousel Images */}
+                                        {displayImages.map((img, index) => (
+                                            <img 
+                                            key={index}
+                                            src={img}
+                                            alt={`${settings.prizeName} view ${index + 1}`}
+                                            className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out rounded-t-xl ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                                            />
+                                        ))}
 
-                                    <div className="absolute inset-0 flex items-end justify-end z-20 p-2">
-                                        <span className="text-stone-100 font-bold text-xs border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-2 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
-                                            {settings.prizeName}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="p-4">
-                                    <div className="flex justify-between items-end">
-                                        <div>
-                                            <p className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-1">{heroT.prize_label}</p>
-                                            <h3 className="text-lg font-bold text-white leading-tight">Luxury Package</h3>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-stone-400 text-xs">{heroT.prize_value}</p>
-                                            <p className="text-lg font-bold text-white">{settings.prizeValue}</p>
+                                        <div className="absolute inset-0 flex items-end justify-end z-20 p-2">
+                                            <span className="text-stone-100 font-bold text-xs border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-2 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
+                                                {settings.prizeName}
+                                            </span>
                                         </div>
                                     </div>
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-end">
+                                            <div>
+                                                <p className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-1">{heroT.prize_label}</p>
+                                                <h3 className="text-lg font-bold text-white leading-tight">Luxury Package</h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-stone-400 text-xs">{heroT.prize_value}</p>
+                                                <p className="text-lg font-bold text-white">{settings.prizeValue}</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                           </div>
                         </div>
                     </div>

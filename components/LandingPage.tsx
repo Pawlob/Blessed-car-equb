@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem, Search, CheckCircle, XCircle, Lock } from 'lucide-react';
+import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem, Search, CheckCircle, XCircle, Lock, PartyPopper } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
@@ -204,52 +204,91 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="relative -mt-8 md:mt-0 animate-fade-in-up delay-[300ms]">
             <div className="relative z-10 bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl border border-stone-700 p-2 shadow-2xl animate-wiggle-interval">
-              <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group isolate">
-                  <div className="h-64 md:h-80 bg-stone-700 flex items-center justify-center relative overflow-hidden rounded-t-xl">
-                      <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
-                      
-                      {/* Ribbon Overlay */}
-                      <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
-                          {/* Bow Image */}
-                          <div className="absolute top-52 left-52  -translate-x-24 -translate-y-24 w-64 h-64 flex items-center justify-center z-20">
-                               <img 
-                                 src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" 
-                                 alt="Ribbon" 
-                                 className="w-full h-full object-contain drop-shadow-2xl scale-[2]"
-                               />
-                          </div>
-                      </div>
-
-                      {/* Carousel Images */}
-                      {displayImages.map((img, index) => (
-                        <img 
-                          key={index}
-                          src={img}
-                          alt={`${settings.prizeName} view ${index + 1}`}
-                          className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out rounded-t-xl ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+              {/* Conditional Rendering: Winner Card vs Prize Carousel */}
+              {settings.winnerAnnouncementMode && settings.currentWinner ? (
+                  // --- WINNER ANNOUNCEMENT CARD ---
+                  <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-64 md:h-80 flex flex-col items-center justify-center text-center p-6">
+                      {/* Confetti Background */}
+                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none"></div>
+                      {Array.from({ length: 20 }).map((_, i) => (
+                        <div 
+                          key={i} 
+                          className="absolute w-2 h-2 bg-white rounded-full animate-pulse"
+                          style={{
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 2}s`
+                          }}
                         />
                       ))}
                       
-                      <div className="absolute inset-0 flex items-end justify-end z-20 p-4">
-                          <span className="text-stone-100 font-bold text-sm md:text-base border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-3 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
-                              {settings.prizeName}
-                          </span>
+                      <div className="relative z-20">
+                          <div className="inline-flex items-center justify-center p-3 bg-white rounded-full mb-4 shadow-xl animate-bounce">
+                              <PartyPopper className="w-8 h-8 text-amber-600" />
+                          </div>
+                          <h2 className="text-3xl font-black text-white uppercase tracking-wider mb-1 drop-shadow-md">
+                              {language === 'en' ? 'Winner Announced!' : 'አሸናፊው ታውቋል!'}
+                          </h2>
+                          <p className="text-amber-100 font-medium mb-6">Cycle {settings.cycle}</p>
+                          
+                          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 w-full max-w-xs mx-auto">
+                              <div className="text-4xl font-black text-white mb-1">#{settings.currentWinner.ticketNumber}</div>
+                              <div className="text-xl font-bold text-amber-100">{settings.currentWinner.userName}</div>
+                              <div className="text-xs text-white/80 mt-2 font-medium bg-black/20 inline-block px-2 py-1 rounded">
+                                  Prize: {settings.currentWinner.prizeName}
+                              </div>
+                          </div>
                       </div>
                   </div>
-                  
-                  <div className="p-6">
-                      <div className="flex justify-between items-end">
-                          <div>
-                              <p className="text-amber-500 text-sm font-bold uppercase tracking-wider mb-1">{t.hero.prize_label}</p>
-                              <h3 className="text-2xl font-bold text-white">Luxury Package</h3>
+              ) : (
+                  // --- STANDARD PRIZE CAROUSEL ---
+                  <div className="bg-stone-800/50 rounded-xl overflow-hidden relative group isolate">
+                      <div className="h-64 md:h-80 bg-stone-700 flex items-center justify-center relative overflow-hidden rounded-t-xl">
+                          <div className="absolute inset-0 bg-emerald-900/20 group-hover:bg-emerald-900/10 transition-colors"></div>
+                          
+                          {/* Ribbon Overlay */}
+                          <div className="absolute inset-0 z-10 pointer-events-none opacity-100">
+                              {/* Bow Image */}
+                              <div className="absolute top-52 left-52  -translate-x-24 -translate-y-24 w-64 h-64 flex items-center justify-center z-20">
+                                  <img 
+                                    src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" 
+                                    alt="Ribbon" 
+                                    className="w-full h-full object-contain drop-shadow-2xl scale-[2]"
+                                  />
+                              </div>
                           </div>
-                          <div className="text-right">
-                              <p className="text-stone-400 text-xs">{t.hero.prize_value}</p>
-                              <p className="text-xl font-bold text-white">{settings.prizeValue}</p>
+
+                          {/* Carousel Images */}
+                          {displayImages.map((img, index) => (
+                            <img 
+                              key={index}
+                              src={img}
+                              alt={`${settings.prizeName} view ${index + 1}`}
+                              className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out rounded-t-xl ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                            />
+                          ))}
+                          
+                          <div className="absolute inset-0 flex items-end justify-end z-20 p-4">
+                              <span className="text-stone-100 font-bold text-sm md:text-base border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-3 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
+                                  {settings.prizeName}
+                              </span>
+                          </div>
+                      </div>
+                      
+                      <div className="p-6">
+                          <div className="flex justify-between items-end">
+                              <div>
+                                  <p className="text-amber-500 text-sm font-bold uppercase tracking-wider mb-1">{t.hero.prize_label}</p>
+                                  <h3 className="text-2xl font-bold text-white">Luxury Package</h3>
+                              </div>
+                              <div className="text-right">
+                                  <p className="text-stone-400 text-xs">{t.hero.prize_value}</p>
+                                  <p className="text-xl font-bold text-white">{settings.prizeValue}</p>
+                              </div>
                           </div>
                       </div>
                   </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

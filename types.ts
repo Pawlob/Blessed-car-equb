@@ -50,6 +50,7 @@ export interface AppSettings {
   prizeImages?: string[]; 
   recentWinners: Winner[];
   currentWinner?: CurrentWinner | null; // New field for live winner announcement
+  winnerAnnouncementMode: boolean; // Toggle to replace prize card with winner card
   liveStreamUrl: string;
   isLive: boolean;
   registrationEnabled: boolean;
