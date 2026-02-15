@@ -41,6 +41,218 @@ interface TicketType {
   assignedBy: 'SYSTEM' | 'ADMIN' | 'USER';
 }
 
+// --- Translations ---
+const ADMIN_TRANSLATIONS = {
+  en: {
+    sidebar: {
+      title: "Admin Panel",
+      dashboard: "Dashboard",
+      competition: "Competition",
+      prizes: "Prizes",
+      users: "User Management",
+      payments: "Verify Payments",
+      settings: "App Settings",
+      exit: "Exit Admin"
+    },
+    dashboard: {
+      overview: "Dashboard Overview",
+      totalPot: "Total Pot",
+      claimedTickets: "Claimed Tickets",
+      totalMembers: "Total Members",
+      pending: "Pending Verifications",
+      cycle: "Current Cycle",
+      cycleTitle: "Cycle Management",
+      cycleDesc: "Control the current lottery cycle status",
+      active: "Active",
+      startNew: "Start New Cycle",
+      nextDraw: "Next Draw",
+      daysRem: "days remaining",
+      recentPay: "Recent Payment Requests",
+      viewAll: "View All",
+      noPending: "No pending payments.",
+      user: "User",
+      amount: "Amount",
+      date: "Date",
+      action: "Action",
+      review: "Review"
+    },
+    competition: {
+      title: "Competition Management",
+      general: "General Settings",
+      tickets: "Ticket Management",
+      drawSchedule: "Draw Schedule",
+      setNextDraw: "Set Next Draw Date (Ethiopian Calendar)",
+      preview: "Preview",
+      save: "Save Changes",
+      currentPrize: "Current Prize",
+      prizeName: "Prize Name",
+      prizeValue: "Prize Value",
+      prizeImages: "Prize Images",
+      liveStream: "Live Stream",
+      liveStatus: "Live Status"
+    },
+    prizes: {
+      title: "Prize Management",
+      liveAnnouncer: "Live Draw Announcer",
+      liveDesc: "Use this tool during the live event to broadcast the winner to all connected users instantly.",
+      winTicket: "Winning Ticket Number",
+      verify: "Verify Ticket",
+      announce: "ANNOUNCE WINNER LIVE",
+      hallOfFame: "Hall of Fame (Past Winners)",
+      hallDesc: "Manage the list of winners displayed on the Prizes page.",
+      addWinner: "Add Past Winner"
+    },
+    users: {
+      title: "User Management",
+      addNew: "Add New User",
+      search: "Search by name or phone...",
+      allStatus: "All Status",
+      verified: "Verified",
+      pending: "Pending",
+      contrib: "Contribution",
+      ticket: "Ticket #",
+      actions: "Actions",
+      showing: "Showing",
+      total: "Total Users",
+      status: "Status",
+      phone: "Phone"
+    },
+    payments: {
+      title: "Pending Payments",
+      allCaughtUp: "All Caught Up!",
+      noRequests: "There are no pending payment requests to verify at this time.",
+      amount: "Amount Declared",
+      reject: "Reject",
+      approve: "Approve"
+    },
+    settings: {
+      title: "App Settings",
+      general: "General Preferences",
+      langTitle: "Admin Dashboard Language",
+      langDesc: "Toggle the language settings for the admin dashboard.",
+      security: "Account & Security",
+      userReg: "User Registration",
+      userRegDesc: "Allow new users to create accounts",
+      changePass: "Change Admin Password",
+      update: "Update",
+      save: "Save Changes"
+    },
+    login: {
+      title: "Admin Portal",
+      label: "Access Key",
+      btn: "Login",
+      back: "Back to Site",
+      placeholder: "Enter password",
+      failed: "Login Failed",
+      failedMsg: "The access key you provided is incorrect. Please try again."
+    }
+  },
+  am: {
+    sidebar: {
+      title: "አድሚን ፓነል",
+      dashboard: "ዳሽቦርድ",
+      competition: "ውድድር",
+      prizes: "ሽልማቶች",
+      users: "ተጠቃሚዎች",
+      payments: "ክፍያ ማረጋገጫ",
+      settings: "ቅንብሮች",
+      exit: "ውጣ"
+    },
+    dashboard: {
+      overview: "የዳሽቦርድ አጠቃላይ እይታ",
+      totalPot: "ጠቅላላ ገንዘብ",
+      claimedTickets: "የተያዙ ቲኬቶች",
+      totalMembers: "ጠቅላላ አባላት",
+      pending: "ማረጋገጫ የሚጠብቁ",
+      cycle: "የአሁኑ ዙር",
+      cycleTitle: "የዙር አስተዳደር",
+      cycleDesc: "የአሁኑን የሎተሪ ዙር ሁኔታ ይቆጣጠሩ",
+      active: "ንቁ",
+      startNew: "አዲስ ዙር ጀምር",
+      nextDraw: "ቀጣይ እጣ",
+      daysRem: "ቀናት ቀርተዋል",
+      recentPay: "የቅርብ ጊዜ የክፍያ ጥያቄዎች",
+      viewAll: "ሁሉንም አሳይ",
+      noPending: "ምንም በመጠባበቅ ላይ ያሉ ክፍያዎች የሉም።",
+      user: "ተጠቃሚ",
+      amount: "መጠን",
+      date: "ቀን",
+      action: "ተግባር",
+      review: "ገምግም"
+    },
+    competition: {
+      title: "የውድድር አስተዳደር",
+      general: "አጠቃላይ ቅንብሮች",
+      tickets: "ቲኬት አስተዳደር",
+      drawSchedule: "የእጣ ፕሮግራም",
+      setNextDraw: "ቀጣይ የእጣ ቀን ያዘጋጁ (በኢትዮጵያ አቆጣጠር)",
+      preview: "ቅድመ እይታ",
+      save: "ለውጦችን አስቀምጥ",
+      currentPrize: "የአሁኑ ሽልማት",
+      prizeName: "የሽልማት ስም",
+      prizeValue: "የሽልማት ዋጋ",
+      prizeImages: "የሽልማት ምስሎች",
+      liveStream: "የቀጥታ ስርጭት",
+      liveStatus: "የቀጥታ ሁኔታ"
+    },
+    prizes: {
+      title: "ሽልማት አስተዳደር",
+      liveAnnouncer: "የቀጥታ እጣ አወጣጥ",
+      liveDesc: "ይህንን መሳሪያ በቀጥታ ስርጭት ወቅት አሸናፊውን ለተጠቃሚዎች ለማሳወቅ ይጠቀሙበት።",
+      winTicket: "አሸናፊ የቲኬት ቁጥር",
+      verify: "ቲኬት አረጋግጥ",
+      announce: "አሸናፊውን አብስር",
+      hallOfFame: "የዝና አዳራሽ (ያለፉት አሸናፊዎች)",
+      hallDesc: "በሽልማት ገጹ ላይ የሚታዩትን የአሸናፊዎች ዝርዝር ያስተዳድሩ።",
+      addWinner: "ያለፈ አሸናፊ ጨምር"
+    },
+    users: {
+      title: "ተጠቃሚ አስተዳደር",
+      addNew: "አዲስ ተጠቃሚ ጨምር",
+      search: "በስም ወይም ስልክ ይፈልጉ...",
+      allStatus: "ሁሉም ሁኔታዎች",
+      verified: "የተረጋገጠ",
+      pending: "በመጠባበቅ ላይ",
+      contrib: "መዋጮ",
+      ticket: "ቲኬት #",
+      actions: "ተግባራት",
+      showing: "በማሳየት ላይ",
+      total: "ጠቅላላ ተጠቃሚዎች",
+      status: "ሁኔታ",
+      phone: "ስልክ"
+    },
+    payments: {
+      title: "ክፍያ ማረጋገጫ",
+      allCaughtUp: "ሁሉም ተጠናቋል!",
+      noRequests: "በአሁኑ ሰዓት ማረጋገጫ የሚጠብቅ ክፍያ የለም።",
+      amount: "የተገለጸው መጠን",
+      reject: "ውድቅ አድርግ",
+      approve: "አረጋግጥ"
+    },
+    settings: {
+      title: "የመተግበሪያ ቅንብሮች",
+      general: "አጠቃላይ ምርጫዎች",
+      langTitle: "የአድሚን ቋንቋ",
+      langDesc: "የአድሚን ዳሽቦርድ ቋንቋ ይቀይሩ።",
+      security: "መለያ እና ደህንነት",
+      userReg: "ተጠቃሚ ምዝገባ",
+      userRegDesc: "አዳዲስ ተጠቃሚዎች መለያ እንዲፈጥሩ ፍቀድ",
+      changePass: "የአድሚን የይለፍ ቃል ቀይር",
+      update: "አዘምን",
+      save: "ለውጦችን አስቀምጥ"
+    },
+    login: {
+      title: "አድሚን ፓነል",
+      label: "የይለፍ ቃል",
+      btn: "ግባ",
+      back: "ወደ ጣቢያው ተመለስ",
+      placeholder: "የይለፍ ቃል ያስገቡ",
+      failed: "መግባት አልተሳካም",
+      failedMsg: "ያስገቡት የይለፍ ቃል ትክክል አይደለም።"
+    }
+  }
+};
+
 // --- Ethiopian Calendar Utils ---
 
 const ETHIOPIAN_MONTHS = [
@@ -133,6 +345,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   const [foundWinningTicket, setFoundWinningTicket] = useState<TicketType | null>(null);
   const [newPastWinner, setNewPastWinner] = useState<Partial<Winner>>({});
   const [isWinnerModalOpen, setIsWinnerModalOpen] = useState(false);
+
+  const t = ADMIN_TRANSLATIONS[language];
 
   // Sync local settings with global settings when they change (e.g. from DB)
   useEffect(() => {
@@ -386,7 +600,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     if (password === adminPass) {
       setIsAuthenticated(true);
     } else {
-      showAlert('error', 'Login Failed', 'The access key you provided is incorrect. Please try again.');
+      showAlert('error', t.login.failed, t.login.failedMsg);
     }
   };
 
@@ -745,7 +959,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden scale-100" onClick={e => e.stopPropagation()}>
                 <div className="p-4 bg-red-50 flex items-center justify-between">
                     <h3 className="font-bold text-lg text-red-800 flex items-center">
-                        <XCircle className="w-6 h-6 mr-2" /> Login Failed
+                        <XCircle className="w-6 h-6 mr-2" /> {t.login.failed}
                     </h3>
                     <button onClick={closeAlert} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
                 </div>
@@ -763,27 +977,27 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
               <Settings className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-center text-stone-800 mb-6">Admin Portal</h2>
+          <h2 className="text-2xl font-bold text-center text-stone-800 mb-6">{t.login.title}</h2>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-stone-600 mb-1">Access Key</label>
+              <label className="block text-sm font-medium text-stone-600 mb-1">{t.login.label}</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
-                placeholder="Enter password"
+                placeholder={t.login.placeholder}
               />
             </div>
             <button className="w-full bg-emerald-900 text-white font-bold py-2 rounded-lg hover:bg-emerald-800 transition-colors">
-              Login
+              {t.login.btn}
             </button>
             <button 
               type="button" 
               onClick={() => setView('landing')}
               className="w-full text-stone-500 text-sm hover:text-stone-800"
             >
-              Back to Site
+              {t.login.back}
             </button>
           </form>
         </div>
@@ -809,7 +1023,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                <div className="p-5 border-b border-stone-100 flex justify-between items-center bg-stone-50">
                    <h3 className="font-bold text-lg text-stone-800 flex items-center">
                        {editingUser.id ? <Edit className="w-5 h-5 mr-2" /> : <Plus className="w-5 h-5 mr-2" />}
-                       {editingUser.id ? 'Edit User' : 'Add New User'}
+                       {editingUser.id ? 'Edit User' : t.users.addNew}
                    </h3>
                    <button onClick={() => setIsUserModalOpen(false)} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
                </div>
@@ -828,7 +1042,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                            />
                        </div>
                        <div className="col-span-2 md:col-span-1">
-                           <label className="block text-sm font-bold text-stone-700 mb-1">Phone Number</label>
+                           <label className="block text-sm font-bold text-stone-700 mb-1">{t.users.phone}</label>
                            <input 
                              type="text" 
                              required
@@ -839,7 +1053,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                            />
                        </div>
                        <div className="col-span-2 md:col-span-1">
-                           <label className="block text-sm font-bold text-stone-700 mb-1">Status</label>
+                           <label className="block text-sm font-bold text-stone-700 mb-1">{t.users.status}</label>
                            <select 
                              value={editingUser.status || 'PENDING'}
                              onChange={e => setEditingUser({...editingUser, status: e.target.value as 'PENDING' | 'VERIFIED'})}
@@ -886,7 +1100,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
               <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={e => e.stopPropagation()}>
                   <div className="p-5 border-b border-stone-100 flex justify-between items-center bg-amber-50">
                       <h3 className="font-bold text-lg text-amber-800 flex items-center">
-                          <Trophy className="w-5 h-5 mr-2" /> Add Past Winner
+                          <Trophy className="w-5 h-5 mr-2" /> {t.prizes.addWinner}
                       </h3>
                       <button onClick={() => setIsWinnerModalOpen(false)} className="text-stone-400 hover:text-stone-600"><X className="w-5 h-5" /></button>
                   </div>
@@ -977,7 +1191,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-6 border-b border-stone-800 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-white">Admin Panel</h2>
+          <h2 className="text-xl font-bold text-white">{t.sidebar.title}</h2>
           <button className="md:hidden" onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
         </div>
         
@@ -986,25 +1200,25 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             onClick={() => handleTabChange('dashboard')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'dashboard' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
-            <LayoutDashboard className="w-5 h-5 mr-3" /> Dashboard
+            <LayoutDashboard className="w-5 h-5 mr-3" /> {t.sidebar.dashboard}
           </button>
           <button 
             onClick={() => handleTabChange('competition')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'competition' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
-            <Trophy className="w-5 h-5 mr-3" /> Competition
+            <Trophy className="w-5 h-5 mr-3" /> {t.sidebar.competition}
           </button>
           <button 
             onClick={() => handleTabChange('prizes')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'prizes' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
-            <Gift className="w-5 h-5 mr-3" /> Prizes
+            <Gift className="w-5 h-5 mr-3" /> {t.sidebar.prizes}
           </button>
           <button 
             onClick={() => handleTabChange('users')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'users' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
-            <Users className="w-5 h-5 mr-3" /> User Management
+            <Users className="w-5 h-5 mr-3" /> {t.sidebar.users}
           </button>
           <button 
             onClick={() => handleTabChange('payments')}
@@ -1018,13 +1232,13 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                    </span>
                )}
             </div>
-            Verify Payments
+            {t.sidebar.payments}
           </button>
           <button 
             onClick={() => handleTabChange('settings')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
-            <Settings className="w-5 h-5 mr-3" /> App Settings
+            <Settings className="w-5 h-5 mr-3" /> {t.sidebar.settings}
           </button>
         </nav>
 
@@ -1033,7 +1247,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             onClick={() => setView('landing')}
             className="w-full flex items-center px-4 py-3 text-stone-400 hover:text-white transition-colors"
           >
-            <LogOut className="w-5 h-5 mr-3" /> Exit Admin
+            <LogOut className="w-5 h-5 mr-3" /> {t.sidebar.exit}
           </button>
         </div>
       </aside>
@@ -1044,11 +1258,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         <header className="md:hidden bg-white p-4 shadow-sm flex justify-between items-center z-30">
            <button onClick={() => setIsSidebarOpen(true)}><Menu className="w-6 h-6 text-stone-700" /></button>
            <h1 className="font-bold text-stone-800">
-              {activeTab === 'dashboard' ? 'Dashboard' : 
-               activeTab === 'competition' ? 'Competition' :
-               activeTab === 'prizes' ? 'Prize Management' :
-               activeTab === 'users' ? 'User Management' : 
-               activeTab === 'payments' ? 'Payment Verification' : 'Settings'}
+              {activeTab === 'dashboard' ? t.sidebar.dashboard : 
+               activeTab === 'competition' ? t.sidebar.competition :
+               activeTab === 'prizes' ? t.sidebar.prizes :
+               activeTab === 'users' ? t.sidebar.users : 
+               activeTab === 'payments' ? t.sidebar.payments : t.sidebar.settings}
            </h1>
            <div className="w-6"></div>
         </header>
@@ -1058,19 +1272,19 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {/* --- DASHBOARD TAB --- */}
             {activeTab === 'dashboard' && (
                 <div className="space-y-6 animate-fade-in-up">
-                    <h1 className="text-2xl font-bold text-stone-800 hidden md:block">Dashboard Overview</h1>
+                    <h1 className="text-2xl font-bold text-stone-800 hidden md:block">{t.dashboard.overview}</h1>
                     {/* ... Dashboard content ... */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-stone-500 text-sm font-bold uppercase">Total Pot</h3>
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">{t.dashboard.totalPot}</h3>
                               <DollarSign className="w-5 h-5 text-emerald-500" />
                            </div>
                            <p className="text-2xl font-bold text-stone-800">{settings.potValue.toLocaleString()} ETB</p>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-stone-500 text-sm font-bold uppercase">Claimed Tickets</h3>
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">{t.dashboard.claimedTickets}</h3>
                               <Ticket className="w-5 h-5 text-teal-500" />
                            </div>
                            <p className="text-2xl font-bold text-stone-800">
@@ -1079,24 +1293,24 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-stone-500 text-sm font-bold uppercase">Total Members</h3>
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">{t.dashboard.totalMembers}</h3>
                               <Users className="w-5 h-5 text-blue-500" />
                            </div>
                            <p className="text-2xl font-bold text-stone-800">{settings.totalMembers.toLocaleString()}</p>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-stone-500 text-sm font-bold uppercase">Pending Verifications</h3>
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">{t.dashboard.pending}</h3>
                               <FileText className="w-5 h-5 text-amber-500" />
                            </div>
                            <p className="text-2xl font-bold text-stone-800">{paymentRequests.length}</p>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-stone-500 text-sm font-bold uppercase">Current Cycle</h3>
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">{t.dashboard.cycle}</h3>
                               <RefreshCw className="w-5 h-5 text-purple-500" />
                            </div>
-                           <p className="text-2xl font-bold text-stone-800">Cycle {settings.cycle}</p>
+                           <p className="text-2xl font-bold text-stone-800">#{settings.cycle}</p>
                         </div>
                     </div>
 
@@ -1104,20 +1318,20 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <h3 className="text-lg font-bold text-stone-800">Cycle Management</h3>
-                                <p className="text-stone-500 text-sm">Control the current lottery cycle status</p>
+                                <h3 className="text-lg font-bold text-stone-800">{t.dashboard.cycleTitle}</h3>
+                                <p className="text-stone-500 text-sm">{t.dashboard.cycleDesc}</p>
                             </div>
-                            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold uppercase">Active</span>
+                            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold uppercase">{t.dashboard.active}</span>
                         </div>
                         <div className="flex flex-wrap gap-4">
                              <button 
                                onClick={handleStartNewCycle}
                                className="px-6 py-2 bg-red-900 hover:bg-red-800 text-white font-bold rounded-lg transition-colors flex items-center"
                              >
-                                <RefreshCw className="w-4 h-4 mr-2" /> Start New Cycle
+                                <RefreshCw className="w-4 h-4 mr-2" /> {t.dashboard.startNew}
                              </button>
                              <div className="px-4 py-2 bg-stone-100 rounded-lg text-stone-600 text-sm flex items-center">
-                                <Clock className="w-4 h-4 mr-2" /> Next Draw: {settings.daysRemaining} days remaining
+                                <Clock className="w-4 h-4 mr-2" /> {t.dashboard.nextDraw}: {settings.daysRemaining} {t.dashboard.daysRem}
                              </div>
                         </div>
                     </div>
@@ -1125,19 +1339,19 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                     {/* Recent Payments Preview */}
                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
                         <div className="p-6 border-b border-stone-100 flex justify-between items-center">
-                           <h3 className="font-bold text-stone-800">Recent Payment Requests</h3>
-                           <button onClick={() => setActiveTab('payments')} className="text-emerald-600 text-sm font-bold hover:underline">View All</button>
+                           <h3 className="font-bold text-stone-800">{t.dashboard.recentPay}</h3>
+                           <button onClick={() => setActiveTab('payments')} className="text-emerald-600 text-sm font-bold hover:underline">{t.dashboard.viewAll}</button>
                         </div>
                         {paymentRequests.length === 0 ? (
-                            <div className="p-8 text-center text-stone-500">No pending payments.</div>
+                            <div className="p-8 text-center text-stone-500">{t.dashboard.noPending}</div>
                         ) : (
                             <table className="w-full text-left">
                                 <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
                                     <tr>
-                                        <th className="px-6 py-3">User</th>
-                                        <th className="px-6 py-3">Amount</th>
-                                        <th className="px-6 py-3">Date</th>
-                                        <th className="px-6 py-3">Action</th>
+                                        <th className="px-6 py-3">{t.dashboard.user}</th>
+                                        <th className="px-6 py-3">{t.dashboard.amount}</th>
+                                        <th className="px-6 py-3">{t.dashboard.date}</th>
+                                        <th className="px-6 py-3">{t.dashboard.action}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-stone-100">
@@ -1147,7 +1361,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <td className="px-6 py-4">{req.amount} ETB</td>
                                             <td className="px-6 py-4 text-stone-500 text-sm">{req.date}</td>
                                             <td className="px-6 py-4">
-                                                <button onClick={() => setActiveTab('payments')} className="text-emerald-600 hover:underline text-sm font-bold">Review</button>
+                                                <button onClick={() => setActiveTab('payments')} className="text-emerald-600 hover:underline text-sm font-bold">{t.dashboard.review}</button>
                                             </td>
                                         </tr>
                                     ))}
@@ -1163,7 +1377,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 <div className="space-y-6 animate-fade-in-up max-w-5xl mx-auto">
                     {/* ... Existing Competition Tab ... */}
                     <div className="flex flex-col md:flex-row justify-between items-end md:items-center mb-6">
-                        <h1 className="text-2xl font-bold text-stone-800 mb-4 md:mb-0">Competition Management</h1>
+                        <h1 className="text-2xl font-bold text-stone-800 mb-4 md:mb-0">{t.competition.title}</h1>
                         <div className="bg-white p-1 rounded-xl shadow-sm border border-stone-200 flex">
                             <button 
                                 onClick={() => setCompSubTab('settings')}
@@ -1171,7 +1385,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                     compSubTab === 'settings' ? 'bg-stone-800 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'
                                 }`}
                             >
-                                General Settings
+                                {t.competition.general}
                             </button>
                             <button 
                                 onClick={() => setCompSubTab('tickets')}
@@ -1179,7 +1393,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                     compSubTab === 'tickets' ? 'bg-emerald-600 text-white shadow-md' : 'text-stone-500 hover:bg-stone-50'
                                 }`}
                             >
-                                <Ticket className="w-4 h-4 mr-2" /> Ticket Management
+                                <Ticket className="w-4 h-4 mr-2" /> {t.competition.tickets}
                             </button>
                         </div>
                     </div>
@@ -1189,11 +1403,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                              {/* ... Draw Schedule ... */}
                              <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                                 <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                                    <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
+                                    <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> {t.competition.drawSchedule}
                                 </h2>
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
-                                        <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
+                                        <label className="block text-sm font-bold text-stone-700">{t.competition.setNextDraw}</label>
                                         <div className="flex space-x-2">
                                             <select 
                                                 value={ethDate.month}
@@ -1218,7 +1432,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         </div>
                                     </div>
                                     <div className="bg-stone-50 p-4 rounded-lg border border-stone-200">
-                                        <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">Preview</h3>
+                                        <h3 className="text-sm font-bold text-stone-500 uppercase mb-2">{t.competition.preview}</h3>
                                         <div className="space-y-2">
                                             <div className="flex justify-between">
                                                 <span className="text-stone-600">English:</span>
@@ -1233,7 +1447,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 </div>
                                 <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
                                     <button onClick={() => handleSaveSection('Draw Schedule')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                        <Save className="w-4 h-4 mr-2" /> Save Changes
+                                        <Save className="w-4 h-4 mr-2" /> {t.competition.save}
                                     </button>
                                 </div>
                             </div>
@@ -1241,21 +1455,21 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                             {/* ... Current Prize ... */}
                             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                                 <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                                    <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
+                                    <Trophy className="w-5 h-5 mr-2 text-amber-500" /> {t.competition.currentPrize}
                                 </h2>
                                 <div className="grid md:grid-cols-2 gap-6">
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Name</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">{t.competition.prizeName}</label>
                                             <input type="text" value={localSettings.prizeName} onChange={(e) => setLocalSettings(prev => ({...prev, prizeName: e.target.value}))} className="w-full p-2 border border-stone-300 rounded-lg" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Value</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">{t.competition.prizeValue}</label>
                                             <input type="text" value={localSettings.prizeValue} onChange={(e) => setLocalSettings(prev => ({...prev, prizeValue: e.target.value}))} className="w-full p-2 border border-stone-300 rounded-lg" />
                                         </div>
                                         {/* Image Inputs */}
                                         <div>
-                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Images</label>
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">{t.competition.prizeImages}</label>
                                             <div className="flex gap-2 mb-2">
                                                 <input type="text" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} placeholder="Image URL" className="flex-1 p-2 border border-stone-300 rounded-lg text-sm" />
                                                 <button onClick={handleAddImage} className="px-4 bg-stone-800 text-white rounded-lg"><Plus className="w-4 h-4" /></button>
@@ -1271,7 +1485,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         </div>
                                     </div>
                                     <div className="flex flex-col h-full">
-                                        <label className="block text-sm font-bold text-stone-700 mb-1">Preview</label>
+                                        <label className="block text-sm font-bold text-stone-700 mb-1">{t.competition.preview}</label>
                                         <div className="flex-grow bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative min-h-[150px]">
                                             <img src={(localSettings.prizeImages && localSettings.prizeImages.length > 0) ? localSettings.prizeImages[0] : ''} className="w-full h-full object-cover absolute inset-0" />
                                         </div>
@@ -1279,7 +1493,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 </div>
                                 <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
                                     <button onClick={() => handleSaveSection('Current Prize')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                        <Save className="w-4 h-4 mr-2" /> Save Changes
+                                        <Save className="w-4 h-4 mr-2" /> {t.competition.save}
                                     </button>
                                 </div>
                             </div>
@@ -1287,10 +1501,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                              {/* ... Live Stream ... */}
                              <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                                 <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                                    <Video className="w-5 h-5 mr-2 text-red-600" /> Live Stream
+                                    <Video className="w-5 h-5 mr-2 text-red-600" /> {t.competition.liveStream}
                                 </h2>
                                 <div className="flex items-center justify-between mb-4">
-                                     <span>Live Status</span>
+                                     <span>{t.competition.liveStatus}</span>
                                      <button onClick={() => setLocalSettings(prev => ({ ...prev, isLive: !prev.isLive }))} className={`w-11 h-6 rounded-full transition-colors ${localSettings.isLive ? 'bg-red-600' : 'bg-stone-300'}`}>
                                          <span className={`block w-4 h-4 bg-white rounded-full transition-transform ml-1 ${localSettings.isLive ? 'translate-x-5' : ''}`} />
                                      </button>
@@ -1298,7 +1512,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 <input type="text" value={localSettings.liveStreamUrl} onChange={(e) => setLocalSettings(prev => ({...prev, liveStreamUrl: e.target.value}))} className="w-full p-2 border border-stone-300 rounded-lg" placeholder="Embed URL" />
                                 <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
                                     <button onClick={() => handleSaveSection('Live Stream')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                        <Save className="w-4 h-4 mr-2" /> Save Changes
+                                        <Save className="w-4 h-4 mr-2" /> {t.competition.save}
                                     </button>
                                 </div>
                              </div>
@@ -1316,7 +1530,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                              <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
                                 <table className="w-full text-left whitespace-nowrap">
                                     <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
-                                        <tr><th className="px-6 py-3">Ticket #</th><th className="px-6 py-3">User</th><th className="px-6 py-3">Status</th></tr>
+                                        <tr><th className="px-6 py-3">{t.users.ticket}</th><th className="px-6 py-3">{t.dashboard.user}</th><th className="px-6 py-3">{t.users.status}</th></tr>
                                     </thead>
                                     <tbody className="divide-y divide-stone-100">
                                         {filteredTickets.slice(0, 5).map(t => (
@@ -1337,22 +1551,21 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {/* --- PRIZES MANAGEMENT TAB (NEW) --- */}
             {activeTab === 'prizes' && (
                 <div className="space-y-8 animate-fade-in-up max-w-5xl mx-auto">
-                    <h1 className="text-2xl font-bold text-stone-800">Prize Management</h1>
+                    <h1 className="text-2xl font-bold text-stone-800">{t.prizes.title}</h1>
 
                     {/* Section 1: Live Draw Announcer */}
                     <div className="bg-gradient-to-br from-stone-900 to-stone-800 text-white rounded-2xl shadow-xl p-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 opacity-10"><PartyPopper className="w-64 h-64" /></div>
                         <div className="relative z-10">
                             <h2 className="text-2xl font-bold mb-4 flex items-center">
-                                <Video className="w-6 h-6 mr-3 text-red-500 animate-pulse" /> Live Draw Announcer
+                                <Video className="w-6 h-6 mr-3 text-red-500 animate-pulse" /> {t.prizes.liveAnnouncer}
                             </h2>
                             <p className="text-stone-400 mb-8 max-w-2xl">
-                                Use this tool during the live event to broadcast the winner to all connected users instantly. 
-                                Ensure the ticket number corresponds to the verified winner drawn.
+                                {t.prizes.liveDesc}
                             </p>
                             
                             <div className="bg-white/10 p-6 rounded-xl backdrop-blur-md border border-white/10 max-w-xl">
-                                <label className="block text-sm font-bold text-stone-300 mb-2">Winning Ticket Number</label>
+                                <label className="block text-sm font-bold text-stone-300 mb-2">{t.prizes.winTicket}</label>
                                 <div className="flex gap-4 mb-6">
                                     <input 
                                         type="number" 
@@ -1365,7 +1578,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         onClick={handleSearchWinningTicket}
                                         className="px-6 py-3 bg-stone-700 hover:bg-stone-600 rounded-lg font-bold transition-colors"
                                     >
-                                        Verify Ticket
+                                        {t.prizes.verify}
                                     </button>
                                 </div>
 
@@ -1385,7 +1598,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                     disabled={!foundWinningTicket}
                                     className="w-full py-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-stone-900 font-bold text-lg rounded-xl shadow-lg transform transition-all active:scale-95 flex items-center justify-center"
                                 >
-                                    <PartyPopper className="w-6 h-6 mr-2" /> ANNOUNCE WINNER LIVE
+                                    <PartyPopper className="w-6 h-6 mr-2" /> {t.prizes.announce}
                                 </button>
                             </div>
                         </div>
@@ -1396,15 +1609,15 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-lg font-bold text-stone-800 flex items-center">
-                                    <Star className="w-5 h-5 mr-2 text-amber-500" /> Hall of Fame (Past Winners)
+                                    <Star className="w-5 h-5 mr-2 text-amber-500" /> {t.prizes.hallOfFame}
                                 </h2>
-                                <p className="text-stone-500 text-sm">Manage the list of winners displayed on the Prizes page.</p>
+                                <p className="text-stone-500 text-sm">{t.prizes.hallDesc}</p>
                             </div>
                             <button 
                                 onClick={() => setIsWinnerModalOpen(true)}
                                 className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white rounded-lg font-bold text-sm flex items-center"
                             >
-                                <Plus className="w-4 h-4 mr-2" /> Add Past Winner
+                                <Plus className="w-4 h-4 mr-2" /> {t.prizes.addWinner}
                             </button>
                         </div>
 
@@ -1461,12 +1674,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {activeTab === 'users' && (
                 <div className="space-y-6 animate-fade-in-up">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
+                        <h1 className="text-2xl font-bold text-stone-800">{t.users.title}</h1>
                         <button 
                             onClick={openAddUser}
                             className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white rounded-lg font-bold flex items-center shadow-lg transition-transform active:scale-95"
                         >
-                            <Plus className="w-4 h-4 mr-2" /> Add New User
+                            <Plus className="w-4 h-4 mr-2" /> {t.users.addNew}
                         </button>
                     </div>
 
@@ -1478,7 +1691,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                              </div>
                              <input 
                                 type="text" 
-                                placeholder="Search by name or phone..." 
+                                placeholder={t.users.search}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg w-full focus:ring-2 focus:ring-emerald-500 outline-none" 
@@ -1491,9 +1704,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 onChange={(e) => setStatusFilter(e.target.value as any)}
                                 className="py-2 px-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white cursor-pointer"
                             >
-                                <option value="ALL">All Status</option>
-                                <option value="VERIFIED">Verified</option>
-                                <option value="PENDING">Pending</option>
+                                <option value="ALL">{t.users.allStatus}</option>
+                                <option value="VERIFIED">{t.users.verified}</option>
+                                <option value="PENDING">{t.users.pending}</option>
                             </select>
                         </div>
                     </div>
@@ -1504,12 +1717,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                             <table className="w-full text-left whitespace-nowrap">
                                 <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
                                     <tr>
-                                        <th className="px-6 py-3">User</th>
-                                        <th className="px-6 py-3">Phone</th>
-                                        <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3">Contribution</th>
-                                        <th className="px-6 py-3">Ticket #</th>
-                                        <th className="px-6 py-3 text-right">Actions</th>
+                                        <th className="px-6 py-3">{t.dashboard.user}</th>
+                                        <th className="px-6 py-3">{t.users.phone}</th>
+                                        <th className="px-6 py-3">{t.users.status}</th>
+                                        <th className="px-6 py-3">{t.users.contrib}</th>
+                                        <th className="px-6 py-3">{t.users.ticket}</th>
+                                        <th className="px-6 py-3 text-right">{t.users.actions}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-stone-100">
@@ -1576,8 +1789,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                             </table>
                         </div>
                         <div className="bg-stone-50 px-6 py-3 border-t border-stone-200 text-xs text-stone-500 flex justify-between items-center font-medium">
-                            <span>Showing {filteredUsers.length} users</span>
-                            <span>Total Users: {users.length}</span>
+                            <span>{t.users.showing} {filteredUsers.length} users</span>
+                            <span>{t.users.total}: {users.length}</span>
                         </div>
                     </div>
                 </div>
@@ -1586,14 +1799,14 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {/* --- PAYMENTS TAB --- */}
             {activeTab === 'payments' && (
                 <div className="space-y-6 animate-fade-in-up">
-                    <h1 className="text-2xl font-bold text-stone-800">Pending Payments</h1>
+                    <h1 className="text-2xl font-bold text-stone-800">{t.payments.title}</h1>
                     {paymentRequests.length === 0 ? (
                         <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-12 flex flex-col items-center justify-center text-center">
                             <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
                                 <CheckCircle className="w-8 h-8 text-emerald-500" />
                             </div>
-                            <h3 className="text-xl font-bold text-stone-800 mb-2">All Caught Up!</h3>
-                            <p className="text-stone-500">There are no pending payment requests to verify at this time.</p>
+                            <h3 className="text-xl font-bold text-stone-800 mb-2">{t.payments.allCaughtUp}</h3>
+                            <p className="text-stone-500">{t.payments.noRequests}</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1615,7 +1828,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         </div>
                                         <div className="bg-stone-50 p-3 rounded-lg mb-6">
                                             <div className="flex justify-between items-center mb-2">
-                                                <span className="text-stone-500 text-sm">Amount Declared:</span>
+                                                <span className="text-stone-500 text-sm">{t.payments.amount}:</span>
                                                 <span className="font-bold text-emerald-700">{req.amount.toLocaleString()} ETB</span>
                                             </div>
                                             {req.requestedTicket && (
@@ -1630,13 +1843,13 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                                 onClick={() => handleRejectPayment(req.id)}
                                                 className="flex-1 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 font-bold transition-colors"
                                             >
-                                                Reject
+                                                {t.payments.reject}
                                             </button>
                                             <button 
                                                 onClick={() => handleApprovePayment(req)}
                                                 className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 font-bold transition-colors shadow-lg shadow-emerald-200"
                                             >
-                                                Approve
+                                                {t.payments.approve}
                                             </button>
                                         </div>
                                     </div>
@@ -1650,17 +1863,17 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {/* --- SETTINGS TAB --- */}
             {activeTab === 'settings' && (
                 <div className="space-y-6 animate-fade-in-up max-w-4xl mx-auto">
-                    <h1 className="text-2xl font-bold text-stone-800">App Settings</h1>
+                    <h1 className="text-2xl font-bold text-stone-800">{t.settings.title}</h1>
 
                     {/* General Preferences (Language) */}
                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Globe className="w-5 h-5 mr-2 text-stone-600" /> General Preferences
+                            <Globe className="w-5 h-5 mr-2 text-stone-600" /> {t.settings.general}
                         </h2>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-bold text-stone-800">Admin Dashboard Language</h3>
-                                <p className="text-sm text-stone-500">Toggle the language settings for the admin dashboard.</p>
+                                <h3 className="font-bold text-stone-800">{t.settings.langTitle}</h3>
+                                <p className="text-sm text-stone-500">{t.settings.langDesc}</p>
                             </div>
                             <div className="flex items-center gap-3 bg-stone-50 p-2 rounded-lg border border-stone-100">
                                 <span className={`text-xs font-bold ${language === 'en' ? 'text-stone-800' : 'text-stone-400'}`}>ENG</span>
@@ -1677,14 +1890,14 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
 
                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
-                            <Shield className="w-5 h-5 mr-2 text-stone-600" /> Account & Security
+                            <Shield className="w-5 h-5 mr-2 text-stone-600" /> {t.settings.security}
                         </h2>
                         <div className="grid md:grid-cols-2 gap-8">
                             <div className="space-y-4">
                                  <div className="flex items-center justify-between bg-stone-50 p-4 rounded-lg border border-stone-200">
                                      <div>
-                                         <h3 className="font-bold text-stone-800">User Registration</h3>
-                                         <p className="text-sm text-stone-500">Allow new users to create accounts</p>
+                                         <h3 className="font-bold text-stone-800">{t.settings.userReg}</h3>
+                                         <p className="text-sm text-stone-500">{t.settings.userRegDesc}</p>
                                      </div>
                                      <button 
                                        onClick={() => setLocalSettings(prev => ({ ...prev, registrationEnabled: !prev.registrationEnabled }))}
@@ -1695,7 +1908,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                  </div>
                             </div>
                             <div className="space-y-4">
-                                <label className="block text-sm font-bold text-stone-700">Change Admin Password</label>
+                                <label className="block text-sm font-bold text-stone-700">{t.settings.changePass}</label>
                                 <div className="flex gap-2">
                                     <input 
                                         type="password" 
@@ -1714,14 +1927,14 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         }}
                                         className="px-4 py-2 bg-stone-800 text-white font-bold rounded-lg hover:bg-stone-700"
                                     >
-                                        Update
+                                        {t.settings.update}
                                     </button>
                                 </div>
                             </div>
                         </div>
                         <div className="mt-6 pt-4 border-t border-stone-100 flex justify-end">
                              <button onClick={() => handleSaveSection('Account & Security')} className="flex items-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow transition-colors">
-                                <Save className="w-4 h-4 mr-2" /> Save Changes
+                                <Save className="w-4 h-4 mr-2" /> {t.settings.save}
                              </button>
                         </div>
                     </div>
