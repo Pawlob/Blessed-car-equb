@@ -880,13 +880,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                             {/* Conditional Rendering: Winner Card vs Prize Carousel */}
                             {settings.winnerAnnouncementMode && settings.currentWinner ? (
                                 // --- WINNER ANNOUNCEMENT CARD ---
-                                <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-48 flex flex-col items-center justify-center text-center p-4">
+                                // Increased height: h-80 (approx 320px)
+                                <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-80 flex flex-col items-center justify-center text-center p-6">
                                     {/* Confetti Background */}
                                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none"></div>
-                                    {Array.from({ length: 15 }).map((_, i) => (
+                                    {Array.from({ length: 20 }).map((_, i) => (
                                       <div 
                                         key={i} 
-                                        className="absolute w-1.5 h-1.5 bg-white rounded-full animate-pulse"
+                                        className="absolute w-2 h-2 bg-white rounded-full animate-pulse"
                                         style={{
                                           left: `${Math.random() * 100}%`,
                                           top: `${Math.random() * 100}%`,
@@ -895,17 +896,17 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                       />
                                     ))}
                                     
-                                    <div className="relative z-20">
-                                        <div className="inline-flex items-center justify-center p-2 bg-white rounded-full mb-2 shadow-xl animate-bounce">
-                                            <PartyPopper className="w-6 h-6 text-amber-600" />
+                                    <div className="relative z-20 w-full">
+                                        <div className="inline-flex items-center justify-center p-3 bg-white rounded-full mb-3 shadow-xl animate-bounce">
+                                            <PartyPopper className="w-8 h-8 text-amber-600" />
                                         </div>
-                                        <h2 className="text-xl font-black text-white uppercase tracking-wider mb-1 drop-shadow-md">
-                                            {language === 'en' ? 'Winner Announced!' : 'አሸናፊው ታውቋል!'}
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-1 drop-shadow-md">
+                                            {language === 'en' ? 'Winner!' : 'አሸናፊ!'}
                                         </h2>
                                         
-                                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-2 w-full max-w-xs mx-auto">
-                                            <div className="text-2xl font-black text-white mb-0">#{settings.currentWinner.ticketNumber}</div>
-                                            <div className="text-sm font-bold text-amber-100">{settings.currentWinner.userName}</div>
+                                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 w-full max-w-xs mx-auto shadow-lg mt-4">
+                                            <div className="text-4xl font-black text-white mb-2 drop-shadow-sm">#{settings.currentWinner.ticketNumber}</div>
+                                            <div className="text-lg font-bold text-amber-100">{settings.currentWinner.userName}</div>
                                         </div>
                                     </div>
                                 </div>
