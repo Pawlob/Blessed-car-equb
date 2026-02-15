@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target, Ticket, Download, Ban, MousePointerClick
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target, Ticket, Download, Ban, MousePointerClick, Link
 } from 'lucide-react';
 import { User, AppSettings, ViewState, AppNotification } from '../types';
 import { collection, onSnapshot, updateDoc, doc, addDoc, deleteDoc, setDoc } from 'firebase/firestore';
@@ -1058,21 +1058,32 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
-                                            <div className="flex gap-2">
+                                            <div className="relative">
                                                 <input 
                                                     type="text" 
                                                     value={localSettings.prizeImage}
                                                     onChange={(e) => setLocalSettings(prev => ({...prev, prizeImage: e.target.value}))}
-                                                    className="w-full p-2 border border-stone-300 rounded-lg text-sm"
+                                                    placeholder="https://example.com/image.jpg"
+                                                    className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                                                 />
-                                                <button className="p-2 bg-stone-100 rounded border border-stone-300">
-                                                    <ImageIcon className="w-5 h-5 text-stone-600" />
-                                                </button>
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <Link className="h-4 w-4 text-stone-400" />
+                                                </div>
                                             </div>
+                                            <p className="text-xs text-stone-500 mt-1">
+                                                Enter a direct link to the image (JPG, PNG, etc).
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
-                                        <img src={localSettings.prizeImage} alt="Prize Preview" className="w-full h-full object-cover" />
+                                        <img 
+                                            src={localSettings.prizeImage || 'https://via.placeholder.com/400x300?text=No+Image'} 
+                                            alt="Prize Preview" 
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+URL';
+                                            }}
+                                        />
                                         <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
                                             Preview
                                         </div>

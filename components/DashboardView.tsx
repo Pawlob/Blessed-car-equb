@@ -57,7 +57,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
-    }, 4000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 

@@ -34,7 +34,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
-    }, 4000);
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
   
