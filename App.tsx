@@ -9,7 +9,7 @@ import PrizesView from './components/PrizesView';
 import TermsView from './components/TermsView';
 import Footer from './components/Footer';
 import { User, ViewState, Language, AppSettings, AppNotification } from './types';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, collection, query, orderBy } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { PRIZE_IMAGES } from './constants';
 
@@ -96,20 +96,25 @@ const App: React.FC = () => {
     localStorage.setItem('blessed_language', language);
   }, [language]);
 
-  // Initial Mock Notifications
-  const [notifications, setNotifications] = useState<AppNotification[]>([
-    { 
-      id: 1,
-      title: { en: "Welcome!", am: "እንኳን ደህና መጡ!" },
-      desc: { 
-        en: "Thank you for joining Blessed Digital Equb.",
-        am: "ብለስድ ዲጂታል እቁብን ስለተቀላቀሉ እናመሰግናለን።"
-      },
-      time: new Date(), 
-      urgent: false,
-      read: false
-    }
-  ]);
+  // Notifications State
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  // --- Firestore Integration for Notifications ---
+  useEffect(() => {
+    const q = query(collection(db, 'notifications'), orderBy('time', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetchedNotes = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                time: data.time ? data.time.toDate() : new Date()
+            };
+        }) as AppNotification[];
+        setNotifications(fetchedNotes);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // --- Firestore Integration for Settings ---
   useEffect(() => {
@@ -142,6 +147,8 @@ const App: React.FC = () => {
   };
 
   const addNotification = (notification: AppNotification) => {
+    // This is primarily used for local/system generated notifications now, 
+    // but DB listener handles the main sync.
     setNotifications(prev => [notification, ...prev]);
   };
 

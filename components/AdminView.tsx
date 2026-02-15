@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, AlertCircle, X, Menu, Shield, Globe, Gift
+  Trophy, AlertCircle, X, Menu, Shield, Globe, Gift, Bell
 } from 'lucide-react';
 import { User, AppSettings, ViewState, AppNotification, Language } from '../types';
 import { collection, onSnapshot, updateDoc, doc } from 'firebase/firestore';
@@ -14,6 +14,7 @@ import AdminCompetition from './admin/AdminCompetition';
 import AdminPrizes from './admin/AdminPrizes';
 import AdminUsers from './admin/AdminUsers';
 import AdminPayments from './admin/AdminPayments';
+import AdminNotifications from './admin/AdminNotifications';
 
 interface AdminViewProps {
   setView: (view: ViewState) => void;
@@ -57,6 +58,7 @@ const ADMIN_TRANSLATIONS = {
       prizes: "Prizes",
       users: "User Management",
       payments: "Verify Payments",
+      notifications: "Notifications",
       settings: "App Settings",
       exit: "Exit Admin"
     },
@@ -161,6 +163,7 @@ const ADMIN_TRANSLATIONS = {
       prizes: "ሽልማቶች",
       users: "ተጠቃሚዎች",
       payments: "ክፍያ ማረጋገጫ",
+      notifications: "ማሳወቂያዎች",
       settings: "ቅንብሮች",
       exit: "ውጣ"
     },
@@ -328,7 +331,7 @@ const getEthiopianFromGregorian = (gregDateStr: string) => {
 const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification, language, setLanguage }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'competition' | 'users' | 'settings' | 'payments' | 'prizes'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'competition' | 'users' | 'settings' | 'payments' | 'prizes' | 'notifications'>('dashboard');
   
   // Local Settings State (Buffer)
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
@@ -738,6 +741,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {t.sidebar.payments}
           </button>
           <button 
+            onClick={() => handleTabChange('notifications')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'notifications' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
+          >
+            <Bell className="w-5 h-5 mr-3" /> {t.sidebar.notifications}
+          </button>
+          <button 
             onClick={() => handleTabChange('settings')}
             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-emerald-900 text-white' : 'hover:bg-stone-800'}`}
           >
@@ -765,7 +774,8 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                activeTab === 'competition' ? t.sidebar.competition :
                activeTab === 'prizes' ? t.sidebar.prizes :
                activeTab === 'users' ? t.sidebar.users : 
-               activeTab === 'payments' ? t.sidebar.payments : t.sidebar.settings}
+               activeTab === 'payments' ? t.sidebar.payments : 
+               activeTab === 'notifications' ? t.sidebar.notifications : t.sidebar.settings}
            </h1>
            <div className="w-6"></div>
         </header>
@@ -832,6 +842,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                     showAlert={showAlert}
                     setSelectedReceipt={setSelectedReceipt}
                     t={t}
+                />
+            )}
+
+            {activeTab === 'notifications' && (
+                <AdminNotifications 
+                    showAlert={showAlert}
                 />
             )}
 
