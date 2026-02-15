@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
@@ -238,6 +239,8 @@ const App: React.FC = () => {
         settings={appSettings} 
         setSettings={handleSettingsUpdate} 
         addNotification={addNotification}
+        language={language}
+        setLanguage={setLanguage}
       />
     );
   }

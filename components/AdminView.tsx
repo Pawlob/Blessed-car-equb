@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
   CheckCircle, XCircle, Save, DollarSign, 
-  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target, Ticket, Download, Ban, MousePointerClick, Link, Gift, Star, PartyPopper
+  Trophy, TrendingUp, AlertCircle, FileText, ZoomIn, X, Check, Menu, Image as ImageIcon, RefreshCw, Video, PlayCircle, Calendar, Clock, Lock, Shield, Edit, Trash2, Plus, Filter, Target, Ticket, Download, Ban, MousePointerClick, Link, Gift, Star, PartyPopper, Globe
 } from 'lucide-react';
-import { User, AppSettings, ViewState, AppNotification, Winner } from '../types';
+import { User, AppSettings, ViewState, AppNotification, Winner, Language } from '../types';
 import { collection, onSnapshot, updateDoc, doc, addDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -14,6 +14,8 @@ interface AdminViewProps {
   settings: AppSettings;
   setSettings: (settings: React.SetStateAction<AppSettings>) => void;
   addNotification: (notification: AppNotification) => void;
+  language: Language;
+  setLanguage: (lang: Language) => void;
 }
 
 interface PaymentRequest {
@@ -112,7 +114,7 @@ const getEthiopianFromGregorian = (gregDateStr: string) => {
     return { year: ethYear, month: ethMonth, day: ethDay };
 };
 
-const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification }) => {
+const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, addNotification, language, setLanguage }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'competition' | 'users' | 'settings' | 'payments' | 'prizes'>('dashboard');
@@ -1169,10 +1171,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                         </div>
                     </div>
                     
-                    {/* Copy over existing sub-tab content from original AdminView (omitted here for brevity in this snippet since it's massive, assuming standard merge) */}
-                    {/* ... Existing Competition Settings & Tickets ... */}
-                     {/* For the purpose of the diff, I assume the user keeps the existing code structure around it. 
-                         Since the request focuses on ADDING the prize tab, I will preserve the existing logic in the full output. */}
                     {compSubTab === 'settings' && (
                          <div className="space-y-6 animate-fade-in-down">
                              {/* ... Draw Schedule ... */}
@@ -1639,8 +1637,35 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {/* --- SETTINGS TAB --- */}
             {activeTab === 'settings' && (
                 <div className="space-y-6 animate-fade-in-up max-w-4xl mx-auto">
-                    {/* ... Existing Settings Content ... */}
                     <h1 className="text-2xl font-bold text-stone-800">App Settings</h1>
+
+                    {/* General Preferences (Language) */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                        <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
+                            <Globe className="w-5 h-5 mr-2 text-stone-600" /> General Preferences
+                        </h2>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-bold text-stone-800">Application Language</h3>
+                                <p className="text-sm text-stone-500">Set the default language for the application interface.</p>
+                            </div>
+                            <div className="flex bg-stone-100 p-1 rounded-lg">
+                                <button 
+                                    onClick={() => setLanguage('en')}
+                                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${language === 'en' ? 'bg-white shadow text-emerald-800' : 'text-stone-500 hover:text-stone-700'}`}
+                                >
+                                    English
+                                </button>
+                                <button 
+                                    onClick={() => setLanguage('am')}
+                                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${language === 'am' ? 'bg-white shadow text-emerald-800' : 'text-stone-500 hover:text-stone-700'}`}
+                                >
+                                    Amharic
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                         <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
                             <Shield className="w-5 h-5 mr-2 text-stone-600" /> Account & Security
