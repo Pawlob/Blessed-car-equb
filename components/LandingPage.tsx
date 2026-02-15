@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem, Search, CheckCircle, XCircle } from 'lucide-react';
+import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem, Search, CheckCircle, XCircle, Lock } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
@@ -96,6 +97,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleLuckySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!settings.ticketSelectionEnabled) return;
+
     const val = e.target.value;
     setLuckySearch(val);
     
@@ -285,24 +288,27 @@ const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="relative mb-6">
                       <input 
                           type="number" 
+                          disabled={!settings.ticketSelectionEnabled}
                           value={luckySearch}
                           onChange={handleLuckySearch}
-                          placeholder={language === 'en' ? "Enter lucky number (e.g. 104)" : "እድለኛ ቁጥር ያስገቡ (ለምሳሌ 104)"}
+                          placeholder={!settings.ticketSelectionEnabled ? (language === 'en' ? "Selection Closed" : "ምርጫ ተዘግቷል") : (language === 'en' ? "Enter lucky number (e.g. 104)" : "እድለኛ ቁጥር ያስገቡ (ለምሳሌ 104)")}
                           className={`w-full pl-5 pr-12 py-4 text-lg border-2 rounded-xl outline-none transition-all ${
+                              !settings.ticketSelectionEnabled ? 'bg-stone-100 text-stone-400 cursor-not-allowed border-stone-200' :
                               luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-4 ring-emerald-500/10 bg-emerald-50/30' :
                               luckyStatus === 'TAKEN' ? 'border-red-300 ring-4 ring-red-200 bg-red-50/30' :
                               'border-stone-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10'
                           }`}
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                           {luckyStatus === 'AVAILABLE' && <CheckCircle className="w-8 h-8 text-emerald-500 animate-bounce" />}
-                           {luckyStatus === 'TAKEN' && <XCircle className="w-8 h-8 text-red-500" />}
-                           {luckyStatus === 'IDLE' && <Search className="w-6 h-6 text-stone-300" />}
+                           {!settings.ticketSelectionEnabled && <Lock className="w-6 h-6 text-stone-400" />}
+                           {settings.ticketSelectionEnabled && luckyStatus === 'AVAILABLE' && <CheckCircle className="w-8 h-8 text-emerald-500 animate-bounce" />}
+                           {settings.ticketSelectionEnabled && luckyStatus === 'TAKEN' && <XCircle className="w-8 h-8 text-red-500" />}
+                           {settings.ticketSelectionEnabled && luckyStatus === 'IDLE' && <Search className="w-6 h-6 text-stone-300" />}
                       </div>
                 </div>
 
                 {/* STATUS MESSAGES */}
-                {luckyStatus === 'AVAILABLE' && (
+                {luckyStatus === 'AVAILABLE' && settings.ticketSelectionEnabled && (
                     <div className="mb-8 animate-fade-in-down">
                         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between">
                              <div className="flex items-center">
@@ -323,7 +329,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                     </div>
                 )}
                 
-                {luckyStatus === 'TAKEN' && (
+                {luckyStatus === 'TAKEN' && settings.ticketSelectionEnabled && (
                      <div className="mb-8 animate-fade-in-down">
                         <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center">
                             <XCircle className="w-6 h-6 text-red-500 mr-3" />
@@ -336,14 +342,23 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
                 {/* GRID */}
                  <div className="relative">
-                     <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">
-                        {language === 'en' ? 'Live Availability Board' : 'የእጣ ቁጥሮች ሰሌዳ'}
-                     </h4>
-                     <div className="relative grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-2 p-4 bg-stone-50 rounded-xl border border-stone-100 max-h-[400px] overflow-y-auto custom-scrollbar">
+                     <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider">
+                            {language === 'en' ? 'Live Availability Board' : 'የእጣ ቁጥሮች ሰሌዳ'}
+                        </h4>
+                        {!settings.ticketSelectionEnabled && (
+                            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded border border-amber-200">
+                                {language === 'en' ? 'TICKET SELECTION PAUSED' : 'የቲኬት ምርጫ ለጊዜው ተቋርጧል'}
+                            </span>
+                        )}
+                     </div>
+                     <div className={`relative grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-2 p-4 bg-stone-50 rounded-xl border border-stone-100 max-h-[400px] overflow-y-auto custom-scrollbar ${!settings.ticketSelectionEnabled ? 'opacity-60 pointer-events-none grayscale' : ''}`}>
                         {tickets.map((ticket, i) => (
                             <div 
                               key={i} 
                               onClick={() => {
+                                  if (!settings.ticketSelectionEnabled) return;
+
                                   if (!ticket.isTaken) {
                                       setLuckySearch(ticket.number);
                                       setLuckyStatus('AVAILABLE');
@@ -363,6 +378,14 @@ const LandingPage: React.FC<LandingPageProps> = ({
                             </div>
                         ))}
                     </div>
+                    {!settings.ticketSelectionEnabled && (
+                        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                            <div className="bg-stone-900/80 backdrop-blur-sm text-white px-6 py-3 rounded-full font-bold shadow-2xl flex items-center">
+                                <Lock className="w-5 h-5 mr-2" />
+                                {language === 'en' ? 'Selection Currently Closed' : 'ምርጫ ለጊዜው ተዘግቷል'}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
             </div>

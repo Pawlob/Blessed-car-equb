@@ -54,6 +54,7 @@ export interface AppSettings {
   isLive: boolean;
   registrationEnabled: boolean;
   adminPassword?: string;
+  ticketSelectionEnabled: boolean; // New field to control ticket grid interactivity
 }
 
 export interface User {

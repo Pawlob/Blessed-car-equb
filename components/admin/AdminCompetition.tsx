@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Calendar, Save, Trophy, Video, Ticket, X, Plus } from 'lucide-react';
+import { Calendar, Save, Trophy, Video, Ticket, X, Plus, Lock } from 'lucide-react';
 import { AppSettings, User } from '../../types';
 
 interface AdminCompetitionProps {
@@ -246,12 +246,43 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
         )}
         {compSubTab === 'tickets' && (
             <div className="space-y-6 animate-fade-in-down">
+                 {/* Ticket Availability Control */}
+                 <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 border-l-4 border-l-stone-800">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold text-stone-800 flex items-center">
+                                <Lock className="w-5 h-5 mr-2 text-stone-600" /> Ticket Selection Status
+                            </h3>
+                            <p className="text-sm text-stone-500">Control whether users can search, select, and reserve new tickets on the platform.</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                             <span className={`text-sm font-bold px-3 py-1 rounded bg-stone-100 ${localSettings.ticketSelectionEnabled ? 'text-emerald-600' : 'text-stone-400'}`}>
+                                {localSettings.ticketSelectionEnabled ? 'ACTIVE' : 'LOCKED'}
+                             </span>
+                             <button 
+                                onClick={() => setLocalSettings(prev => ({ ...prev, ticketSelectionEnabled: !prev.ticketSelectionEnabled }))}
+                                className={`w-14 h-8 rounded-full transition-colors flex items-center px-1 ${localSettings.ticketSelectionEnabled ? 'bg-emerald-600' : 'bg-stone-300'}`}
+                             >
+                                <div className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform ${localSettings.ticketSelectionEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                             </button>
+                        </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-stone-100 flex justify-end">
+                         <button onClick={() => handleSaveSection('Ticket Availability')} className="flex items-center px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 font-bold shadow transition-colors">
+                            <Save className="w-4 h-4 mr-2" /> Save Status
+                        </button>
+                    </div>
+                 </div>
+
+                 {/* Table Actions */}
                  <div className="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative flex-grow md:w-64">
-                        <input type="text" placeholder="Search..." value={ticketSearch} onChange={(e) => setTicketSearch(e.target.value)} className="pl-4 pr-4 py-2 border border-stone-300 rounded-lg w-full" />
+                        <input type="text" placeholder="Search by name or ticket number..." value={ticketSearch} onChange={(e) => setTicketSearch(e.target.value)} className="pl-4 pr-4 py-2 border border-stone-300 rounded-lg w-full" />
                     </div>
-                    <button onClick={handleExportTickets} className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg font-bold">Export CSV</button>
+                    <button onClick={handleExportTickets} className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg font-bold hover:bg-emerald-200 transition-colors">Export CSV</button>
                  </div>
+                 
+                 {/* Tickets Table */}
                  <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
                     <div className="max-h-[600px] overflow-y-auto">
                         <table className="w-full text-left whitespace-nowrap">

@@ -32,6 +32,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   isLive: false,
   registrationEnabled: true,
   adminPassword: 'admin123',
+  ticketSelectionEnabled: true, // Default to enabled
   recentWinners: [
     { 
       id: 1, 
@@ -132,6 +133,10 @@ const App: React.FC = () => {
         // Ensure prizeImages exists for legacy data
         if (!data.prizeImages) {
             data.prizeImages = [data.prizeImage || PRIZE_IMAGES[0]];
+        }
+        // Ensure ticketSelectionEnabled exists
+        if (typeof data.ticketSelectionEnabled === 'undefined') {
+            data.ticketSelectionEnabled = true;
         }
         setAppSettings(data);
       } else {

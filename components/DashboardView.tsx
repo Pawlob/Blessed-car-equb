@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle, Car } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle, Car, Lock } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -308,6 +308,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   };
 
   const handleLuckySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!settings.ticketSelectionEnabled) return;
+
     const val = e.target.value;
     setLuckySearch(val);
     
@@ -759,11 +761,24 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                     {/* STEP 0: IDLE - Show Select Ticket Button */}
                                     {paymentStep === 'IDLE' && (
                                         <button 
-                                            onClick={() => setShowTicketModal(true)}
-                                            className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
+                                            onClick={() => {
+                                                if(!settings.ticketSelectionEnabled) {
+                                                     alert(language === 'en' ? "Ticket selection is currently closed by admin." : "የቲኬት ምርጫ ለጊዜው ተዘግቷል።");
+                                                     return;
+                                                }
+                                                setShowTicketModal(true)
+                                            }}
+                                            disabled={!settings.ticketSelectionEnabled}
+                                            className={`w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold transition-all transform hover:scale-105 active:scale-95 shadow-lg
+                                                ${!settings.ticketSelectionEnabled 
+                                                    ? 'bg-stone-600 text-stone-400 cursor-not-allowed' 
+                                                    : 'bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-amber-500/20 animate-pulse'}
+                                            `}
                                         >
-                                            {myTickets.length > 0 ? <PlusCircle className="w-5 h-5 mr-2" /> : <Ticket className="w-5 h-5 mr-2" />} 
-                                            {myTickets.length > 0 ? (language === 'en' ? "Purchase Another Ticket" : "ሌላ ቲኬት ይግዙ") : t.select_ticket}
+                                            {!settings.ticketSelectionEnabled ? <Lock className="w-5 h-5 mr-2" /> : (myTickets.length > 0 ? <PlusCircle className="w-5 h-5 mr-2" /> : <Ticket className="w-5 h-5 mr-2" />)}
+                                            {!settings.ticketSelectionEnabled 
+                                                ? (language === 'en' ? "Selection Closed" : "ምርጫ ተዘግቷል") 
+                                                : (myTickets.length > 0 ? (language === 'en' ? "Purchase Another Ticket" : "ሌላ ቲኬት ይግዙ") : t.select_ticket)}
                                         </button>
                                     )}
 
@@ -950,11 +965,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                   
                   {/* SEARCH BOX CONTAINER (LANDING PAGE STYLE) */}
                   <div className="flex flex-col mb-6">
-                    <div>
+                    <div className="flex justify-between items-start">
                         <h3 className="text-lg font-bold flex items-center text-stone-900 mb-1">
                             <Search className="w-5 h-5 mr-2 text-emerald-600" />
                             {language === 'en' ? 'Check Lucky Number' : 'እድለኛ ቁጥር ይፈልጉ'}
                         </h3>
+                        {!settings.ticketSelectionEnabled && (
+                            <span className="text-[10px] bg-red-100 text-red-700 font-bold px-2 py-1 rounded">CLOSED</span>
+                        )}
                     </div>
                      <div className="flex space-x-3 text-[10px] font-bold mt-2 bg-stone-100 p-2 rounded-lg self-start">
                         <div className="flex items-center">
@@ -972,24 +990,27 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                   <div className="relative mb-6">
                       <input 
                           type="number" 
+                          disabled={!settings.ticketSelectionEnabled}
                           value={luckySearch}
                           onChange={handleLuckySearch}
-                          placeholder={language === 'en' ? "Enter number" : "ቁጥር ያስገቡ"}
+                          placeholder={!settings.ticketSelectionEnabled ? (language === 'en' ? "Selection Closed" : "ምርጫ ተዘግቷል") : (language === 'en' ? "Enter number" : "ቁጥር ያስገቡ")}
                           className={`w-full pl-4 pr-10 py-3 text-lg border-2 rounded-xl outline-none transition-all ${
+                              !settings.ticketSelectionEnabled ? 'bg-stone-100 text-stone-400 cursor-not-allowed border-stone-200' :
                               luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-4 ring-emerald-500/10 bg-emerald-50/30' :
                               luckyStatus === 'TAKEN' ? 'border-red-300 ring-4 ring-red-200 bg-red-50/30' :
                               'border-stone-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10'
                           }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                           {luckyStatus === 'AVAILABLE' && <CheckCircle className="w-6 h-6 text-emerald-500 animate-bounce" />}
-                           {luckyStatus === 'TAKEN' && <XCircle className="w-6 h-6 text-red-500" />}
-                           {luckyStatus === 'IDLE' && <Search className="w-5 h-5 text-stone-300" />}
+                           {!settings.ticketSelectionEnabled && <Lock className="w-5 h-5 text-stone-400" />}
+                           {settings.ticketSelectionEnabled && luckyStatus === 'AVAILABLE' && <CheckCircle className="w-6 h-6 text-emerald-500 animate-bounce" />}
+                           {settings.ticketSelectionEnabled && luckyStatus === 'TAKEN' && <XCircle className="w-6 h-6 text-red-500" />}
+                           {settings.ticketSelectionEnabled && luckyStatus === 'IDLE' && <Search className="w-5 h-5 text-stone-300" />}
                       </div>
                   </div>
                   
                   {/* STATUS MESSAGES */}
-                  {luckyStatus === 'AVAILABLE' && (
+                  {luckyStatus === 'AVAILABLE' && settings.ticketSelectionEnabled && (
                       <div className="mb-6 animate-fade-in-down">
                           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
                                <div className="flex items-center mb-3">
@@ -1010,7 +1031,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                       </div>
                   )}
                   
-                  {luckyStatus === 'TAKEN' && (
+                  {luckyStatus === 'TAKEN' && settings.ticketSelectionEnabled && (
                        <div className="mb-6 animate-fade-in-down">
                           <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center">
                               <XCircle className="w-5 h-5 text-red-500 mr-2" />
@@ -1026,12 +1047,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                      <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-3">
                         {language === 'en' ? 'Live Availability Board' : 'የእጣ ቁጥሮች ሰሌዳ'}
                      </h4>
-                     <div className="relative grid grid-cols-6 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5 gap-1.5 p-2 bg-stone-50 rounded-xl border border-stone-100 max-h-[300px] overflow-y-auto custom-scrollbar">
+                     <div className={`relative grid grid-cols-6 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5 gap-1.5 p-2 bg-stone-50 rounded-xl border border-stone-100 max-h-[300px] overflow-y-auto custom-scrollbar ${!settings.ticketSelectionEnabled ? 'opacity-60 pointer-events-none grayscale' : ''}`}>
                         {tickets.map((ticket) => (
                             <button
                                 key={ticket.number}
-                                disabled={ticket.taken}
+                                disabled={ticket.taken || !settings.ticketSelectionEnabled}
                                 onClick={() => {
+                                  if (!settings.ticketSelectionEnabled) return;
+
                                   if (!ticket.taken) {
                                       setLuckySearch(ticket.number.toString());
                                       setLuckyStatus('AVAILABLE');
@@ -1052,6 +1075,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                             </button>
                         ))}
                     </div>
+                    {!settings.ticketSelectionEnabled && (
+                        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none pt-8">
+                            <span className="bg-stone-800/80 text-white px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm">Locked</span>
+                        </div>
+                    )}
                     <p className="text-[10px] text-stone-400 text-center mt-3">
                           {language === 'en' ? 'Click on any green number to select it.' : 'ማንኛውንም አረንጓዴ ቁጥር በመጫን ይምረጡ።'}
                     </p>
