@@ -65,7 +65,7 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
       const matchesSearch = t.userName.toLowerCase().includes(ticketSearch.toLowerCase()) || t.ticketNumber.toString().includes(ticketSearch);
       const matchesCycle = t.cycle === settings.cycle; // Only show current cycle
       return matchesSearch && matchesCycle;
-  });
+  }).sort((a, b) => Number(a.ticketNumber) - Number(b.ticketNumber));
 
   const handleExportTickets = () => {
       // Create CSV content
@@ -249,20 +249,30 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
                     <button onClick={handleExportTickets} className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg font-bold">Export CSV</button>
                  </div>
                  <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-                    <table className="w-full text-left whitespace-nowrap">
-                        <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
-                            <tr><th className="px-6 py-3">{t.users.ticket}</th><th className="px-6 py-3">{t.dashboard.user}</th><th className="px-6 py-3">{t.users.status}</th></tr>
-                        </thead>
-                        <tbody className="divide-y divide-stone-100">
-                            {filteredTickets.slice(0, 5).map(t => (
-                                <tr key={t.id}>
-                                    <td className="px-6 py-4 font-mono font-bold">#{t.ticketNumber}</td>
-                                    <td className="px-6 py-4">{t.userName}</td>
-                                    <td className="px-6 py-4">{t.status}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div className="max-h-[600px] overflow-y-auto">
+                        <table className="w-full text-left whitespace-nowrap">
+                            <thead className="bg-stone-50 text-stone-500 text-xs uppercase sticky top-0 z-10 shadow-sm">
+                                <tr><th className="px-6 py-3">{t.users.ticket}</th><th className="px-6 py-3">{t.dashboard.user}</th><th className="px-6 py-3">{t.users.status}</th></tr>
+                            </thead>
+                            <tbody className="divide-y divide-stone-100">
+                                {filteredTickets.length > 0 ? (
+                                    filteredTickets.map(t => (
+                                        <tr key={t.id}>
+                                            <td className="px-6 py-4 font-mono font-bold">#{t.ticketNumber}</td>
+                                            <td className="px-6 py-4">{t.userName}</td>
+                                            <td className="px-6 py-4">{t.status}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={3} className="px-6 py-8 text-center text-stone-500">
+                                            No verified tickets found in this cycle.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                  </div>
             </div>
         )}
