@@ -495,12 +495,34 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
 
   // Start New Cycle Logic
   const handleStartNewCycle = () => {
+    const currentCycle = settings.cycle;
     const nextCycle = settings.cycle + 1;
     
     showConfirm(
       'Start New Cycle?',
-      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will RESET:\n• Pot Value to 0\n• Member Contributions to 0\n• Member Status to Pending\n• Clear all Tickets & Requests\n• Next Draw Date to +30 days`,
+      `Are you sure you want to start Cycle ${nextCycle}?\n\nThis will:\n1. EXPORT a backup of all current user data (Cycle ${currentCycle})\n2. RESET Pot, Contributions, and Status for the new cycle.`,
       async () => {
+        // --- 1. EXPORT DATA ---
+        try {
+            const headers = "User ID,Name,Phone,Status,Contribution,Ticket Number,Joined Date,Cycle\n";
+            const rows = users.map(u => 
+                `${u.id},"${u.name}",${u.phone},${u.status},${u.contribution},${u.prizeNumber || ''},${u.joinedDate || ''},${currentCycle}`
+            ).join("\n");
+            
+            const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(headers + rows);
+            const link = document.createElement("a");
+            link.setAttribute("href", csvContent);
+            link.setAttribute("download", `users_cycle_${currentCycle}_backup.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            console.error("Export failed", e);
+            showAlert('error', 'Export Failed', 'Could not generate backup CSV. Cycle reset aborted for safety.');
+            return;
+        }
+
+        // --- 2. CALCULATE DATES ---
         const today = new Date();
         const nextDraw = new Date(today);
         nextDraw.setDate(today.getDate() + 30);
@@ -515,6 +537,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         const nextDrawDateEn = `${monthNameEn} ${newEthDate.day}, ${newEthDate.year}`;
         const nextDrawDateAm = `${monthNameAm} ${newEthDate.day}፣ ${newEthDate.year}`;
 
+        // --- 3. RESET SETTINGS ---
         setSettings(prev => ({
           ...prev,
           cycle: nextCycle,
@@ -527,16 +550,22 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
 
         setEthDate(newEthDate);
 
-        for (const u of users) {
+        // --- 4. CLEAR USER DATA ---
+        // Reset cycle-specific fields to defaults
+        const updatePromises = users.map(u => {
              if (u.id) {
-                 await updateDoc(doc(db, 'users', u.id.toString()), {
+                 return updateDoc(doc(db, 'users', u.id.toString()), {
                      status: 'PENDING',
                      contribution: 0,
                      prizeNumber: null
                  } as any);
              }
-        }
+             return Promise.resolve();
+        });
+        
+        await Promise.all(updatePromises);
 
+        // --- 5. NOTIFY ---
         const newNotification: AppNotification = {
           id: Date.now(),
           title: { en: `Cycle ${nextCycle} Started`, am: `ዙር ${nextCycle} ተጀምሯል` },
@@ -550,7 +579,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
         };
         addNotification(newNotification);
 
-        showAlert('success', 'Cycle Started', `Cycle ${nextCycle} has been started successfully! Next draw set for ${nextDrawDateEn}.`);
+        showAlert('success', 'Cycle Started', `Data exported and Cycle ${nextCycle} started successfully!`);
       }
     );
   };
