@@ -50,6 +50,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
   const t = TRANSLATIONS[language].dashboard;
   const heroT = TRANSLATIONS[language].hero;
+  const statsT = TRANSLATIONS[language].stats;
 
   // --- Real-time User Updates ---
   useEffect(() => {
@@ -759,7 +760,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                   <p className="text-xs text-stone-500 leading-relaxed bg-stone-50 p-2 rounded border border-stone-100 inline-block">
                                       {item.desc}
                                   </p>
-                               </div>
+                                </div>
                             ))}
                         </div>
                     )}
@@ -768,83 +769,115 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
             <div className="space-y-6">
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 animate-fade-in-up delay-[450ms]">
-                  <h3 className="font-bold text-stone-800 mb-4 flex items-center">
-                      <Search className="w-4 h-4 mr-2 text-emerald-600" /> 
-                      {language === 'en' ? 'Check Lucky Number' : 'እድለኛ ቁጥር ይፈልጉ'}
-                  </h3>
-                  <div className="relative">
+                  
+                  {/* SEARCH BOX CONTAINER (LANDING PAGE STYLE) */}
+                  <div className="flex flex-col mb-6">
+                    <div>
+                        <h3 className="text-lg font-bold flex items-center text-stone-900 mb-1">
+                            <Search className="w-5 h-5 mr-2 text-emerald-600" />
+                            {language === 'en' ? 'Check Lucky Number' : 'እድለኛ ቁጥር ይፈልጉ'}
+                        </h3>
+                    </div>
+                     <div className="flex space-x-3 text-[10px] font-bold mt-2 bg-stone-100 p-2 rounded-lg self-start">
+                        <div className="flex items-center">
+                            <span className="w-2 h-2 rounded bg-emerald-500 mr-1.5"></span>
+                            <span className="text-emerald-700">{statsT.lucky}</span>
+                        </div>
+                        <div className="flex items-center">
+                            <span className="w-2 h-2 rounded bg-stone-300 mr-1.5"></span>
+                            <span className="text-stone-500">{statsT.taken}</span>
+                        </div>
+                    </div>
+                  </div>
+
+                  {/* SEARCH INPUT */}
+                  <div className="relative mb-6">
                       <input 
                           type="number" 
                           value={luckySearch}
                           onChange={handleLuckySearch}
                           placeholder={language === 'en' ? "Enter number" : "ቁጥር ያስገቡ"}
-                          className={`w-full pl-4 pr-10 py-3 border rounded-lg outline-none transition-all ${
-                              luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/30' :
-                              luckyStatus === 'TAKEN' ? 'border-red-300 ring-1 ring-red-200 bg-red-50/30' :
-                              'border-stone-300 focus:ring-2 focus:ring-emerald-500'
+                          className={`w-full pl-4 pr-10 py-3 text-lg border-2 rounded-xl outline-none transition-all ${
+                              luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-4 ring-emerald-500/10 bg-emerald-50/30' :
+                              luckyStatus === 'TAKEN' ? 'border-red-300 ring-4 ring-red-200 bg-red-50/30' :
+                              'border-stone-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10'
                           }`}
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                           {luckyStatus === 'AVAILABLE' && <CheckCircle className="w-5 h-5 text-emerald-500 animate-bounce" />}
-                           {luckyStatus === 'TAKEN' && <XCircle className="w-5 h-5 text-red-500" />}
+                           {luckyStatus === 'AVAILABLE' && <CheckCircle className="w-6 h-6 text-emerald-500 animate-bounce" />}
+                           {luckyStatus === 'TAKEN' && <XCircle className="w-6 h-6 text-red-500" />}
+                           {luckyStatus === 'IDLE' && <Search className="w-5 h-5 text-stone-300" />}
                       </div>
                   </div>
+                  
+                  {/* STATUS MESSAGES */}
                   {luckyStatus === 'AVAILABLE' && (
-                      <div className="mt-3 animate-fade-in-down">
-                          <p className="text-sm text-emerald-600 font-extrabold mb-3 flex items-center">
-                              <CheckCircle className="w-4 h-4 mr-1" /> {language === 'en' ? 'Number is available!' : 'ቁጥሩ ክፍት ነው!'}
-                          </p>
-                          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-3 flex items-center justify-center">
-                               <span className="text-6xl font-black text-emerald-700">#{luckySearch}</span>
+                      <div className="mb-6 animate-fade-in-down">
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+                               <div className="flex items-center mb-3">
+                                  <CheckCircle className="w-5 h-5 text-emerald-600 mr-2" />
+                                  <div>
+                                      <p className="text-emerald-800 font-bold">
+                                          #{luckySearch} {language === 'en' ? 'is Available!' : 'ክፍት ነው!'}
+                                      </p>
+                                  </div>
+                               </div>
+                               <button 
+                                 onClick={() => { setSelectedTempTicket(parseInt(luckySearch)); setShowTicketModal(true); }}
+                                 className="w-full py-2 bg-emerald-600 text-white rounded-lg font-bold shadow hover:bg-emerald-500 transition-colors text-sm"
+                               >
+                                   {language === 'en' ? `Select #${luckySearch}` : `#${luckySearch} ምረጥ`}
+                               </button>
                           </div>
-                          <button onClick={() => { setSelectedTempTicket(parseInt(luckySearch)); setShowTicketModal(true); }} className="w-full py-3 bg-emerald-600 text-white rounded-lg font-bold text-base hover:bg-emerald-500 shadow-md transition-all transform active:scale-95">
-                              {language === 'en' ? `Select #${luckySearch}` : `#${luckySearch} ምረጥ`}
-                          </button>
                       </div>
                   )}
+                  
                   {luckyStatus === 'TAKEN' && (
-                      <div className="mt-3 bg-red-50 p-3 rounded-lg border border-red-100 animate-fade-in-down">
-                          <p className="text-xs text-red-600 font-bold flex items-center">
-                              <XCircle className="w-3 h-3 mr-1" /> {language === 'en' ? 'Sorry, this number is taken.' : 'ይቅርታ፣ ይህ ቁጥር ተይዟል።'}
-                          </p>
+                       <div className="mb-6 animate-fade-in-down">
+                          <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center">
+                              <XCircle className="w-5 h-5 text-red-500 mr-2" />
+                              <p className="text-red-700 font-bold text-sm">
+                                  #{luckySearch} {language === 'en' ? 'is already taken.' : 'ተይዟል።'}
+                              </p>
+                          </div>
                       </div>
                   )}
 
-                  {/* Lucky Numbers Grid (Landing Page Style) */}
-                  <div className="mt-8 pt-6 border-t border-stone-100">
-                      <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider">
-                              {language === 'en' ? 'Live Availability' : 'የቁጥሮች ሁኔታ'}
-                          </h4>
-                          <div className="flex space-x-2 text-[10px]">
-                               <span className="flex items-center text-stone-400"><span className="w-2 h-2 bg-stone-300 rounded mr-1"></span> Taken</span>
-                               <span className="flex items-center text-emerald-600 font-bold"><span className="w-2 h-2 bg-emerald-500 rounded mr-1"></span> Available</span>
-                          </div>
-                      </div>
-                      
-                      <div className="relative bg-stone-900 rounded-xl p-2 border border-stone-800 shadow-inner max-h-[200px] overflow-y-auto no-scrollbar">
-                           <div className="grid grid-cols-10 gap-1">
-                               {tickets.map((ticket) => (
-                                   <button
-                                      key={ticket.number}
-                                      disabled={ticket.taken}
-                                      onClick={() => { setSelectedTempTicket(ticket.number); setShowTicketModal(true); }}
-                                      className={`
-                                          aspect-square rounded-lg flex items-center justify-center font-bold text-xs transition-all duration-300
-                                          ${ticket.taken 
-                                          ? 'bg-stone-800 text-stone-600 border border-stone-700 cursor-not-allowed' 
-                                          : 'bg-emerald-600 text-white border border-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)] hover:scale-110 hover:bg-emerald-500 hover:z-10 hover:shadow-[0_0_10px_rgba(16,185,129,0.6)]'}
-                                      `}
-                                   >
-                                      {formatTicket(ticket.number)}
-                                   </button>
-                               ))}
-                           </div>
-                      </div>
-                      <p className="text-[10px] text-stone-400 text-center mt-3">
+                  {/* GRID */}
+                  <div className="relative pt-4 border-t border-stone-100">
+                     <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-3">
+                        {language === 'en' ? 'Live Availability Board' : 'የእጣ ቁጥሮች ሰሌዳ'}
+                     </h4>
+                     <div className="relative grid grid-cols-6 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5 gap-1.5 p-2 bg-stone-50 rounded-xl border border-stone-100 max-h-[300px] overflow-y-auto custom-scrollbar">
+                        {tickets.map((ticket) => (
+                            <button
+                                key={ticket.number}
+                                disabled={ticket.taken}
+                                onClick={() => {
+                                  if (!ticket.taken) {
+                                      setLuckySearch(ticket.number.toString());
+                                      setLuckyStatus('AVAILABLE');
+                                  } else {
+                                      setLuckySearch(ticket.number.toString());
+                                      setLuckyStatus('TAKEN');
+                                  }
+                                }}
+                                className={`
+                                    aspect-square rounded-lg flex items-center justify-center font-bold text-xs transition-all duration-300
+                                    ${ticket.taken 
+                                    ? 'bg-stone-200 text-stone-400 border border-stone-200 cursor-not-allowed' 
+                                    : 'bg-white text-emerald-600 border border-emerald-200 shadow-sm hover:bg-emerald-500 hover:text-white hover:border-emerald-500 hover:scale-110 hover:shadow-md hover:z-10'}
+                                    ${luckySearch === ticket.number.toString() ? 'ring-2 ring-amber-400 z-20 scale-110' : ''}
+                                `}
+                            >
+                                {formatTicket(ticket.number)}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-[10px] text-stone-400 text-center mt-3">
                           {language === 'en' ? 'Click on any green number to select it.' : 'ማንኛውንም አረንጓዴ ቁጥር በመጫን ይምረጡ።'}
-                      </p>
-                  </div>
+                    </p>
+                </div>
                </div>
 
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[500ms]">
