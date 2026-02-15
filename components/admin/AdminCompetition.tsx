@@ -55,15 +55,19 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
   const [compSubTab, setCompSubTab] = useState<'settings' | 'tickets'>('settings');
   const [ticketSearch, setTicketSearch] = useState('');
 
-  const filteredTickets = tickets.filter(t => {
-      // Exclude if user status is PENDING
-      const ticketUser = users.find(u => String(u.id) === String(t.userId));
-      if (ticketUser && ticketUser.status === 'PENDING') {
-          return false;
-      }
+  // Helper to check if user is valid (not PENDING)
+  const isUserValid = (userId: string | number) => {
+      const u = users.find(user => String(user.id) === String(userId));
+      return !(u && u.status === 'PENDING');
+  };
 
+  const filteredTickets = tickets.filter(t => {
+      // 1. Check User Status
+      if (!isUserValid(t.userId)) return false;
+
+      // 2. Check Search & Cycle
       const matchesSearch = t.userName.toLowerCase().includes(ticketSearch.toLowerCase()) || t.ticketNumber.toString().includes(ticketSearch);
-      const matchesCycle = t.cycle === settings.cycle; // Only show current cycle
+      const matchesCycle = t.cycle === settings.cycle; 
       return matchesSearch && matchesCycle;
   }).sort((a, b) => Number(a.ticketNumber) - Number(b.ticketNumber));
 
@@ -73,7 +77,7 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
       
       // Sort tickets by lucky number (ticketNumber) ascending
       const sortedTickets = [...tickets]
-        .filter(t => t.cycle === settings.cycle)
+        .filter(t => t.cycle === settings.cycle && isUserValid(t.userId)) // Apply user status filter
         .sort((a, b) => {
             const numA = Number(a.ticketNumber);
             const numB = Number(b.ticketNumber);
@@ -93,7 +97,7 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
       link.click();
       document.body.removeChild(link);
       
-      showAlert('success', 'Export Successful', 'Ticket data exported to CSV in ascending order.');
+      showAlert('success', 'Export Successful', 'Ticket data exported to CSV in ascending order (Pending users excluded).');
   };
 
   return (
