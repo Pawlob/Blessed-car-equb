@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -30,13 +30,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [uploading, setUploading] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Timeline Data State
+  const [rawPayments, setRawPayments] = useState<any[]>([]);
+  const [rawUserTickets, setRawUserTickets] = useState<any[]>([]);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   
-  // Real ticket data from DB with Rolling Growth Logic (2% trigger)
+  // Real ticket data from DB for Grid Selection (Rolling Growth Logic)
   const [tickets, setTickets] = useState<{number: number, taken: boolean}[]>([]);
 
   // Lucky Search State
@@ -61,7 +66,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     return () => unsub();
   }, [user?.id, setUser]);
 
-  // --- Rolling Growth Ticket Fetch (Trigger at 2% Saturation) ---
+  // --- Rolling Growth Ticket Fetch (Grid) ---
   useEffect(() => {
     const q = query(
         collection(db, 'tickets'), 
@@ -76,13 +81,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             takenSet.add(doc.data().ticketNumber);
         });
 
-        /**
-         * ROLLING GROWTH LOGIC (Trigger at 2% Saturation):
-         * 1. Start with 100 tickets.
-         * 2. Trigger: Expansion happens ONLY when 2% full (every 2 tickets sold per 100 capacity).
-         * 3. Action: Add 100 more spots.
-         * Formula: 100 * (floor(takenCount / 2) + 1)
-         */
         const takenCount = takenSet.size;
         const dynamicLimit = 100 * (Math.floor(takenCount / 2) + 1);
 
@@ -96,65 +94,119 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
     return () => unsubscribe();
   }, [settings.cycle]);
 
-  // --- Fetch User Specific Activities ---
+  // --- Fetch Raw Data for History (Payments & Tickets) ---
   useEffect(() => {
     if (!user || !user.id) return;
 
-    const q = query(collection(db, 'payment_requests'), where('userId', '==', user.id));
-    
-    const unsub = onSnapshot(q, (snapshot) => {
-        const paymentActs = snapshot.docs.map(doc => ({
+    // 1. Fetch Payment Requests
+    const qPay = query(collection(db, 'payment_requests'), where('userId', '==', user.id));
+    const unsubPay = onSnapshot(qPay, (snapshot) => {
+        const payments = snapshot.docs.map(doc => ({
             id: doc.id,
-            type: 'PAYMENT',
-            date: doc.data().date,
-            data: doc.data()
+            ...doc.data()
         }));
-
-        const timeline = [];
-
-        timeline.push({
-            id: 'joined',
-            type: 'JOINED',
-            date: user.joinedDate || 'Recent',
-            title: language === 'en' ? 'Joined the Equb' : 'እቁቡን ተቀላቅለዋል',
-            desc: language === 'en' ? 'Account created successfully' : 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል',
-            status: 'success'
-        });
-
-        paymentActs.forEach(pay => {
-            let statusText = language === 'en' ? 'Pending' : 'በመጠባበቅ ላይ';
-            if (pay.data.status === 'APPROVED') {
-                statusText = language === 'en' ? 'Approved' : 'ተረጋግጧል';
-            } else if (pay.data.status === 'REJECTED') {
-                statusText = language === 'en' ? 'Rejected' : 'ተሰርዟል';
-            }
-
-            timeline.push({
-                id: pay.id,
-                type: 'PAYMENT',
-                date: pay.date,
-                title: language === 'en' ? 'Payment Submitted' : 'ክፍያ ተፈጽሟል',
-                desc: `${pay.data.amount} ETB - ${statusText}`,
-                status: pay.data.status === 'APPROVED' ? 'success' : pay.data.status === 'REJECTED' ? 'error' : 'warning'
-            });
-        });
-
-        if (user.prizeNumber) {
-            timeline.push({
-                id: 'ticket-assigned',
-                type: 'TICKET',
-                date: language === 'en' ? 'Active' : 'ንቁ',
-                title: language === 'en' ? 'Ticket Assigned' : 'እጣ ቁጥር ተሰጥቷል',
-                desc: `Lucky Number: #${user.prizeNumber}`,
-                status: 'success'
-            });
-        }
-
-        setUserActivities(timeline.reverse());
+        setRawPayments(payments);
     });
 
-    return () => unsub();
-  }, [user.id, user.prizeNumber, language, user.joinedDate]);
+    // 2. Fetch ALL Tickets for this user (History)
+    // We check for string or number ID match just in case
+    const qTickets = query(collection(db, 'tickets'), where('userId', '==', user.id));
+    const unsubTickets = onSnapshot(qTickets, (snapshot) => {
+        const userTix = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        setRawUserTickets(userTix);
+    });
+
+    return () => {
+        unsubPay();
+        unsubTickets();
+    };
+  }, [user.id]);
+
+  // --- Merge & Sort Activities ---
+  useEffect(() => {
+      const timeline = [];
+
+      // A. Joined Event
+      timeline.push({
+          id: 'joined',
+          type: 'JOINED',
+          date: user.joinedDate || 'Recent',
+          title: language === 'en' ? 'Joined the Equb' : 'እቁቡን ተቀላቅለዋል',
+          desc: language === 'en' ? 'Account created successfully' : 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል',
+          status: 'success',
+          timestamp: new Date(user.joinedDate || new Date()).getTime()
+      });
+
+      // B. Payments
+      rawPayments.forEach(pay => {
+          let statusText = language === 'en' ? 'Pending' : 'በመጠባበቅ ላይ';
+          if (pay.status === 'APPROVED') {
+              statusText = language === 'en' ? 'Approved' : 'ተረጋግጧል';
+          } else if (pay.status === 'REJECTED') {
+              statusText = language === 'en' ? 'Rejected' : 'ተሰርዟል';
+          }
+
+          timeline.push({
+              id: pay.id,
+              type: 'PAYMENT',
+              date: pay.date,
+              title: language === 'en' ? 'Payment Submitted' : 'ክፍያ ተፈጽሟል',
+              desc: `${pay.amount} ETB - ${statusText}`,
+              status: pay.status === 'APPROVED' ? 'success' : pay.status === 'REJECTED' ? 'error' : 'warning',
+              timestamp: new Date(pay.date).getTime()
+          });
+      });
+
+      // C. Tickets (Active & Past)
+      rawUserTickets.forEach(t => {
+          const isCurrentCycle = t.cycle === settings.cycle;
+          const isActive = t.status === 'ACTIVE';
+          const isLucky = isActive && isCurrentCycle;
+
+          let title = '';
+          let desc = '';
+          let status = 'neutral';
+
+          if (language === 'en') {
+              title = isLucky ? `Lucky Ticket #${t.ticketNumber}` : `Ticket #${t.ticketNumber} (Cycle ${t.cycle})`;
+              if (t.status === 'VOID') desc = 'Voided / Cancelled';
+              else if (!isCurrentCycle) desc = `Past Cycle Participation`;
+              else desc = 'Active for Upcoming Draw';
+          } else {
+              title = isLucky ? `እድለኛ ቁጥር #${t.ticketNumber}` : `እጣ ቁጥር #${t.ticketNumber} (ዙር ${t.cycle})`;
+              if (t.status === 'VOID') desc = 'ተሰርዟል';
+              else if (!isCurrentCycle) desc = `የያለፈ ዙር ተሳትፎ`;
+              else desc = 'ንቁ እና ለእጣው ዝግጁ';
+          }
+
+          if (t.status === 'VOID') status = 'error';
+          else if (isLucky) status = 'success';
+          else status = 'neutral';
+
+          timeline.push({
+              id: t.id,
+              type: 'TICKET_HISTORY',
+              date: t.assignedDate || 'N/A',
+              title: title,
+              desc: desc,
+              status: status,
+              timestamp: new Date(t.assignedDate || new Date()).getTime()
+          });
+      });
+
+      // Sort by date descending (newest first)
+      // Note: Date strings might be unreliable for sorting if not ISO, but we try best effort or use timestamp if available
+      timeline.sort((a, b) => {
+           // Simple date string compare or fallback
+           return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+
+      setUserActivities(timeline);
+
+  }, [rawPayments, rawUserTickets, user.joinedDate, language, settings.cycle]);
 
   // --- Mock Feed Init ---
   useEffect(() => {
@@ -251,6 +303,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const formatTicket = (num: number) => num.toString();
 
   const getActivityIcon = (type: string, status: string) => {
+      if (type === 'TICKET_HISTORY') {
+          if (status === 'success') return <Ticket className="w-5 h-5 text-emerald-600" />;
+          if (status === 'error') return <Ban className="w-5 h-5 text-red-500" />;
+          return <Ticket className="w-5 h-5 text-stone-400" />;
+      }
       if (type === 'TICKET') return <Ticket className="w-5 h-5 text-emerald-600" />;
       if (type === 'JOINED') return <UserPlus className="w-5 h-5 text-blue-500" />;
       if (type === 'PAYMENT') {
@@ -368,6 +425,54 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         </div>
       )}
 
+      {/* History Modal */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in-down" onClick={() => setShowHistoryModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-900 text-white">
+               <h3 className="text-xl font-bold flex items-center">
+                 <History className="w-5 h-5 mr-2" /> {t.history}
+               </h3>
+               <button onClick={() => setShowHistoryModal(false)} className="text-stone-400 hover:text-white transition-colors">
+                  <X className="w-6 h-6" />
+               </button>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+               <div className="flex items-center justify-between mb-6">
+                    <span className="text-xs font-bold bg-stone-100 text-stone-500 px-2 py-1 rounded-full">{userActivities.length} Events</span>
+                </div>
+                {userActivities.length === 0 ? (
+                     <div className="text-center py-8 text-stone-400 text-sm">No recent activity. Make a payment to get started!</div>
+                ) : (
+                    <div className="relative border-l-2 border-stone-100 ml-3 space-y-8 py-2">
+                        {userActivities.map((item, i) => (
+                           <div key={item.id} className="relative pl-8">
+                              <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm ${
+                                  item.status === 'success' ? 'bg-emerald-500' : 
+                                  item.status === 'error' ? 'bg-red-500' : 
+                                  item.status === 'warning' ? 'bg-amber-500' : 
+                                  item.status === 'neutral' ? 'bg-stone-400' : 'bg-blue-500'
+                              }`}></div>
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
+                                  <h4 className="font-bold text-stone-800 text-sm flex items-center">
+                                      {getActivityIcon(item.type, item.status)}
+                                      <span className="ml-2">{item.title}</span>
+                                  </h4>
+                                  <span className="text-xs text-stone-400 font-mono mt-1 sm:mt-0">{item.date}</span>
+                              </div>
+                              <p className="text-xs text-stone-500 leading-relaxed bg-stone-50 p-2 rounded border border-stone-100 inline-block">
+                                  {item.desc}
+                              </p>
+                           </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Welcome Header */}
@@ -377,6 +482,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
               <p className="text-stone-500 text-xs sm:text-base">Member ID: #{user.id?.toString().slice(0,6)}... • {cycleText}</p>
            </div>
            <div className="mt-4 md:mt-0 flex space-x-3">
+              <button 
+                onClick={() => setShowHistoryModal(true)}
+                className="p-2 bg-white rounded-full shadow hover:bg-stone-100 text-stone-600 transition-transform hover:scale-110"
+              >
+                 <History className="w-5 h-5" />
+              </button>
+
               <button 
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 bg-white rounded-full shadow hover:bg-stone-100 text-stone-600 relative transition-transform hover:scale-110"
@@ -610,23 +722,29 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[400ms]">
+                <div id="history-section" className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[400ms]">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-bold text-stone-800 flex items-center">
                            <Activity className="w-5 h-5 mr-2 text-stone-400" /> {t.history}
                         </h3>
-                        <span className="text-xs font-bold bg-stone-100 text-stone-500 px-2 py-1 rounded-full">{userActivities.length} Events</span>
+                        <button 
+                            onClick={() => setShowHistoryModal(true)}
+                            className="text-xs font-bold bg-stone-100 text-stone-600 px-3 py-1 rounded-full hover:bg-stone-200 transition-colors"
+                        >
+                            View All ({userActivities.length})
+                        </button>
                     </div>
                     {userActivities.length === 0 ? (
                          <div className="text-center py-8 text-stone-400 text-sm">No recent activity. Make a payment to get started!</div>
                     ) : (
                         <div className="relative border-l-2 border-stone-100 ml-3 space-y-8 py-2">
-                            {userActivities.map((item, i) => (
+                            {userActivities.slice(0, 3).map((item, i) => (
                                <div key={item.id} className="relative pl-8">
                                   <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-white shadow-sm ${
                                       item.status === 'success' ? 'bg-emerald-500' : 
                                       item.status === 'error' ? 'bg-red-500' : 
-                                      item.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                                      item.status === 'warning' ? 'bg-amber-500' : 
+                                      item.status === 'neutral' ? 'bg-stone-400' : 'bg-blue-500'
                                   }`}></div>
                                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
                                       <h4 className="font-bold text-stone-800 text-sm flex items-center">
@@ -688,6 +806,42 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           </p>
                       </div>
                   )}
+
+                  {/* Lucky Numbers Grid (Landing Page Style) */}
+                  <div className="mt-8 pt-6 border-t border-stone-100">
+                      <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider">
+                              {language === 'en' ? 'Live Availability' : 'የቁጥሮች ሁኔታ'}
+                          </h4>
+                          <div className="flex space-x-2 text-[10px]">
+                               <span className="flex items-center text-stone-400"><span className="w-2 h-2 bg-stone-300 rounded mr-1"></span> Taken</span>
+                               <span className="flex items-center text-emerald-600 font-bold"><span className="w-2 h-2 bg-emerald-500 rounded mr-1"></span> Available</span>
+                          </div>
+                      </div>
+                      
+                      <div className="relative bg-stone-900 rounded-xl p-3 border border-stone-800 shadow-inner max-h-[320px] overflow-y-auto no-scrollbar">
+                           <div className="grid grid-cols-5 gap-2">
+                               {tickets.map((ticket) => (
+                                   <button
+                                      key={ticket.number}
+                                      disabled={ticket.taken}
+                                      onClick={() => { setSelectedTempTicket(ticket.number); setShowTicketModal(true); }}
+                                      className={`
+                                          aspect-square rounded-lg flex items-center justify-center font-bold text-xs transition-all duration-300
+                                          ${ticket.taken 
+                                          ? 'bg-stone-800 text-stone-600 border border-stone-700 cursor-not-allowed' 
+                                          : 'bg-emerald-600 text-white border border-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.4)] hover:scale-110 hover:bg-emerald-500 hover:z-10 hover:shadow-[0_0_10px_rgba(16,185,129,0.6)]'}
+                                      `}
+                                   >
+                                      {formatTicket(ticket.number)}
+                                   </button>
+                               ))}
+                           </div>
+                      </div>
+                      <p className="text-[10px] text-stone-400 text-center mt-3">
+                          {language === 'en' ? 'Click on any green number to select it.' : 'ማንኛውንም አረንጓዴ ቁጥር በመጫን ይምረጡ።'}
+                      </p>
+                  </div>
                </div>
 
                <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6 opacity-0 animate-fade-in-up delay-[500ms]">
