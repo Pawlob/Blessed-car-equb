@@ -111,10 +111,17 @@ const App: React.FC = () => {
                 time: data.time ? data.time.toDate() : new Date()
             };
         }) as AppNotification[];
-        setNotifications(fetchedNotes);
+
+        // Filter notifications: Global (no targetUserId) OR Specific to current user
+        const relevantNotes = fetchedNotes.filter(n => {
+            if (!n.targetUserId) return true; // Global
+            return user && String(n.targetUserId) === String(user.id);
+        });
+
+        setNotifications(relevantNotes);
     });
     return () => unsubscribe();
-  }, []);
+  }, [user]); // Re-run when user changes to update the filter
 
   // --- Firestore Integration for Settings ---
   useEffect(() => {

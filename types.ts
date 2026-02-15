@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 export type Language = 'en' | 'am';
@@ -22,6 +23,7 @@ export interface AppNotification {
   time: Date;
   urgent: boolean;
   read: boolean;
+  targetUserId?: string | number; // Optional: If present, only this user sees it
 }
 
 export interface CurrentWinner {

@@ -2,7 +2,7 @@
 import React from 'react';
 import { CheckCircle, ZoomIn, Ticket, Clock } from 'lucide-react';
 import { AppSettings, User } from '../../types';
-import { doc, updateDoc, addDoc, deleteDoc, collection } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, deleteDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 interface AdminPaymentsProps {
@@ -162,6 +162,19 @@ const AdminPayments: React.FC<AdminPaymentsProps> = ({
             contribution: (targetUser?.contribution || 0) + amount,
             prizeNumber: assignedTicketNum // Keeping for compatibility, though we rely on tickets collection
         });
+
+        // 5. Send Notification to User
+        await addDoc(collection(db, 'notifications'), {
+            title: { en: 'Payment Approved', am: 'ክፍያ ተረጋግጧል' },
+            desc: { 
+                en: `Your payment of ${amount} ETB has been verified. Ticket #${assignedTicketNum} is now active!`, 
+                am: `የ${amount} ብር ክፍያዎ ተረጋግጧል። ቲኬት ቁጥር #${assignedTicketNum} አሁን ንቁ ነው!` 
+            },
+            time: serverTimestamp(),
+            urgent: false,
+            read: false,
+            targetUserId: userId
+        });
     }
     
     if (assignedTicketNum === requestedTicket) {
@@ -188,6 +201,21 @@ const AdminPayments: React.FC<AdminPaymentsProps> = ({
         if (reservation) {
             await deleteDoc(doc(db, 'tickets', reservation.id));
         }
+    }
+
+    // 3. Send Notification to User
+    if (userId) {
+        await addDoc(collection(db, 'notifications'), {
+            title: { en: 'Payment Rejected', am: 'ክፍያ ውድቅ ተደርጓል' },
+            desc: { 
+                en: 'Your payment proof was rejected. Please contact support or upload a valid receipt.', 
+                am: 'የክፍያ ማረጋገጫዎ ውድቅ ተደርጓል። እባክዎ እርዳታ ያግኙ ወይም ትክክለኛ ደረሰኝ ይላኩ።' 
+            },
+            time: serverTimestamp(),
+            urgent: true,
+            read: false,
+            targetUserId: userId
+        });
     }
 
     showAlert('info', 'Payment Rejected', 'The payment has been rejected and ticket reservation cleared.');
