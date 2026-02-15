@@ -136,7 +136,10 @@ const LandingPage: React.FC<LandingPageProps> = ({
           <div className="space-y-6 text-center md:text-left">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-emerald-800/30 border border-emerald-700/50 text-emerald-300 text-sm font-semibold mb-2 animate-fade-in-down">
               <Trophy className="w-4 h-4 mr-2 text-amber-400" />
-              {t.hero.subtitle} {language === 'en' ? `${settings.daysRemaining} Days` : `${settings.daysRemaining} ቀናት`}
+              {settings.daysRemaining === 0 
+                ? t.hero.subtitle_today 
+                : <>{t.hero.subtitle} {language === 'en' ? `${settings.daysRemaining} DAYS` : `${settings.daysRemaining} ቀናት`}</>
+              }
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight animate-fade-in-up">

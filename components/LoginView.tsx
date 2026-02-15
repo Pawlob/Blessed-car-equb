@@ -93,7 +93,7 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
             // Set Local State (exclude password from state)
             const { password: _, ...userState } = newUser;
             setUser({ ...userState, id: docRef.id }); 
-            setView('dashboard');
+            // setView('dashboard'); // Removed: Handled by App.tsx useEffect
 
         } else {
             // LOGIN LOGIC
@@ -117,7 +117,7 @@ const LoginView: React.FC<LoginViewProps> = ({ setView, setUser, language, setti
             // Append Firestore ID and set user
             const { password: _, ...userState } = userData;
             setUser({ ...userState, id: userDoc.id } as User);
-            setView('dashboard');
+            // setView('dashboard'); // Removed: Handled by App.tsx useEffect
         }
 
     } catch (err) {

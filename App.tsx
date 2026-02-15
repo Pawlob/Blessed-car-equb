@@ -58,9 +58,13 @@ const DEFAULT_SETTINGS: AppSettings = {
 const App: React.FC = () => {
   // --- Initialize State from LocalStorage for persistence ---
   const [view, setView] = useState<ViewState>(() => {
-    const hash = window.location.hash.replace('#', '');
-    const validViews: ViewState[] = ['landing', 'login', 'dashboard', 'admin', 'prizes', 'terms'];
-    return (validViews.includes(hash as ViewState) ? (hash as ViewState) : 'landing');
+    // Check if window.location exists and has hash (safe check)
+    if (typeof window !== 'undefined' && window.location && window.location.hash) {
+      const hash = window.location.hash.replace('#', '');
+      const validViews: ViewState[] = ['landing', 'login', 'dashboard', 'admin', 'prizes', 'terms'];
+      return (validViews.includes(hash as ViewState) ? (hash as ViewState) : 'landing');
+    }
+    return 'landing';
   });
 
   const [user, setUser] = useState<User | null>(() => {
@@ -171,7 +175,21 @@ const App: React.FC = () => {
     // Protect dashboard view on fresh reload
     if (view === 'dashboard' && !user) {
         setView('login');
-        window.history.replaceState({ view: 'login' }, '', '#login');
+        try {
+           window.history.replaceState({ view: 'login' }, '', '#login');
+        } catch (e) {
+           console.warn("History state update failed", e);
+        }
+    }
+
+    // Auto-redirect to dashboard if user is already logged in
+    if (view === 'login' && user) {
+        setView('dashboard');
+        try {
+           window.history.replaceState({ view: 'dashboard' }, '', '#dashboard');
+        } catch (e) {
+           console.warn("History state update failed", e);
+        }
     }
 
     window.addEventListener('popstate', handlePopState);
@@ -183,7 +201,11 @@ const App: React.FC = () => {
     // Prevent unauthorized dashboard access
     if (newView === 'dashboard' && !user) {
         setView('login');
-        window.history.pushState({ view: 'login' }, '', '#login');
+        try {
+           window.history.pushState({ view: 'login' }, '', '#login');
+        } catch (e) {
+           console.warn("History state update failed", e);
+        }
         return;
     }
     setView(newView);
@@ -191,6 +213,7 @@ const App: React.FC = () => {
       window.history.pushState({ view: newView }, '', `#${newView}`);
       window.scrollTo(0, 0);
     } catch (e) {
+      console.warn("History state update failed", e);
       window.scrollTo(0, 0);
     }
   };

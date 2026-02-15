@@ -3,7 +3,7 @@
 export const TRANSLATIONS = {
   en: {
     nav: { home: "Home", how: "How It Works", prizes: "Prizes", join: "Join Now", login: "Login", logout: "Logout", dashboard: "Dashboard", secure: "Secure Session", profile: "Profile" },
-    hero: { subtitle: "Next Draw in:", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "Toyota Corolla Cross 2025" },
+    hero: { subtitle: "TO DRAW THIS CYCLES PRIZE:", subtitle_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "Toyota Corolla Cross 2025" },
     stats: { members: "Active Members", cars: "Cars Delivered", pot: "Total Pot Value", trust: "Trust Score", taken: "Taken Numbers", lucky: "Lucky Numbers" },
     features: {
         heading_sub: "How It Works",
@@ -75,7 +75,8 @@ export const TRANSLATIONS = {
         pay_telebirr: "Pay with Telebirr", 
         pay_cbe: "Pay with CBE",
         history: "Recent Activity",
-        next_draw: "NEXT DRAW: 14 DAYS",
+        next_draw: "TO DRAW THIS CYCLES PRIZE: 14 DAYS",
+        next_draw_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR",
         win_title: "Win a Toyota Corolla Cross",
         win_desc: "Make your contribution today to enter the draw. Verified members only.",
         btn_paid: "Contribution Paid",
@@ -135,7 +136,7 @@ export const TRANSLATIONS = {
   },
   am: {
     nav: { home: "መነሻ", how: "አሰራሩ", prizes: "ሽልማቶች", join: "ይቀላቀሉ", login: "ይግቡ", logout: "ውጣ", dashboard: "ዳሽቦርድ", secure: "ደህንነቱ የተጠበቀ", profile: "መገለጫ" },
-    hero: { subtitle: "ቀጣይ እጣ በ:", title1: "የህልም መኪናዎን ያሽከርክሩ።", title2: "የወደፊት ህይወቶን ያስጠብቁ።", desc: "የኢትዮጵያን ባህላዊ እቁብ ከዘመናዊ ቴክኖሎጂ ጋር አቀናጅተናል። ወራዊ ቁጠባዎን በአስተማማኝ ሁኔታ በማስቀመጥ የህልም መኪናዎን ባለቤት ይሁኑ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "ቶዮታ ኮሮላ ክሮስ 2025" },
+    hero: { subtitle: "የዚህን ዙር ሽልማት እጣ ለማውጣት:", subtitle_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል", title1: "የህልም መኪናዎን ያሽከርክሩ።", title2: "የወደፊት ህይወቶን ያስጠብቁ።", desc: "የኢትዮጵያን ባህላዊ እቁብ ከዘመናዊ ቴክኖሎጂ ጋር አቀናጅተናል። ወራዊ ቁጠባዎን በአስተማማኝ ሁኔታ በማስቀመጥ የህልም መኪናዎን ባለቤት ይሁኑ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "ቶዮታ ኮሮላ ክሮስ 2025" },
     stats: { members: "ንቁ አባላት", cars: "የተረከቡ መኪኖች", pot: "ጠቅላላ የእቁብ መጠን", trust: "የታማኝነት ነጥብ", taken: "የተያዙ ቁጥሮች", lucky: "እድለኛ ቁጥሮች" },
     features: {
         heading_sub: "እንዴት ይሰራል?",
@@ -202,12 +203,13 @@ export const TRANSLATIONS = {
         contribution_sub: "+5,000 በዚህ ወር",
         pot: "የእቁብ ድምር", 
         pot_sub: "የዚህ ዙር ጠቅላላ",
-        pot_users: "የከፈሉ አባላት",
-        upload: "ደረሰኝ ይላኩ", 
-        pay_telebirr: "በቴሌብር ይክፈሉ",
-        pay_cbe: "በንግድ ባንክ ይክፈሉ", 
-        history: "የቅርብ ጊዜ እንቅስቃሴዎች",
-        next_draw: "ቀጣይ እጣ: በ14 ቀናት ውስጥ",
+        pot_users: "Contributing",
+        upload: "Upload Receipt", 
+        pay_telebirr: "Pay with Telebirr", 
+        pay_cbe: "Pay with CBE",
+        history: "Recent Activity",
+        next_draw: "የዚህን ዙር ሽልማት እጣ ለማውጣት: 14 ቀናት",
+        next_draw_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል",
         win_title: "ቶዮታ ኮሮላ ክሮስ ያሸንፉ",
         win_desc: "ለእጣው ብቁ ለመሆን የዚህን ወር ክፍያ አሁኑኑ ይፈጽሙ። የተረጋገጡ አባላት ብቻ።",
         btn_paid: "ክፍያ ተፈጽሟል",

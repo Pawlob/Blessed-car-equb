@@ -601,7 +601,10 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                         <div className="space-y-6">
                            <div className="text-center md:text-left">
                                <div className="inline-block bg-red-900/80 px-3 py-1 rounded text-xs font-bold mb-3 border border-red-700 animate-pulse">
-                                  {t.next_draw.replace('14', settings.daysRemaining.toString())}
+                                  {settings.daysRemaining === 0 
+                                    ? t.next_draw_today 
+                                    : t.next_draw.replace('14', settings.daysRemaining.toString())
+                                  }
                                </div>
                                <h2 className="text-3xl font-bold mb-2 leading-tight">{t.win_title}</h2>
                                <p className="text-stone-300 text-sm md:text-base">{t.win_desc}</p>
@@ -819,8 +822,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                           </div>
                       </div>
                       
-                      <div className="relative bg-stone-900 rounded-xl p-3 border border-stone-800 shadow-inner max-h-[320px] overflow-y-auto no-scrollbar">
-                           <div className="grid grid-cols-5 gap-2">
+                      <div className="relative bg-stone-900 rounded-xl p-2 border border-stone-800 shadow-inner max-h-[200px] overflow-y-auto no-scrollbar">
+                           <div className="grid grid-cols-10 gap-1">
                                {tickets.map((ticket) => (
                                    <button
                                       key={ticket.number}
