@@ -1659,22 +1659,18 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                         </h2>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-bold text-stone-800">Application Language</h3>
-                                <p className="text-sm text-stone-500">Set the default language for the application interface.</p>
+                                <h3 className="font-bold text-stone-800">Admin Dashboard Language</h3>
+                                <p className="text-sm text-stone-500">Toggle the language settings for the admin dashboard.</p>
                             </div>
-                            <div className="flex bg-stone-100 p-1 rounded-lg">
+                            <div className="flex items-center gap-3 bg-stone-50 p-2 rounded-lg border border-stone-100">
+                                <span className={`text-xs font-bold ${language === 'en' ? 'text-stone-800' : 'text-stone-400'}`}>ENG</span>
                                 <button 
-                                    onClick={() => setLanguage('en')}
-                                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${language === 'en' ? 'bg-white shadow text-emerald-800' : 'text-stone-500 hover:text-stone-700'}`}
+                                    onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 ${language === 'am' ? 'bg-emerald-600' : 'bg-stone-300'}`}
                                 >
-                                    English
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${language === 'am' ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
-                                <button 
-                                    onClick={() => setLanguage('am')}
-                                    className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${language === 'am' ? 'bg-white shadow text-emerald-800' : 'text-stone-500 hover:text-stone-700'}`}
-                                >
-                                    Amharic
-                                </button>
+                                <span className={`text-xs font-bold ${language === 'am' ? 'text-emerald-800' : 'text-stone-400'}`}>AMH</span>
                             </div>
                         </div>
                     </div>
