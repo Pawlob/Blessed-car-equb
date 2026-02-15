@@ -1056,13 +1056,22 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 <div className="space-y-6 animate-fade-in-up">
                     <h1 className="text-2xl font-bold text-stone-800 hidden md:block">Dashboard Overview</h1>
                     {/* ... Dashboard content ... */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
                               <h3 className="text-stone-500 text-sm font-bold uppercase">Total Pot</h3>
                               <DollarSign className="w-5 h-5 text-emerald-500" />
                            </div>
                            <p className="text-2xl font-bold text-stone-800">{settings.potValue.toLocaleString()} ETB</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
+                           <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-stone-500 text-sm font-bold uppercase">Claimed Tickets</h3>
+                              <Ticket className="w-5 h-5 text-teal-500" />
+                           </div>
+                           <p className="text-2xl font-bold text-stone-800">
+                              {tickets.filter(t => t.status === 'ACTIVE' && t.cycle === settings.cycle).length}
+                           </p>
                         </div>
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
