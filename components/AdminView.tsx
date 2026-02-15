@@ -360,6 +360,12 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   };
 
   const filteredTickets = tickets.filter(t => {
+      // Exclude if user status is PENDING
+      const ticketUser = users.find(u => String(u.id) === String(t.userId));
+      if (ticketUser && ticketUser.status === 'PENDING') {
+          return false;
+      }
+
       const matchesSearch = t.userName.toLowerCase().includes(ticketSearch.toLowerCase()) || t.ticketNumber.toString().includes(ticketSearch);
       const matchesCycle = ticketCycleFilter === 'ALL' || t.cycle === ticketCycleFilter;
       return matchesSearch && matchesCycle;
@@ -637,6 +643,14 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     );
 
     if (winningTicket) {
+        // Verify user status
+        const ticketUser = users.find(u => String(u.id) === String(winningTicket.userId));
+        if (ticketUser && ticketUser.status === 'PENDING') {
+             setFoundWinningTicket(null);
+             showAlert('error', 'Ineligible Winner', `User ${ticketUser.name} is PENDING. Only verified members can win.`);
+             return;
+        }
+
         setFoundWinningTicket(winningTicket);
     } else {
         setFoundWinningTicket(null);
