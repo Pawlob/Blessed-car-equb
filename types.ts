@@ -37,6 +37,7 @@ export interface AppSettings {
   prizeName: string;
   prizeValue: string;
   prizeImage: string;
+  prizeImages?: string[]; // Added support for multiple images
   recentWinners: Winner[];
   liveStreamUrl: string;
   isLive: boolean;

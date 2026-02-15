@@ -26,6 +26,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   prizeName: 'BYD E2 Luxury 2025',
   prizeValue: 'ETB 4.2M',
   prizeImage: PRIZE_IMAGES[0],
+  prizeImages: PRIZE_IMAGES, // Initialize with constant values
   liveStreamUrl: '',
   isLive: false,
   registrationEnabled: true,
@@ -114,7 +115,12 @@ const App: React.FC = () => {
     const settingsRef = doc(db, 'settings', 'global');
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
-        setAppSettings(docSnap.data() as AppSettings);
+        const data = docSnap.data() as AppSettings;
+        // Ensure prizeImages exists for legacy data
+        if (!data.prizeImages) {
+            data.prizeImages = [data.prizeImage || PRIZE_IMAGES[0]];
+        }
+        setAppSettings(data);
       } else {
         setDoc(settingsRef, DEFAULT_SETTINGS).catch(console.error);
       }

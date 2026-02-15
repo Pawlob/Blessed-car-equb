@@ -52,14 +52,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const t = TRANSLATIONS[language].dashboard;
   const heroT = TRANSLATIONS[language].hero;
   const statsT = TRANSLATIONS[language].stats;
+  
+  const displayImages = (settings.prizeImages && settings.prizeImages.length > 0) ? settings.prizeImages : PRIZE_IMAGES;
 
   // Carousel Effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
+      setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [displayImages.length]);
 
   // --- Real-time User Updates ---
   useEffect(() => {
@@ -711,7 +713,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                     </div>
                                     
                                     {/* Carousel Images */}
-                                    {PRIZE_IMAGES.map((img, index) => (
+                                    {displayImages.map((img, index) => (
                                         <img 
                                         key={index}
                                         src={img}

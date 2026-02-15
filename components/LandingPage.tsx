@@ -29,14 +29,15 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const t = TRANSLATIONS[language];
+  const displayImages = (settings.prizeImages && settings.prizeImages.length > 0) ? settings.prizeImages : PRIZE_IMAGES;
 
   // Carousel Effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
+      setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [displayImages.length]);
   
   // Fetch Realtime Tickets with Rolling Growth Logic (2% trigger)
   useEffect(() => {
@@ -217,7 +218,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                       </div>
 
                       {/* Carousel Images */}
-                      {PRIZE_IMAGES.map((img, index) => (
+                      {displayImages.map((img, index) => (
                         <img 
                           key={index}
                           src={img}

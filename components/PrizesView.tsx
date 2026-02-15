@@ -13,14 +13,15 @@ const PrizesView: React.FC<PrizesViewProps> = ({ language, settings, setView }) 
   const t = TRANSLATIONS[language].prizes_page;
   const commonT = TRANSLATIONS[language];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const displayImages = (settings.prizeImages && settings.prizeImages.length > 0) ? settings.prizeImages : PRIZE_IMAGES;
 
   // Carousel Effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
+      setCurrentImageIndex((prev) => (prev + 1) % displayImages.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [displayImages.length]);
 
   return (
     <div className="pt-20 pb-12 min-h-screen bg-stone-50">
@@ -83,7 +84,7 @@ const PrizesView: React.FC<PrizesViewProps> = ({ language, settings, setView }) 
                     </div>
                     <div className="relative h-64 md:h-auto bg-stone-200 overflow-hidden">
                         {/* Carousel Images */}
-                        {PRIZE_IMAGES.map((img, index) => (
+                        {displayImages.map((img, index) => (
                             <img 
                                 key={index}
                                 src={img}

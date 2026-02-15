@@ -137,6 +137,9 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   
   // Local Settings State (Buffer)
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
+  
+  // State for new image input
+  const [newImageUrl, setNewImageUrl] = useState('');
 
   // Sync local settings with global settings when they change (e.g. from DB)
   useEffect(() => {
@@ -220,6 +223,29 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
           nextDrawDateEn,
           nextDrawDateAm
       }));
+  };
+
+  // Handle adding a new prize image URL
+  const handleAddImage = () => {
+    if (newImageUrl && !localSettings.prizeImages?.includes(newImageUrl)) {
+        const updatedImages = [...(localSettings.prizeImages || []), newImageUrl];
+        setLocalSettings(prev => ({
+            ...prev,
+            prizeImages: updatedImages,
+            prizeImage: updatedImages[0] // Update single image fallback
+        }));
+        setNewImageUrl('');
+    }
+  };
+
+  // Handle removing a prize image URL
+  const handleRemoveImage = (index: number) => {
+    const updatedImages = localSettings.prizeImages?.filter((_, i) => i !== index) || [];
+    setLocalSettings(prev => ({
+        ...prev,
+        prizeImages: updatedImages,
+        prizeImage: updatedImages.length > 0 ? updatedImages[0] : ''
+    }));
   };
 
   // Auto-calculate Pot Value and Total Members based on Users
@@ -617,9 +643,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     );
   }
 
-  // Render content is largely the same, just utilizing dynamic state variables
-  // ... (rest of render logic follows same structure as previous AdminView but uses live state)
-  
   return (
     <div className="min-h-screen bg-stone-100 flex relative overflow-hidden">
       
@@ -845,8 +868,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {activeTab === 'dashboard' && (
                 <div className="space-y-6 animate-fade-in-up">
                     <h1 className="text-2xl font-bold text-stone-800 hidden md:block">Dashboard Overview</h1>
-                    
-                    {/* Stats Grid */}
+                    {/* ... Dashboard content remains unchanged ... */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                            <div className="flex items-center justify-between mb-2">
@@ -975,7 +997,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
                                     <Calendar className="w-5 h-5 mr-2 text-emerald-600" /> Draw Schedule
                                 </h2>
-                                
+                                {/* ... Draw Schedule content remains unchanged ... */}
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
                                         <label className="block text-sm font-bold text-stone-700">Set Next Draw Date (Ethiopian Calendar)</label>
@@ -1031,7 +1053,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                 </div>
                             </div>
 
-                            {/* Prize Settings Card */}
+                            {/* Prize Settings Card - UPDATED FOR MULTIPLE IMAGES */}
                             <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
                                 <h2 className="text-lg font-bold text-stone-800 mb-6 flex items-center border-b border-stone-100 pb-2">
                                     <Trophy className="w-5 h-5 mr-2 text-amber-500" /> Current Prize
@@ -1057,35 +1079,64 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Image URL</label>
-                                            <div className="relative">
-                                                <input 
-                                                    type="text" 
-                                                    value={localSettings.prizeImage}
-                                                    onChange={(e) => setLocalSettings(prev => ({...prev, prizeImage: e.target.value}))}
-                                                    placeholder="https://example.com/image.jpg"
-                                                    className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
-                                                />
-                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                    <Link className="h-4 w-4 text-stone-400" />
+                                            <label className="block text-sm font-bold text-stone-700 mb-1">Prize Images</label>
+                                            <div className="flex gap-2 mb-2">
+                                                <div className="relative flex-grow">
+                                                    <input 
+                                                        type="text" 
+                                                        value={newImageUrl}
+                                                        onChange={(e) => setNewImageUrl(e.target.value)}
+                                                        placeholder="Enter image URL"
+                                                        className="w-full pl-10 pr-4 py-2 border border-stone-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                                                    />
+                                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                        <Link className="h-4 w-4 text-stone-400" />
+                                                    </div>
                                                 </div>
+                                                <button 
+                                                    onClick={handleAddImage}
+                                                    className="px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 font-bold transition-colors"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
                                             </div>
-                                            <p className="text-xs text-stone-500 mt-1">
-                                                Enter a direct link to the image (JPG, PNG, etc).
-                                            </p>
+                                            <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar bg-stone-50 p-2 rounded-lg border border-stone-200">
+                                                {(localSettings.prizeImages || []).length === 0 && (
+                                                    <p className="text-xs text-stone-400 text-center py-2">No images added.</p>
+                                                )}
+                                                {(localSettings.prizeImages || []).map((url, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between bg-white p-2 rounded border border-stone-200 shadow-sm">
+                                                        <div className="flex items-center min-w-0">
+                                                            <div className="w-8 h-8 rounded bg-stone-200 mr-2 flex-shrink-0 overflow-hidden">
+                                                                <img src={url} alt={`Thumb ${idx}`} className="w-full h-full object-cover" onError={(e) => (e.target as HTMLImageElement).src = 'https://via.placeholder.com/50'} />
+                                                            </div>
+                                                            <span className="text-xs text-stone-600 truncate">{url}</span>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => handleRemoveImage(idx)}
+                                                            className="text-stone-400 hover:text-red-500 p-1"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="h-48 bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative">
-                                        <img 
-                                            src={localSettings.prizeImage || 'https://via.placeholder.com/400x300?text=No+Image'} 
-                                            alt="Prize Preview" 
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+URL';
-                                            }}
-                                        />
-                                        <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
-                                            Preview
+                                    <div className="flex flex-col h-full">
+                                        <label className="block text-sm font-bold text-stone-700 mb-1">Preview (First Image)</label>
+                                        <div className="flex-grow bg-stone-100 rounded-lg overflow-hidden border border-stone-200 relative min-h-[200px]">
+                                            <img 
+                                                src={(localSettings.prizeImages && localSettings.prizeImages.length > 0) ? localSettings.prizeImages[0] : 'https://via.placeholder.com/400x300?text=No+Image'} 
+                                                alt="Prize Preview" 
+                                                className="w-full h-full object-cover absolute inset-0"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Invalid+URL';
+                                                }}
+                                            />
+                                            <div className="absolute bottom-0 left-0 bg-black/60 text-white px-3 py-1 text-xs font-bold m-2 rounded">
+                                                {(localSettings.prizeImages || []).length} Images
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1140,8 +1191,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                     {/* === TICKET MANAGEMENT SUB-TAB === */}
                     {compSubTab === 'tickets' && (
                         <div className="space-y-6 animate-fade-in-down">
-                            
-                            {/* Toolbar */}
+                            {/* ... Ticket management content ... */}
                             <div className="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-col md:flex-row gap-4 items-center justify-between">
                                 <div className="flex gap-4 w-full md:w-auto">
                                     <div className="relative flex-grow md:w-64">
@@ -1265,7 +1315,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 <div className="space-y-6 animate-fade-in-up">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
-                        
+                        {/* ... User Management content ... */}
                         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                            <div className="relative">
                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -1387,7 +1437,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
             {activeTab === 'payments' && (
                 <div className="space-y-6 animate-fade-in-up">
                     <h1 className="text-2xl font-bold text-stone-800">Pending Payments</h1>
-                    
+                    {/* ... Payments content remains unchanged ... */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {paymentRequests.map((req) => (
                             <div key={req.id} className="bg-white rounded-xl shadow-md border border-stone-200 overflow-hidden hover:shadow-lg transition-shadow">
