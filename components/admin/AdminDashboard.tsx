@@ -22,6 +22,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   handleStartNewCycle,
   t
 }) => {
+  // Calculate pot based on active tickets in the current cycle (5000 ETB per ticket)
+  const currentCycleActiveTickets = tickets.filter(t => t.cycle === settings.cycle && t.status === 'ACTIVE');
+  const currentPot = currentCycleActiveTickets.length * 5000;
+
   return (
     <div className="space-y-6 animate-fade-in-up">
         <h1 className="text-2xl font-bold text-stone-800 hidden md:block">{t.dashboard.overview}</h1>
@@ -31,7 +35,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <h3 className="text-stone-500 text-sm font-bold uppercase">{t.dashboard.totalPot}</h3>
                   <DollarSign className="w-5 h-5 text-emerald-500" />
                </div>
-               <p className="text-2xl font-bold text-stone-800">{settings.potValue.toLocaleString()} ETB</p>
+               <p className="text-2xl font-bold text-stone-800">{currentPot.toLocaleString()} ETB</p>
+               <p className="text-xs text-stone-400 mt-1">Current Cycle {settings.cycle}</p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
                <div className="flex items-center justify-between mb-2">
@@ -39,7 +44,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <Ticket className="w-5 h-5 text-teal-500" />
                </div>
                <p className="text-2xl font-bold text-stone-800">
-                  {tickets.filter(t => t.status === 'ACTIVE' && t.cycle === settings.cycle).length}
+                  {currentCycleActiveTickets.length}
                </p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
