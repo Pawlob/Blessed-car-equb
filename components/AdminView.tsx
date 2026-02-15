@@ -346,7 +346,11 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
   const handleExportTickets = () => {
       // Create CSV content
       const headers = "Ticket ID,Ticket Number,User Name,Cycle,Status,Assigned Date,Assigned By\n";
-      const rows = tickets.map(t => 
+      
+      // Sort tickets by ticketNumber ascending
+      const sortedTickets = [...tickets].sort((a, b) => a.ticketNumber - b.ticketNumber);
+
+      const rows = sortedTickets.map(t => 
           `${t.id},${t.ticketNumber},"${t.userName}",${t.cycle},${t.status},${t.assignedDate},${t.assignedBy}`
       ).join("\n");
       
