@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem } from 'lucide-react';
+import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem, Search, CheckCircle, XCircle } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
 import { TRANSLATIONS } from '../constants';
@@ -24,6 +24,9 @@ const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(enablePreloader);
   const [tickets, setTickets] = useState<{number: string, isTaken: boolean}[]>([]);
+  const [luckySearch, setLuckySearch] = useState('');
+  const [luckyStatus, setLuckyStatus] = useState<'IDLE' | 'AVAILABLE' | 'TAKEN'>('IDLE');
+
   const t = TRANSLATIONS[language];
   
   // Fetch Realtime Tickets with Rolling Growth Logic (2% trigger)
@@ -79,6 +82,24 @@ const LandingPage: React.FC<LandingPageProps> = ({
     const element = document.getElementById('waitlist-section');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleLuckySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLuckySearch(val);
+    
+    if (!val) {
+        setLuckyStatus('IDLE');
+        return;
+    }
+
+    const ticket = tickets.find(t => t.number === val);
+    if (ticket) {
+        setLuckyStatus(ticket.isTaken ? 'TAKEN' : 'AVAILABLE');
+    } else {
+        // If it's within the current grid range but not found (logic edge case) or outside range
+        setLuckyStatus('IDLE');
     }
   };
 
@@ -219,51 +240,119 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Ticket Status Bar - TABLE BOARD DISPLAY */}
       <div className="bg-amber-900 text-white py-12 relative z-20 -mt-8 shadow-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-8">
-                <h3 className="text-xl font-bold flex items-center mb-4 md:mb-0">
-                <Ticket className="w-6 h-6 mr-2 text-amber-400" />
-                {language === 'en' ? "Live Ticket Status" : "የእጣ ቁጥሮች ሁኔታ"}
-                </h3>
-                <div className="flex space-x-6 text-sm bg-black/20 px-4 py-2 rounded-full">
-                  <div className="flex items-center">
-                      <span className="w-3 h-3 rounded bg-amber-900/50 border border-amber-700 mr-2"></span>
-                      <span className="text-stone-300 font-medium">{t.stats.taken}</span>
-                  </div>
-                  <div className="flex items-center">
-                      <span className="w-3 h-3 rounded bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] mr-2"></span>
-                      <span className="text-emerald-200 font-medium">{t.stats.lucky}</span>
-                  </div>
-                </div>
-            </div>
-
-            {/* Ticket Table Board */}
-            <div className="relative">
-                 {/* Decorative background glow */}
-                 <div className="absolute inset-0 bg-amber-500/5 blur-3xl rounded-full pointer-events-none"></div>
-
-                 <div className="relative grid grid-cols-10 sm:grid-cols-25 gap-1.5 p-2 bg-stone-900/60 rounded-xl border border-amber-900/30 backdrop-blur-sm max-w-5xl mx-auto">
-                    {tickets.map((ticket, i) => (
-                        <div 
-                          key={i} 
-                          onClick={scrollToWaitlist}
-                          className={`
-                            aspect-square rounded flex items-center justify-center font-black text-[16px] sm:text-2xl border transition-all duration-500 cursor-pointer
-                            ${ticket.isTaken 
-                            ? 'bg-amber-950/40 border-amber-900/30 text-stone-600' 
-                            : 'bg-emerald-600 text-white border-emerald-400/50 shadow-[0_0_8px_rgba(16,185,129,0.3)] transform hover:scale-110 hover:bg-emerald-500 hover:z-10'}
-                        `}>
-                            {ticket.number}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            {/* SEARCH BOX CONTAINER (DASHBOARD STYLE) */}
+            <div className="bg-white text-stone-800 rounded-2xl shadow-2xl overflow-hidden p-6 md:p-8">
+                
+                <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+                    <div>
+                        <h3 className="text-xl font-bold flex items-center text-stone-900">
+                            <Search className="w-5 h-5 mr-2 text-emerald-600" />
+                            {language === 'en' ? 'Check Lucky Number' : 'እድለኛ ቁጥር ይፈልጉ'}
+                        </h3>
+                        <p className="text-stone-500 text-sm mt-1">
+                            {language === 'en' ? 'Search for available numbers in the current cycle.' : 'በዚህ ዙር ያሉትን ክፍት ቁጥሮች ይፈልጉ።'}
+                        </p>
+                    </div>
+                     <div className="flex space-x-4 text-xs font-bold mt-4 md:mt-0 bg-stone-100 p-2 rounded-lg">
+                        <div className="flex items-center">
+                            <span className="w-3 h-3 rounded bg-emerald-500 mr-2"></span>
+                            <span className="text-emerald-700">{t.stats.lucky}</span>
                         </div>
-                    ))}
+                        <div className="flex items-center">
+                            <span className="w-3 h-3 rounded bg-stone-300 mr-2"></span>
+                            <span className="text-stone-500">{t.stats.taken}</span>
+                        </div>
+                    </div>
                 </div>
+
+                {/* SEARCH INPUT */}
+                <div className="relative mb-6">
+                      <input 
+                          type="number" 
+                          value={luckySearch}
+                          onChange={handleLuckySearch}
+                          placeholder={language === 'en' ? "Enter lucky number (e.g. 104)" : "እድለኛ ቁጥር ያስገቡ (ለምሳሌ 104)"}
+                          className={`w-full pl-5 pr-12 py-4 text-lg border-2 rounded-xl outline-none transition-all ${
+                              luckyStatus === 'AVAILABLE' ? 'border-emerald-500 ring-4 ring-emerald-500/10 bg-emerald-50/30' :
+                              luckyStatus === 'TAKEN' ? 'border-red-300 ring-4 ring-red-200 bg-red-50/30' :
+                              'border-stone-200 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10'
+                          }`}
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                           {luckyStatus === 'AVAILABLE' && <CheckCircle className="w-8 h-8 text-emerald-500 animate-bounce" />}
+                           {luckyStatus === 'TAKEN' && <XCircle className="w-8 h-8 text-red-500" />}
+                           {luckyStatus === 'IDLE' && <Search className="w-6 h-6 text-stone-300" />}
+                      </div>
+                </div>
+
+                {/* STATUS MESSAGES */}
+                {luckyStatus === 'AVAILABLE' && (
+                    <div className="mb-8 animate-fade-in-down">
+                        <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center justify-between">
+                             <div className="flex items-center">
+                                <CheckCircle className="w-6 h-6 text-emerald-600 mr-3" />
+                                <div>
+                                    <p className="text-emerald-800 font-bold text-lg">
+                                        #{luckySearch} {language === 'en' ? 'is Available!' : 'ክፍት ነው!'}
+                                    </p>
+                                    <p className="text-emerald-600 text-sm">
+                                        {language === 'en' ? 'Register now to secure this number.' : 'ይህንን ቁጥር ለመያዝ አሁኑኑ ይመዝገቡ።'}
+                                    </p>
+                                </div>
+                             </div>
+                             <button onClick={() => setView('login')} className="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold shadow-lg hover:bg-emerald-500 transition-colors">
+                                 {t.hero.cta}
+                             </button>
+                        </div>
+                    </div>
+                )}
+                
+                {luckyStatus === 'TAKEN' && (
+                     <div className="mb-8 animate-fade-in-down">
+                        <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center">
+                            <XCircle className="w-6 h-6 text-red-500 mr-3" />
+                            <p className="text-red-700 font-bold">
+                                #{luckySearch} {language === 'en' ? 'is already taken.' : 'ተይዟል።'}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* GRID */}
+                 <div className="relative">
+                     <h4 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">
+                        {language === 'en' ? 'Live Availability Board' : 'የእጣ ቁጥሮች ሰሌዳ'}
+                     </h4>
+                     <div className="relative grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-2 p-4 bg-stone-50 rounded-xl border border-stone-100 max-h-[400px] overflow-y-auto custom-scrollbar">
+                        {tickets.map((ticket, i) => (
+                            <div 
+                              key={i} 
+                              onClick={() => {
+                                  if (!ticket.isTaken) {
+                                      setLuckySearch(ticket.number);
+                                      setLuckyStatus('AVAILABLE');
+                                  } else {
+                                      setLuckySearch(ticket.number);
+                                      setLuckyStatus('TAKEN');
+                                  }
+                              }}
+                              className={`
+                                aspect-square rounded-lg flex items-center justify-center font-bold text-sm md:text-base border transition-all duration-300 cursor-pointer
+                                ${ticket.isTaken 
+                                ? 'bg-stone-200 text-stone-400 border-stone-200 cursor-not-allowed' 
+                                : 'bg-white text-emerald-600 border-emerald-200 shadow-sm hover:bg-emerald-500 hover:text-white hover:border-emerald-500 hover:scale-110 hover:shadow-md hover:z-10'}
+                                ${luckySearch === ticket.number ? 'ring-4 ring-amber-400 z-20 scale-110' : ''}
+                            `}>
+                                {ticket.number}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
             </div>
             
-            <div className="text-center mt-6">
-                <p className="text-amber-200/60 text-xs uppercase tracking-widest">
-                  {language === 'en' ? 'Real-time Availability' : 'የእጣ ቁጥሮች ሁኔታ በቅጽበት'}
-                </p>
-            </div>
         </div>
       </div>
       
