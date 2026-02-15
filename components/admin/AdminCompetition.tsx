@@ -55,14 +55,14 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
   const [compSubTab, setCompSubTab] = useState<'settings' | 'tickets'>('settings');
   const [ticketSearch, setTicketSearch] = useState('');
 
-  // Helper to check if user is valid (not PENDING)
+  // Helper to check if user is valid (Strictly VERIFIED)
   const isUserValid = (userId: string | number) => {
       const u = users.find(user => String(user.id) === String(userId));
-      return !(u && u.status === 'PENDING');
+      return !!u && u.status === 'VERIFIED';
   };
 
   const filteredTickets = tickets.filter(t => {
-      // 1. Check User Status
+      // 1. Check User Status - Must be VERIFIED
       if (!isUserValid(t.userId)) return false;
 
       // 2. Check Search & Cycle
@@ -97,7 +97,7 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
       link.click();
       document.body.removeChild(link);
       
-      showAlert('success', 'Export Successful', 'Ticket data exported to CSV in ascending order (Pending users excluded).');
+      showAlert('success', 'Export Successful', 'Ticket data exported to CSV in ascending order (Pending/Unverified users excluded).');
   };
 
   return (
@@ -264,7 +264,13 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
                                         <tr key={t.id}>
                                             <td className="px-6 py-4 font-mono font-bold">#{t.ticketNumber}</td>
                                             <td className="px-6 py-4">{t.userName}</td>
-                                            <td className="px-6 py-4">{t.status}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                                    t.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                                }`}>
+                                                    {t.status}
+                                                </span>
+                                            </td>
                                         </tr>
                                     ))
                                 ) : (
