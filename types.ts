@@ -24,6 +24,14 @@ export interface AppNotification {
   read: boolean;
 }
 
+export interface CurrentWinner {
+  userId: string | number;
+  userName: string;
+  ticketNumber: number;
+  prizeName: string;
+  announcedAt: string;
+}
+
 export interface AppSettings {
   nextDrawDateEn: string;
   nextDrawDateAm: string;
@@ -37,8 +45,9 @@ export interface AppSettings {
   prizeName: string;
   prizeValue: string;
   prizeImage: string;
-  prizeImages?: string[]; // Added support for multiple images
+  prizeImages?: string[]; 
   recentWinners: Winner[];
+  currentWinner?: CurrentWinner | null; // New field for live winner announcement
   liveStreamUrl: string;
   isLive: boolean;
   registrationEnabled: boolean;

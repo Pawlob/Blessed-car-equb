@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle, Car } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -35,6 +35,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showWinnerCelebration, setShowWinnerCelebration] = useState(false);
   
   const [selectedTempTicket, setSelectedTempTicket] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
@@ -82,6 +83,16 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
     return () => unsub();
   }, [user?.id, setUser]);
+
+  // --- Winner Detection ---
+  useEffect(() => {
+     if (settings.currentWinner && user.id) {
+         // Convert both to string to be safe
+         if (String(settings.currentWinner.userId) === String(user.id)) {
+             setShowWinnerCelebration(true);
+         }
+     }
+  }, [settings.currentWinner, user.id]);
 
   // --- Rolling Growth Ticket Fetch (Grid) ---
   useEffect(() => {
@@ -365,6 +376,62 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   return (
     <div className="min-h-screen bg-stone-50 pt-20 pb-12 relative">
       
+      {/* WINNER CELEBRATION MODAL */}
+      {showWinnerCelebration && settings.currentWinner && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in-up">
+           {/* Confetti Elements */}
+           {Array.from({ length: 50 }).map((_, i) => (
+             <div 
+               key={i} 
+               className="absolute w-2 h-2 rounded-full animate-pulse-slow"
+               style={{
+                 left: `${Math.random() * 100}%`,
+                 top: `-10px`,
+                 backgroundColor: ['#fcd34d', '#34d399', '#f87171', '#60a5fa'][Math.floor(Math.random() * 4)],
+                 animation: `fall ${2 + Math.random() * 3}s linear infinite`,
+                 animationDelay: `${Math.random() * 5}s`
+               }}
+             />
+           ))}
+           <style>{`
+             @keyframes fall {
+               to { transform: translateY(100vh) rotate(720deg); }
+             }
+           `}</style>
+           
+           <div className="relative z-10 bg-gradient-to-br from-amber-50 to-white rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center border-4 border-amber-400/50 overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
+               
+               <div className="relative z-20">
+                   <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-4 ring-amber-200 animate-bounce">
+                       <Trophy className="w-12 h-12 text-amber-600" />
+                   </div>
+                   
+                   <h2 className="text-4xl font-black text-amber-600 mb-2 uppercase tracking-wide">{t.winner_congrats}</h2>
+                   <p className="text-stone-600 text-lg mb-8">{t.winner_desc}</p>
+                   
+                   <div className="bg-white rounded-2xl p-6 shadow-lg border border-stone-100 mb-8 transform rotate-1 hover:rotate-0 transition-transform duration-300">
+                       <div className="flex items-center justify-between mb-4 border-b border-stone-100 pb-4">
+                           <span className="text-stone-400 font-bold text-xs uppercase">{t.winner_ticket}</span>
+                           <span className="text-2xl font-black text-emerald-600">#{settings.currentWinner.ticketNumber}</span>
+                       </div>
+                       <div className="flex flex-col items-center">
+                           <Car className="w-12 h-12 text-stone-800 mb-2" />
+                           <h3 className="text-xl font-bold text-stone-800">{settings.currentWinner.prizeName}</h3>
+                       </div>
+                   </div>
+
+                   <button 
+                     onClick={() => setShowWinnerCelebration(false)}
+                     className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-xl shadow-emerald-200 transform transition-all hover:scale-105 active:scale-95"
+                   >
+                       {t.claim_prize}
+                   </button>
+               </div>
+           </div>
+        </div>
+      )}
+
       {/* Notifications Modal Window */}
       {showNotifications && (
         <div className="fixed inset-0 z-[60] flex items-start justify-end px-4 sm:px-8 pt-20" onClick={() => setShowNotifications(false)}>

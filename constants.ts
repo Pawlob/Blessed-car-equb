@@ -96,7 +96,11 @@ export const TRANSLATIONS = {
         confirm_paid: "I Have Paid",
         account_no: "Account Number",
         merchant_id: "Merchant ID",
-        acc_name: "Account Name"
+        acc_name: "Account Name",
+        winner_congrats: "CONGRATULATIONS!",
+        winner_desc: "You are the winner of this cycle's Grand Prize!",
+        winner_ticket: "Winning Ticket",
+        claim_prize: "Claim Prize"
     },
     terms_page: {
         title: "Terms and Conditions",
@@ -229,7 +233,11 @@ export const TRANSLATIONS = {
         confirm_paid: "ክፍያ ፈጽሚያለሁ",
         account_no: "የሂሳብ ቁጥር",
         merchant_id: "የንግድ መለያ",
-        acc_name: "የሂሳብ ስም"
+        acc_name: "የሂሳብ ስም",
+        winner_congrats: "እንኳን ደስ አለዎት!",
+        winner_desc: "የዚህ ዙር ታላቅ ሽልማት አሸናፊ እርስዎ ነዎት!",
+        winner_ticket: "አሸናፊ ቲኬት",
+        claim_prize: "ሽልማቱን ይቀበሉ"
     },
     terms_page: {
         title: "ውሎች እና ሁኔታዎች",
