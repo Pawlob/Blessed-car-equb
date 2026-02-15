@@ -47,7 +47,7 @@ export interface AppSettings {
   prizeImage: string;
   prizeImages?: string[]; 
   recentWinners: Winner[];
-  currentWinner?: CurrentWinner | null;
+  currentWinner?: CurrentWinner | null; // New field for live winner announcement
   liveStreamUrl: string;
   isLive: boolean;
   registrationEnabled: boolean;
@@ -62,29 +62,6 @@ export interface User {
   contribution: number;
   prizeNumber?: number;
   joinedDate?: string;
-}
-
-export interface PaymentRequest {
-  id: string;
-  userId: string | number;
-  userName: string;
-  userPhone: string;
-  amount: number;
-  date: string;
-  receiptUrl: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  requestedTicket?: number;
-}
-
-export interface TicketType {
-  id: string;
-  ticketNumber: number;
-  userId: string | number;
-  userName: string;
-  cycle: number;
-  status: 'ACTIVE' | 'VOID' | 'PENDING' | 'RESERVED';
-  assignedDate: string;
-  assignedBy: 'SYSTEM' | 'ADMIN' | 'USER';
 }
 
 export interface NavProps {
