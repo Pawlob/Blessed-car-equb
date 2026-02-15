@@ -33,7 +33,7 @@ interface TicketType {
   userId: string | number;
   userName: string;
   cycle: number;
-  status: 'ACTIVE' | 'VOID';
+  status: 'ACTIVE' | 'VOID' | 'PENDING' | 'RESERVED';
   assignedDate: string;
   assignedBy: 'SYSTEM' | 'ADMIN' | 'USER';
 }
@@ -445,62 +445,123 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
     const reqRef = doc(db, 'payment_requests', reqId);
     await updateDoc(reqRef, { status: 'APPROVED' });
     
-    // 3. Generate Ticket
-    // Find next available ticket number for the current cycle
-    const currentCycleTickets = tickets.filter(t => t.cycle === settings.cycle);
-    const takenNumbers = new Set(currentCycleTickets.map(t => t.ticketNumber));
-    
+    // 3. Handle Ticket Assignment
     let assignedTicketNum = 0;
-    let assignedBy: 'SYSTEM' | 'USER' = 'SYSTEM';
+    
+    // Check if the requested ticket is already in the system (could be PENDING reservation)
+    if (requestedTicket) {
+        const existingTicket = tickets.find(t => 
+            t.cycle === settings.cycle && 
+            t.ticketNumber === requestedTicket
+        );
 
-    if (requestedTicket && !takenNumbers.has(requestedTicket)) {
-        assignedTicketNum = requestedTicket;
-        assignedBy = 'USER';
+        if (existingTicket) {
+            // Case A: It's the reservation for this user (Status: PENDING)
+            if (existingTicket.userId === userId && existingTicket.status === 'PENDING') {
+                const ticketRef = doc(db, 'tickets', existingTicket.id);
+                await updateDoc(ticketRef, { status: 'ACTIVE', assignedBy: 'ADMIN' });
+                assignedTicketNum = requestedTicket;
+            } 
+            // Case B: It's taken by someone else or already active
+            else {
+                // Conflict resolution: Find next available
+                const currentCycleTickets = tickets.filter(t => t.cycle === settings.cycle);
+                const takenNumbers = new Set(currentCycleTickets.map(t => t.ticketNumber));
+                
+                let nextTicketNum = 1;
+                while (takenNumbers.has(nextTicketNum)) {
+                    nextTicketNum++;
+                }
+                assignedTicketNum = nextTicketNum;
+                
+                // Create NEW ticket since the requested one was unavailable
+                const newTicket: any = {
+                    ticketNumber: assignedTicketNum,
+                    userId: userId,
+                    userName: userName,
+                    cycle: settings.cycle,
+                    status: 'ACTIVE',
+                    assignedDate: new Date().toISOString().split('T')[0],
+                    assignedBy: 'SYSTEM'
+                };
+                await addDoc(collection(db, 'tickets'), newTicket);
+
+                showAlert('warning', 'Ticket Conflict', `Requested ticket #${requestedTicket} was not available (Status: ${existingTicket.status}). System assigned #${assignedTicketNum} instead.`);
+            }
+        } else {
+            // Case C: Requested, but no record exists (maybe user deleted it or race condition, or legacy request)
+            assignedTicketNum = requestedTicket;
+            const newTicket: any = {
+                ticketNumber: assignedTicketNum,
+                userId: userId,
+                userName: userName,
+                cycle: settings.cycle,
+                status: 'ACTIVE',
+                assignedDate: new Date().toISOString().split('T')[0],
+                assignedBy: 'USER'
+            };
+            await addDoc(collection(db, 'tickets'), newTicket);
+        }
     } else {
+        // Case D: No specific ticket requested (Auto-assign)
+        const currentCycleTickets = tickets.filter(t => t.cycle === settings.cycle);
+        const takenNumbers = new Set(currentCycleTickets.map(t => t.ticketNumber));
+        
         let nextTicketNum = 1;
         while (takenNumbers.has(nextTicketNum)) {
             nextTicketNum++;
         }
         assignedTicketNum = nextTicketNum;
-        
-        if (requestedTicket) {
-             showAlert('warning', 'Ticket Conflict', `Requested ticket #${requestedTicket} was already taken. System assigned #${assignedTicketNum} instead.`);
-        }
+
+        const newTicket: any = {
+            ticketNumber: assignedTicketNum,
+            userId: userId,
+            userName: userName,
+            cycle: settings.cycle,
+            status: 'ACTIVE',
+            assignedDate: new Date().toISOString().split('T')[0],
+            assignedBy: 'SYSTEM'
+        };
+        await addDoc(collection(db, 'tickets'), newTicket);
     }
 
-    const newTicket: any = {
-        ticketNumber: assignedTicketNum,
-        userId: userId,
-        userName: userName,
-        cycle: settings.cycle,
-        status: 'ACTIVE',
-        assignedDate: new Date().toISOString().split('T')[0],
-        assignedBy: assignedBy
-    };
-
-    // Add to ticket management system
-    await addDoc(collection(db, 'tickets'), newTicket);
-
-    // 4. Update user status, contribution, and assign the ticket number
-    // Ensure userId is string for Firestore doc reference
+    // 4. Update user status, contribution
     if (userId) {
         const userRef = doc(db, 'users', userId.toString());
         await updateDoc(userRef, {
             status: 'VERIFIED',
             contribution: (targetUser?.contribution || 0) + amount,
-            prizeNumber: assignedTicketNum
+            prizeNumber: assignedTicketNum // Keeping for compatibility, though we rely on tickets collection
         });
     }
     
-    if (!requestedTicket || assignedTicketNum === requestedTicket) {
-        showAlert('success', 'Payment Verified', `User verified and Ticket #${assignedTicketNum} has been assigned.`);
+    if (assignedTicketNum === requestedTicket) {
+        showAlert('success', 'Payment Verified', `User verified and Ticket #${assignedTicketNum} has been activated.`);
     }
   };
 
-  const handleRejectPayment = async (reqId: string) => {
+  const handleRejectPayment = async (req: PaymentRequest) => {
+    const { id: reqId, userId, requestedTicket } = req;
+
+    // 1. Reject Request
     const reqRef = doc(db, 'payment_requests', reqId);
     await updateDoc(reqRef, { status: 'REJECTED' });
-    showAlert('info', 'Payment Rejected', 'The payment has been rejected.');
+
+    // 2. Void/Delete Pending Ticket Reservation
+    if (requestedTicket) {
+        const reservation = tickets.find(t => 
+            t.cycle === settings.cycle && 
+            t.ticketNumber === requestedTicket &&
+            t.userId === userId &&
+            t.status === 'PENDING'
+        );
+        
+        if (reservation) {
+            await deleteDoc(doc(db, 'tickets', reservation.id));
+        }
+    }
+
+    showAlert('info', 'Payment Rejected', 'The payment has been rejected and ticket reservation cleared.');
   };
 
   // Start New Cycle Logic
@@ -1267,7 +1328,7 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                                                             ticket.status === 'ACTIVE' 
                                                             ? 'bg-emerald-100 text-emerald-800' 
-                                                            : 'bg-red-100 text-red-800'
+                                                            : (ticket.status === 'PENDING' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800')
                                                         }`}>
                                                             {ticket.status}
                                                         </span>
@@ -1307,129 +1368,6 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                             </div>
                         </div>
                     )}
-                </div>
-            )}
-
-            {/* --- USERS TAB --- */}
-            {activeTab === 'users' && (
-                <div className="space-y-6 animate-fade-in-up">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
-                        {/* ... User Management content ... */}
-                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                           <div className="relative">
-                               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                   <Filter className="w-4 h-4 text-stone-400" />
-                               </div>
-                               <select 
-                                 value={statusFilter}
-                                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                                 className="pl-9 pr-8 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-auto appearance-none bg-white"
-                               >
-                                   <option value="ALL">All Status</option>
-                                   <option value="VERIFIED">Verified</option>
-                                   <option value="PENDING">Pending</option>
-                               </select>
-                           </div>
-
-                           <div className="relative flex-grow sm:flex-grow-0">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search users..." 
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none w-full sm:w-64"
-                                />
-                           </div>
-
-                            <button 
-                             onClick={() => handleSaveSection('User Database')}
-                             className="flex items-center justify-center px-4 py-2 bg-stone-800 text-white rounded-lg hover:bg-stone-700 font-bold shadow-md transition-colors"
-                           >
-                               <Save className="w-4 h-4 mr-2" /> Save Changes
-                           </button>
-
-                           <button 
-                             onClick={openAddUser}
-                             className="flex items-center justify-center px-4 py-2 bg-emerald-900 text-white rounded-lg hover:bg-emerald-800 font-bold shadow-md transition-colors"
-                           >
-                               <Plus className="w-4 h-4 mr-2" /> Add User
-                           </button>
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left whitespace-nowrap">
-                                <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
-                                    <tr>
-                                        <th className="px-6 py-3">ID</th>
-                                        <th className="px-6 py-3">Name</th>
-                                        <th className="px-6 py-3">Phone</th>
-                                        <th className="px-6 py-3">Status</th>
-                                        <th className="px-6 py-3">Total Contrib.</th>
-                                        <th className="px-6 py-3">Ticket #</th>
-                                        <th className="px-6 py-3">Joined</th>
-                                        <th className="px-6 py-3 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-stone-100">
-                                    {filteredUsers.map((user) => (
-                                        <tr key={user.id} className="hover:bg-stone-50 group transition-colors">
-                                            <td className="px-6 py-4 text-stone-500 text-sm">#{user.id?.toString().substring(0,6)}</td>
-                                            <td className="px-6 py-4 font-bold text-stone-800">{user.name}</td>
-                                            <td className="px-6 py-4 text-stone-600">{user.phone}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                                    user.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                                                }`}>
-                                                    {user.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-mono text-stone-500">{user.contribution.toLocaleString()}</td>
-                                            <td className="px-6 py-4">
-                                                {user.prizeNumber ? (
-                                                    <span className="bg-stone-800 text-white px-2 py-1 rounded text-xs font-bold">
-                                                        {formatTicket(user.prizeNumber)}
-                                                    </span>
-                                                ) : <span className="text-stone-300">-</span>}
-                                            </td>
-                                            <td className="px-6 py-4 text-stone-400 text-sm">{user.joinedDate}</td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end space-x-2">
-                                                    <button 
-                                                        onClick={() => openEditUser(user)}
-                                                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                        title="Edit User"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button 
-                                                        onClick={() => handleDeleteUser(user.id!)}
-                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="Delete User"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {filteredUsers.length === 0 && (
-                                        <tr>
-                                            <td colSpan={9} className="text-center py-12 text-stone-500">
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <Search className="w-8 h-8 text-stone-300 mb-2" />
-                                                    <p>No users found matching your search.</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             )}
 
