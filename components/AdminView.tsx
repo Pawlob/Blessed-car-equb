@@ -1441,6 +1441,132 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                 </div>
             )}
 
+            {/* --- USERS MANAGEMENT TAB --- */}
+            {activeTab === 'users' && (
+                <div className="space-y-6 animate-fade-in-up">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h1 className="text-2xl font-bold text-stone-800">User Management</h1>
+                        <button 
+                            onClick={openAddUser}
+                            className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white rounded-lg font-bold flex items-center shadow-lg transition-transform active:scale-95"
+                        >
+                            <Plus className="w-4 h-4 mr-2" /> Add New User
+                        </button>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-stone-200 flex flex-col md:flex-row gap-4">
+                        <div className="relative flex-grow">
+                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-stone-400" />
+                             </div>
+                             <input 
+                                type="text" 
+                                placeholder="Search by name or phone..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 pr-4 py-2 border border-stone-300 rounded-lg w-full focus:ring-2 focus:ring-emerald-500 outline-none" 
+                             />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Filter className="w-5 h-5 text-stone-500" />
+                            <select 
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value as any)}
+                                className="py-2 px-4 border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white cursor-pointer"
+                            >
+                                <option value="ALL">All Status</option>
+                                <option value="VERIFIED">Verified</option>
+                                <option value="PENDING">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Users Table */}
+                    <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left whitespace-nowrap">
+                                <thead className="bg-stone-50 text-stone-500 text-xs uppercase">
+                                    <tr>
+                                        <th className="px-6 py-3">User</th>
+                                        <th className="px-6 py-3">Phone</th>
+                                        <th className="px-6 py-3">Status</th>
+                                        <th className="px-6 py-3">Contribution</th>
+                                        <th className="px-6 py-3">Ticket #</th>
+                                        <th className="px-6 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-stone-100">
+                                    {filteredUsers.length > 0 ? (
+                                        filteredUsers.map((user) => (
+                                            <tr key={user.id} className="hover:bg-stone-50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-stone-800">{user.name}</div>
+                                                    <div className="text-xs text-stone-400">Joined: {user.joinedDate || 'N/A'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 font-mono text-sm text-stone-600">{user.phone}</td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-bold inline-flex items-center ${
+                                                        user.status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                                    }`}>
+                                                        {user.status === 'VERIFIED' ? <CheckCircle className="w-3 h-3 mr-1" /> : <Clock className="w-3 h-3 mr-1" />}
+                                                        {user.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 font-bold text-stone-700">
+                                                    {user.contribution.toLocaleString()} ETB
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {user.prizeNumber ? (
+                                                        <span className="bg-stone-100 text-stone-600 px-2 py-1 rounded text-xs font-bold border border-stone-200">
+                                                            #{user.prizeNumber}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-stone-300 text-xs">-</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end space-x-2">
+                                                        <button 
+                                                            onClick={() => openEditUser(user)}
+                                                            className="p-1.5 bg-stone-100 hover:bg-emerald-100 text-stone-500 hover:text-emerald-700 rounded-lg transition-colors"
+                                                            title="Edit User"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDeleteUser(user.id)}
+                                                            className="p-1.5 bg-stone-100 hover:bg-red-100 text-stone-500 hover:text-red-700 rounded-lg transition-colors"
+                                                            title="Delete User"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-12 text-center text-stone-500 bg-stone-50/50">
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <Search className="w-12 h-12 text-stone-200 mb-3" />
+                                                    <p>No users found matching your search.</p>
+                                                    <button onClick={() => { setSearchTerm(''); setStatusFilter('ALL'); }} className="mt-2 text-emerald-600 text-sm font-bold hover:underline">Clear Filters</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="bg-stone-50 px-6 py-3 border-t border-stone-200 text-xs text-stone-500 flex justify-between items-center font-medium">
+                            <span>Showing {filteredUsers.length} users</span>
+                            <span>Total Users: {users.length}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* --- PAYMENTS TAB --- */}
             {activeTab === 'payments' && (
                 <div className="space-y-6 animate-fade-in-up">
