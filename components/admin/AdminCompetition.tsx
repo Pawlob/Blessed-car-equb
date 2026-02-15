@@ -69,10 +69,16 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
 
   const handleExportTickets = () => {
       // Create CSV content
-      const headers = "Ticket ID,Ticket Number,User Name,Cycle,Status,Assigned Date,Assigned By\n";
+      const headers = "Ticket ID,Lucky Number,User Name,Cycle,Status,Assigned Date,Assigned By\n";
       
-      // Sort tickets by ticketNumber ascending
-      const sortedTickets = [...tickets].filter(t => t.cycle === settings.cycle).sort((a, b) => a.ticketNumber - b.ticketNumber);
+      // Sort tickets by lucky number (ticketNumber) ascending
+      const sortedTickets = [...tickets]
+        .filter(t => t.cycle === settings.cycle)
+        .sort((a, b) => {
+            const numA = Number(a.ticketNumber);
+            const numB = Number(b.ticketNumber);
+            return numA - numB;
+        });
 
       const rows = sortedTickets.map(t => 
           `${t.id},${t.ticketNumber},"${t.userName}",${t.cycle},${t.status},${t.assignedDate},${t.assignedBy}`
@@ -82,12 +88,12 @@ const AdminCompetition: React.FC<AdminCompetitionProps> = ({
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `tickets_cycle_${settings.cycle}.csv`);
+      link.setAttribute("download", `lucky_numbers_cycle_${settings.cycle}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      showAlert('success', 'Export Successful', 'Ticket data exported to CSV.');
+      showAlert('success', 'Export Successful', 'Ticket data exported to CSV in ascending order.');
   };
 
   return (
