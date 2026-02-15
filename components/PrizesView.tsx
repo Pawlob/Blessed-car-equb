@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Trophy, Calendar, DollarSign, ChevronRight, Car } from 'lucide-react';
 import { Language, AppSettings, ViewState } from '../types';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 
 interface PrizesViewProps {
   language: Language;
@@ -12,6 +12,15 @@ interface PrizesViewProps {
 const PrizesView: React.FC<PrizesViewProps> = ({ language, settings, setView }) => {
   const t = TRANSLATIONS[language].prizes_page;
   const commonT = TRANSLATIONS[language];
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Carousel Effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="pt-20 pb-12 min-h-screen bg-stone-50">
@@ -72,13 +81,17 @@ const PrizesView: React.FC<PrizesViewProps> = ({ language, settings, setView }) 
                             </button>
                         </div>
                     </div>
-                    <div className="relative h-64 md:h-auto bg-stone-200">
-                        <img 
-                            src={settings.prizeImage} 
-                            alt={settings.prizeName} 
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 to-transparent md:bg-gradient-to-l"></div>
+                    <div className="relative h-64 md:h-auto bg-stone-200 overflow-hidden">
+                        {/* Carousel Images */}
+                        {PRIZE_IMAGES.map((img, index) => (
+                            <img 
+                                key={index}
+                                src={img}
+                                alt={`${settings.prizeName} view ${index + 1}`}
+                                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                            />
+                        ))}
+                        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 to-transparent md:bg-gradient-to-l pointer-events-none"></div>
                     </div>
                 </div>
             </div>

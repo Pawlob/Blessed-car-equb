@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Trophy, ChevronRight, Play, Car, Users, ShieldCheck, Ticket, Gem, Search, CheckCircle, XCircle } from 'lucide-react';
 import Features from './Features';
 import SocialProofSection from './SocialProofSection';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { Language, ViewState, AppSettings } from '../types';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -26,8 +26,17 @@ const LandingPage: React.FC<LandingPageProps> = ({
   const [tickets, setTickets] = useState<{number: string, isTaken: boolean}[]>([]);
   const [luckySearch, setLuckySearch] = useState('');
   const [luckyStatus, setLuckyStatus] = useState<'IDLE' | 'AVAILABLE' | 'TAKEN'>('IDLE');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const t = TRANSLATIONS[language];
+
+  // Carousel Effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Fetch Realtime Tickets with Rolling Growth Logic (2% trigger)
   useEffect(() => {
@@ -207,11 +216,15 @@ const LandingPage: React.FC<LandingPageProps> = ({
                           </div>
                       </div>
 
-                      <img 
-                        src={settings.prizeImage}
-                        alt={settings.prizeName} 
-                        className="absolute inset-0 w-full h-full object-cover z-0"
-                      />
+                      {/* Carousel Images */}
+                      {PRIZE_IMAGES.map((img, index) => (
+                        <img 
+                          key={index}
+                          src={img}
+                          alt={`${settings.prizeName} view ${index + 1}`}
+                          className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                        />
+                      ))}
                       
                       <div className="absolute inset-0 flex items-end justify-end z-20 p-4">
                           <span className="text-stone-100 font-bold text-sm md:text-base border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-3 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">

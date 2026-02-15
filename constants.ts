@@ -1,9 +1,8 @@
 
-
 export const TRANSLATIONS = {
   en: {
     nav: { home: "Home", how: "How It Works", prizes: "Prizes", join: "Join Now", login: "Login", logout: "Logout", dashboard: "Dashboard", secure: "Secure Session", profile: "Profile" },
-    hero: { subtitle: "TO DRAW THIS CYCLES PRIZE:", subtitle_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "Toyota Corolla Cross 2025" },
+    hero: { subtitle: "TO DRAW THIS CYCLES PRIZE:", subtitle_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR", title1: "Drive Your Dream.", title2: "Secure Your Future.", desc: "Experience the future of saving with Ethiopia's premier digital Equb. We combine tradition with technology to turn your monthly contributions into the car of your dreams.", cta: "Start Saving Today", watch: "Watch Video", prize_label: "This Month's Prize", prize_value: "Value", prize_name: "BYD E2 Luxury 2025" },
     stats: { members: "Active Members", cars: "Cars Delivered", pot: "Total Pot Value", trust: "Trust Score", taken: "Taken Numbers", lucky: "Lucky Numbers" },
     features: {
         heading_sub: "How It Works",
@@ -77,7 +76,7 @@ export const TRANSLATIONS = {
         history: "Recent Activity",
         next_draw: "TO DRAW THIS CYCLES PRIZE: 14 DAYS",
         next_draw_today: "TODAY ONE LUCKY PERSON WILL TAKE THE CAR",
-        win_title: "Win a Toyota Corolla Cross",
+        win_title: "Win a BYD E2 Luxury",
         win_desc: "Make your contribution today to enter the draw. Verified members only.",
         btn_paid: "Contribution Paid",
         live_activity: "Live Activity",
@@ -88,11 +87,11 @@ export const TRANSLATIONS = {
         payment_due: "Payment Due",
         btn_processing: "Processing...",
         select_ticket: "Select Lucky Number",
-        select_ticket_desc: "Choose an available number for the upcoming draw.",
+        select_ticket_desc: "Choose a number for the next draw.",
         confirm_ticket: "Confirm Number",
-        my_ticket: "My Ticket #",
-        ticket_saved: "Ticket Saved!",
-        ticket_instruction: "Green numbers are available. Grey are taken.",
+        my_ticket: "My Number",
+        ticket_saved: "Number Saved!",
+        ticket_instruction: "Green numbers are available.",
         change_method: "Change Method",
         confirm_paid: "I Have Paid",
         account_no: "Account Number",
@@ -104,55 +103,55 @@ export const TRANSLATIONS = {
         last_updated: "Last Updated: March 2024",
         sections: [
             {
-                heading: "1. Acceptance of Terms",
-                content: "By accessing and using the Blessed Digital Equb platform, you accept and agree to be bound by the terms and provision of this agreement."
+                heading: "1. Service Agreement",
+                content: "By using the Blessed Digital Equb application, you agree to be bound by the terms and obligations outlined in this agreement."
             },
             {
                 heading: "2. Eligibility",
-                content: "You must be at least 18 years of age and a resident of Ethiopia to participate in the lottery and Equb cycles. Valid identification will be required to claim prizes."
+                content: "You must be at least 18 years old and a resident of Ethiopia to participate in draws and Equb cycles. Valid ID is required to claim prizes."
             },
             {
-                heading: "3. Contributions & Payments",
-                content: "Members agree to make monthly contributions as specified by their tier. Payments are non-refundable once the monthly cycle has officially begun. Failure to pay may result in suspension."
+                heading: "3. Payments & Savings",
+                content: "Members agree to make monthly payments according to their selected tier. Contributions are non-refundable once a cycle begins. Failure to pay may result in suspension."
             },
             {
-                heading: "4. Prize Drawings",
-                content: "Winners are selected through a transparent, random draw process. The results are final and binding. Winners must claim their prize within 30 days of the announcement."
+                heading: "4. Draw Process",
+                content: "Winners are selected through a transparent, random draw process. Results are final. Winners must claim their prize within 30 days."
             },
             {
-                heading: "5. Privacy Policy",
-                content: "We value your privacy. Your personal information, including phone number and payment details, is encrypted and used solely for platform operations and verification."
+                heading: "5. Privacy",
+                content: "We value your privacy. Your personal information, including phone number and payment details, is encrypted and used solely for service delivery and verification."
             }
         ]
     },
     footer: {
-        desc: "Transforming traditional Ethiopian savings into modern digital assets.",
+        desc: "We have transformed the traditional Ethiopian Equb into a modern digital asset.",
         contact: "Contact",
-        social: "Social",
+        social: "Social Media",
         rights: "Blessed Digital Equb.",
         terms: "Terms & Conditions",
         privacy: "Privacy Policy"
     }
   },
   am: {
-    nav: { home: "መነሻ", how: "አሰራሩ", prizes: "ሽልማቶች", join: "ይቀላቀሉ", login: "ይግቡ", logout: "ውጣ", dashboard: "ዳሽቦርድ", secure: "ደህንነቱ የተጠበቀ", profile: "መገለጫ" },
-    hero: { subtitle: "የዚህን ዙር ሽልማት እጣ ለማውጣት:", subtitle_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል", title1: "የህልም መኪናዎን ያሽከርክሩ።", title2: "የወደፊት ህይወቶን ያስጠብቁ።", desc: "የኢትዮጵያን ባህላዊ እቁብ ከዘመናዊ ቴክኖሎጂ ጋር አቀናጅተናል። ወራዊ ቁጠባዎን በአስተማማኝ ሁኔታ በማስቀመጥ የህልም መኪናዎን ባለቤት ይሁኑ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "ቶዮታ ኮሮላ ክሮስ 2025" },
-    stats: { members: "ንቁ አባላት", cars: "የተረከቡ መኪኖች", pot: "ጠቅላላ የእቁብ መጠን", trust: "የታማኝነት ነጥብ", taken: "የተያዙ ቁጥሮች", lucky: "እድለኛ ቁጥሮች" },
+    nav: { home: "መነሻ", how: "እንዴት ይሰራል", prizes: "ሽልማቶች", join: "ይመዝገቡ", login: "ይግቡ", logout: "ውጣ", dashboard: "ዳሽቦርድ", secure: "ደህንነቱ የተጠበቀ", profile: "ፕሮፋይል" },
+    hero: { subtitle: "የዚህ ዙር እጣ ሊወጣ የቀረው ጊዜ:", subtitle_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል", title1: "ህልምዎን ይንዱ።", title2: "ነገዎን ያረጋግጡ።", desc: "የቁጠባ ባህልን ከዘመናዊ ቴክኖሎጂ ጋር በማጣመር የህልም መኪናዎን ባለቤት የሚያደርግዎ የኢትዮጵያ ቀዳሚ ዲጂታል እቁብ።", cta: "ዛሬ መቆጠብ ይጀምሩ", watch: "ቪዲዮ ይመልከቱ", prize_label: "የዚህ ወር ሽልማት", prize_value: "ዋጋ", prize_name: "BYD E2 Luxury 2025" },
+    stats: { members: "ንቁ አባላት", cars: "የተሰጡ መኪኖች", pot: "ጠቅላላ የገንዘብ መጠን", trust: "የታማኝነት ነጥብ", taken: "የተያዙ ቁጥሮች", lucky: "እድለኛ ቁጥሮች" },
     features: {
-        heading_sub: "እንዴት ይሰራል?",
+        heading_sub: "እንዴት ይሰራል",
         heading_main: "ወደ አዲሱ መኪናዎ የሚወስዱ",
-        heading_highlight: "3 ደረጃዎች",
-        desc: "ባህላዊውን የእቁብ አሰራር ወደ ዘመናዊ ቴክኖሎጂ ቀይረነዋል። አስተማማኝ፣ ግልጽ እና ከየትኛውም ቦታ ሆነው የሚሳተፉበት ነው።",
+        heading_highlight: "ሶስት ደረጃዎች",
+        desc: "ባህላዊውን የእቁብ ስርዓት ደህንነቱ የተጠበቀ፣ ግልጽ እና ከየትኛውም ቦታ ሆነው በቀላሉ የሚሳተፉበት አድርገን ዘምነነዋል።",
         step1_title: "ይመዝገቡ እና ያረጋግጡ",
-        step1_desc: "በስልክ ቁጥርዎ በቀላሉ በመመዝገብ ደህንነቱ የተጠበቀ መለያ ይፍጠሩ።",
-        step2_title: "ወራዊ ቁጠባ",
+        step1_desc: "ስልክ ቁጥርዎን በመጠቀም ደህንነቱ የተጠበቀ መለያ ይፍጠሩ።",
+        step2_title: "ወራዊ ክፍያ ይፈጽሙ",
         step2_desc: "ክፍያዎን በቴሌብር ወይም በንግድ ባንክ በቀላሉ ይፈጽሙ።",
-        step3_title: "ይሸለሙ እና ይንዱ",
-        step3_desc: "በየወሩ በሚካሄደው ግልጽ የእጣ ማውጣት ስነስርዓት ላይ ይሳተፉ።"
+        step3_title: "ያሸንፉ እና ይንዱ",
+        step3_desc: "በየወሩ በሚካሄደው ግልጽ የእጣ አወጣጥ ላይ ይሳተፉ።"
     },
     social_proof: {
         heading: "በታማኝነት የተገነባ",
-        subheading: "በታማኝነት፣ በግልፅነት እና በጋራ እድገት ላይ የተገነባውን ማህበረሰብ ይቀላቀሉ።",
+        subheading: "በታማኝነት፣ በግልፅነት እና በጋራ ተጠቃሚነት የተገነባውን ማህበረሰብ ይቀላቀሉ።",
         winner_badge: "አሸናፊ"
     },
     cta_section: {
@@ -161,32 +160,32 @@ export const TRANSLATIONS = {
         btn: "አሁኑኑ ይመዝገቡ"
     },
     prizes_page: {
-        title: "ወራዊ የሽልማት ዝርዝር",
-        subtitle: "በየወሩ አንድ እድለኛ አባል አዲስ መኪና ይረከባል።",
-        current_prize: "የዚህ ወር ዋና ሽልማት",
+        title: "ወራዊ ታላላቅ ሽልማቶች",
+        subtitle: "በየወሩ አንድ እድለኛ አባል አዲስ መኪና ይዞ ወደ ቤቱ ይሄዳል።",
+        current_prize: "የዚህ ወር ታላቅ ሽልማት",
         value: "ዋጋ",
         draw_date: "የእጣ ቀን",
         past_winners: "የቅርብ ጊዜ አሸናፊዎች",
         upcoming: "ቀጣይ ሽልማቶች",
-        cta_title: "ቀጣዩ አሸናፊ መሆን ይፈልጋሉ?",
-        cta_btn: "አሁኑኑ ይቀላቀሉ"
+        cta_title: "ቀጣዩ አሸናፊ እርስዎ መሆን ይፈልጋሉ?",
+        cta_btn: "እቁቡን አሁኑኑ ይቀላቀሉ"
     },
     login: {
-        heading: "ወደ መለያ ይግቡ",
+        heading: "የአባላት መግቢያ",
         heading_login: "እንኳን ደህና መጡ",
         heading_register: "መለያ ይፍጠሩ",
-        subheading: "ዳሽቦርዱን ለመጠቀም መረጃዎን ያስገቡ",
-        subheading_register: "ማህበረሰቡን ይቀላቀሉ፣ ይቆጥቡ፣ ይሸለሙ",
+        subheading: "ወደ ዳሽቦርድ ለመግባት መረጃዎን ያስገቡ",
+        subheading_register: "ማህበረሰቡን ተቀላቅለው ማሸነፍ ይጀምሩ",
         label_name: "ሙሉ ስም",
-        name_notice: "ማሳሰቢያ፡ ስምዎ ከቀበሌ መታወቂያዎ ጋር መመሳሰል አለበት",
+        name_notice: "ማሳሰቢያ: ስምዎ በመታወቂያ ላይ ካለው ጋር መመሳሰል አለበት",
         label_phone: "ስልክ ቁጥር",
-        label_tier: "የወር መዋጮ መጠን",
+        label_tier: "ወራዊ ክፍያ",
         tier_1: "መደበኛ - 5,000 ብር",
         tier_2: "መደበኛ - 10,000 ብር",
         tier_3: "ፕሪሚየም - 25,000 ብር",
-        terms_agree: "በዚህ እስማማለሁ፡",
-        terms_link: "ውሎች እና ሁኔታዎች",
-        btn_login: "ደህንነቱ የተጠበቀ መግቢያ",
+        terms_agree: "በ",
+        terms_link: "ውሎች እና ሁኔታዎች እስማማለሁ",
+        btn_login: "ይግቡ",
         btn_register_action: "መለያ ይፍጠሩ",
         btn_processing: "በማስኬድ ላይ...",
         back: "ወደ መነሻ ተመለስ",
@@ -197,26 +196,26 @@ export const TRANSLATIONS = {
     },
     dashboard: { 
         welcome: "እንኳን ደህና መጡ፣", 
-        status_pending: "ክፍያ አልተፈጸመም", 
-        status_verified: "ተረጋግጧል", 
+        status_pending: "ክፍያ ይጠበቃል", 
+        status_verified: "የተረጋገጠ አባል", 
         contribution: "የእኔ ቁጠባ", 
         contribution_sub: "+5,000 በዚህ ወር",
-        pot: "የእቁብ ድምር", 
-        pot_sub: "የዚህ ዙር ጠቅላላ",
-        pot_users: "Contributing",
-        upload: "Upload Receipt", 
-        pay_telebirr: "Pay with Telebirr", 
-        pay_cbe: "Pay with CBE",
-        history: "Recent Activity",
-        next_draw: "የዚህን ዙር ሽልማት እጣ ለማውጣት: 14 ቀናት",
+        pot: "የቡድን እቁብ", 
+        pot_sub: "የአሁን ዙር ጠቅላላ",
+        pot_users: "አባላት",
+        upload: "ደረሰኝ ላክ", 
+        pay_telebirr: "በቴሌብር ይክፈሉ", 
+        pay_cbe: "በንግድ ባንክ ይክፈሉ",
+        history: "የቅርብ ጊዜ እንቅስቃሴዎች",
+        next_draw: "ለዚህ ዙር እጣ የቀረው ጊዜ: 14 ቀናት",
         next_draw_today: "ዛሬ አንድ እድለኛ ሰው መኪናውን ይረከባል",
-        win_title: "ቶዮታ ኮሮላ ክሮስ ያሸንፉ",
-        win_desc: "ለእጣው ብቁ ለመሆን የዚህን ወር ክፍያ አሁኑኑ ይፈጽሙ። የተረጋገጡ አባላት ብቻ።",
+        win_title: "BYD E2 Luxury ያሸንፉ",
+        win_desc: "በእጣው ለመሳተፍ ክፍያዎን ዛሬውኑ ይፈጽሙ። የተረጋገጡ አባላት ብቻ።",
         btn_paid: "ክፍያ ተፈጽሟል",
-        live_activity: "የእቁቡ እንቅስቃሴዎች",
-        hall_of_fame: "የክብር አዳራሽ (ባለድሎች)",
-        action_verified: "ክፍያ ፈጽሟል",
-        action_joined: "እቁቡን ተቀላቅሏል",
+        live_activity: "የቀጥታ እንቅስቃሴ",
+        hall_of_fame: "የዝና አዳራሽ",
+        action_verified: "ክፍያ ተረጋግጧል",
+        action_joined: "እቁቡን ተቀላቅለዋል",
         status_card_title: "የኔ ሁኔታ",
         payment_due: "የክፍያ ቀን",
         btn_processing: "በማስኬድ ላይ...",
@@ -268,3 +267,10 @@ export const TRANSLATIONS = {
     }
   }
 };
+
+export const PRIZE_IMAGES = [
+  "https://i.postimg.cc/TYMZqt8J/byd_e2_front.png",
+  "https://i.postimg.cc/YqKJfdcX/byd_e2_rear.png",
+  "https://i.postimg.cc/gkFfqg94/byd_e2_right.png",
+  "https://i.postimg.cc/ZYyGd1QP/BYD_E2_405km_Luxury_2025_20.jpg"
+];

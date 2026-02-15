@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
-import { TRANSLATIONS } from '../constants';
+import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -35,7 +35,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const [paymentMethod, setPaymentMethod] = useState<'CBE' | 'TELEBIRR' | null>(null);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [copied, setCopied] = useState(false);
-  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   // Timeline Data State
   const [rawPayments, setRawPayments] = useState<any[]>([]);
   const [rawUserTickets, setRawUserTickets] = useState<any[]>([]);
@@ -51,6 +52,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const t = TRANSLATIONS[language].dashboard;
   const heroT = TRANSLATIONS[language].hero;
   const statsT = TRANSLATIONS[language].stats;
+
+  // Carousel Effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % PRIZE_IMAGES.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   // --- Real-time User Updates ---
   useEffect(() => {
@@ -199,7 +208,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
       });
 
       // Sort by date descending (newest first)
-      // Note: Date strings might be unreliable for sorting if not ISO, but we try best effort or use timestamp if available
       timeline.sort((a, b) => {
            // Simple date string compare or fallback
            return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -701,7 +709,17 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                               <img src="https://i.postimg.cc/hvkdcQC4/rebbon-final.png" alt="Ribbon" className="w-full h-full object-contain drop-shadow-2xl scale-[1.5]" />
                                         </div>
                                     </div>
-                                    <img src={settings.prizeImage} alt={settings.prizeName} className="absolute inset-0 w-full h-full object-cover z-0" />
+                                    
+                                    {/* Carousel Images */}
+                                    {PRIZE_IMAGES.map((img, index) => (
+                                        <img 
+                                        key={index}
+                                        src={img}
+                                        alt={`${settings.prizeName} view ${index + 1}`}
+                                        className={`absolute inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-100' : 'opacity-0'}`}
+                                        />
+                                    ))}
+
                                     <div className="absolute inset-0 flex items-end justify-end z-20 p-2">
                                         <span className="text-stone-100 font-bold text-xs border border-dashed border-stone-500/50 bg-stone-900/80 backdrop-blur-md px-2 py-1 rounded-lg shadow-xl transform rotate-[-2deg]">
                                             {settings.prizeName}

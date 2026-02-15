@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import { User, ViewState, Language, AppSettings, AppNotification } from './types';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
+import { PRIZE_IMAGES } from './constants';
 
 // Default settings if DB is empty
 const DEFAULT_SETTINGS: AppSettings = {
@@ -22,9 +23,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   drawDate: new Date(new Date().setDate(new Date().getDate() + 14)).toISOString().split('T')[0],
   carsDelivered: 142,
   trustScore: 100,
-  prizeName: 'Toyota Corolla Cross 2025',
-  prizeValue: 'ETB 4.5M',
-  prizeImage: 'https://i.postimg.cc/d1xwLLhj/toyota.avif',
+  prizeName: 'BYD E2 Luxury 2025',
+  prizeValue: 'ETB 4.2M',
+  prizeImage: PRIZE_IMAGES[0],
   liveStreamUrl: '',
   isLive: false,
   registrationEnabled: true,
