@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight } from 'lucide-react';
+import { Bell, CheckCircle, Clock, Trophy, Users, Upload, CreditCard, History, Ticket, X, ShieldCheck, ChevronRight, Video, ExternalLink, Building, Smartphone, ArrowLeft, Copy, Info, Activity, UserPlus, AlertCircle, Search, XCircle, Ban, ArrowRight, PlusCircle } from 'lucide-react';
 import { User, Language, FeedItem, AppSettings, AppNotification } from '../types';
 import { TRANSLATIONS, PRIZE_IMAGES } from '../constants';
 import { doc, onSnapshot, updateDoc, addDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
@@ -85,18 +85,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
   // --- Rolling Growth Ticket Fetch (Grid) ---
   useEffect(() => {
-    const q = query(
-        collection(db, 'tickets'), 
-        where('cycle', '==', settings.cycle),
-        // We fetch ACTIVE, RESERVED, and PENDING to show them as taken
-        where('status', 'in', ['ACTIVE', 'PENDING', 'RESERVED']) 
-    );
-
-    // Note: 'in' query supports up to 10 values. 
-    // If specific indexes are missing, Firebase console will provide a link to create them.
-    // Fallback: If 'in' fails due to index, just fetch cycle and filter in memory.
-    
-    // Simplification for reliability: Fetch all for cycle, filter locally or rely on 'status != VOID' logic implicitly via existence
     const qSimple = query(
         collection(db, 'tickets'), 
         where('cycle', '==', settings.cycle)
@@ -267,19 +255,18 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
             userPhone: user.phone,
             amount: 5000,
             date: new Date().toLocaleDateString(),
-            receiptUrl: "https://via.placeholder.com/150", // In real app, this would be the uploaded URL
+            receiptUrl: "https://via.placeholder.com/150", 
             status: 'PENDING',
             requestedTicket: selectedTempTicket
         });
 
         // 2. Reserve the Ticket Immediately (Status: PENDING)
-        // This ensures the grid shows it as "Taken"
         await addDoc(collection(db, 'tickets'), {
             ticketNumber: selectedTempTicket,
             userId: user.id,
             userName: user.name,
             cycle: settings.cycle,
-            status: 'PENDING', // Reserved state
+            status: 'PENDING', 
             assignedDate: new Date().toISOString().split('T')[0],
             assignedBy: 'USER'
         });
@@ -290,16 +277,14 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
 
     } catch (error) {
         console.error("Payment Error", error);
-        setPaymentStep('UPLOAD'); // Go back on error
+        setPaymentStep('UPLOAD');
         alert("Transaction failed. Please try again.");
     }
   };
 
-  // Called when user clicks "Confirm Number" in the initial grid modal
   const confirmTicketSelection = () => {
     if (selectedTempTicket && user && user.id) {
         setShowTicketModal(false);
-        // Start the Payment Wizard in the main dashboard view
         setPaymentStep('METHOD');
     }
   };
@@ -353,6 +338,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
   const cycleText = language === 'en' ? `Cycle ${settings.cycle}` : `ዙር ${settings.cycle}`;
 
   const formatTicket = (num: number) => num.toString();
+
+  // Get active tickets for the current user in this cycle
+  const myTickets = rawUserTickets
+    .filter(t => t.cycle === settings.cycle && (t.status === 'ACTIVE' || t.status === 'PENDING' || t.status === 'RESERVED'))
+    .map(t => t.ticketNumber)
+    .sort((a, b) => a - b);
 
   const getActivityIcon = (type: string, status: string) => {
       if (type === 'TICKET_HISTORY') {
@@ -606,34 +597,39 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
         {/* Dashboard Grid - Status and Contribution Cards Side-by-Side on Mobile */}
         <div className="grid grid-cols-2 gap-3 md:gap-6 mb-8">
             {/* Status Card */}
-            <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300">
-               <h3 className="text-stone-400 text-[10px] md:text-sm font-semibold uppercase mb-1 md:mb-2 leading-tight">{t.status_card_title}</h3>
-               
-               {/* Conditional Status Display based on Flow */}
-               <div className="flex items-center justify-between mb-2 md:mb-4">
-                  <span className={`text-base md:text-2xl font-bold truncate pr-1 ${user.status === 'VERIFIED' ? 'text-emerald-600' : 'text-red-500'}`}>
-                    {user.status === 'VERIFIED' ? t.status_verified : 
-                     (paymentStep !== 'IDLE' && paymentStep !== 'SUCCESS') ? (language === 'en' ? 'Completing Payment' : 'ክፍያ በመፈጸም ላይ') :
-                     t.status_pending}
-                  </span>
-                  {user.status === 'VERIFIED' ? <CheckCircle className="w-5 h-5 md:w-8 md:h-8 text-emerald-500 flex-shrink-0" /> : <Clock className="w-5 h-5 md:w-8 md:h-8 text-red-500 flex-shrink-0" />}
+            <div className="bg-white rounded-xl shadow-md p-4 md:p-6 border-t-4 border-amber-500 opacity-0 animate-fade-in-up hover:shadow-lg transition-shadow duration-300 flex flex-col justify-between">
+               <div>
+                   <h3 className="text-stone-400 text-[10px] md:text-sm font-semibold uppercase mb-1 md:mb-2 leading-tight">{t.status_card_title}</h3>
+                   <div className="flex items-center justify-between mb-2">
+                      <span className={`text-base md:text-2xl font-bold truncate pr-1 ${user.status === 'VERIFIED' ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {user.status === 'VERIFIED' ? t.status_verified : 
+                         (paymentStep !== 'IDLE' && paymentStep !== 'SUCCESS') ? (language === 'en' ? 'Completing Payment' : 'ክፍያ በመፈጸም ላይ') :
+                         t.status_pending}
+                      </span>
+                      {user.status === 'VERIFIED' ? <CheckCircle className="w-5 h-5 md:w-8 md:h-8 text-emerald-500 flex-shrink-0" /> : <Clock className="w-5 h-5 md:w-8 md:h-8 text-red-500 flex-shrink-0" />}
+                   </div>
                </div>
                
-               {user.prizeNumber ? (
-                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-2 md:p-3 flex items-center justify-between animate-fade-in-down overflow-hidden">
-                      <div className="flex items-center min-w-0">
-                          <Ticket className="w-3 h-3 md:w-5 md:h-5 text-amber-600 mr-1 md:mr-2 flex-shrink-0" />
-                          <span className="text-amber-800 font-medium text-[10px] md:text-sm truncate">{t.my_ticket}</span>
-                      </div>
-                      <span className="text-sm md:text-xl font-extrabold text-amber-600 flex-shrink-0 ml-1">#{formatTicket(user.prizeNumber)}</span>
+               {myTickets.length > 0 ? (
+                   <div className="mt-2">
+                       <p className="text-xs text-stone-500 font-bold mb-1 flex items-center justify-between">
+                           <span>My Tickets ({myTickets.length})</span>
+                           <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Cycle {settings.cycle}</span>
+                       </p>
+                       <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto custom-scrollbar">
+                           {myTickets.map(num => (
+                               <span key={num} className="bg-amber-100 border border-amber-200 text-amber-800 text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 rounded">
+                                   #{formatTicket(num)}
+                               </span>
+                           ))}
+                       </div>
                    </div>
                ) : (
-                   <>
+                   <div className="mt-auto">
                        <div className="w-full bg-stone-100 rounded-full h-1.5 md:h-2 mb-1 md:mb-2">
                           <div className={`h-1.5 md:h-2 rounded-full ${user.status === 'VERIFIED' ? 'bg-emerald-500 w-full' : 'bg-red-400 w-[10%]'}`}></div>
                        </div>
                        
-                       {/* If in payment flow, show pending ticket reservation */}
                        {(paymentStep !== 'IDLE' && paymentStep !== 'SUCCESS' && selectedTempTicket) ? (
                            <p className="text-[10px] md:text-xs text-amber-600 font-bold truncate animate-pulse">
                                {language === 'en' ? `Reserving Ticket #${selectedTempTicket}...` : `ቁጥር #${selectedTempTicket} በመያዝ ላይ...`}
@@ -641,7 +637,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                        ) : (
                            <p className="text-[10px] md:text-xs text-stone-400 truncate">{t.payment_due}: {paymentDueDate}</p>
                        )}
-                   </>
+                   </div>
                )}
             </div>
 
@@ -689,115 +685,110 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                      </span>
                                 </div>
                                 
-                                {user.status === 'VERIFIED' ? (
-                                    <button disabled className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 text-white rounded-lg font-bold cursor-default">
-                                         <CheckCircle className="w-5 h-5 mr-2" /> {t.btn_paid}
-                                    </button>
-                                ) : (
-                                    <div className="flex flex-col gap-3">
-                                        {/* --- PAYMENT WIZARD --- */}
-                                        
-                                        {/* STEP 0: IDLE - Show Select Ticket Button */}
-                                        {paymentStep === 'IDLE' && (
-                                            <button 
-                                                onClick={() => setShowTicketModal(true)}
-                                                className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
-                                            >
-                                                <Ticket className="w-5 h-5 mr-2" /> {t.select_ticket}
+                                <div className="flex flex-col gap-3">
+                                    {/* --- PAYMENT WIZARD --- */}
+                                    
+                                    {/* STEP 0: IDLE - Show Select Ticket Button */}
+                                    {paymentStep === 'IDLE' && (
+                                        <button 
+                                            onClick={() => setShowTicketModal(true)}
+                                            className="w-full flex justify-center items-center px-4 py-3 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-stone-900 shadow-lg shadow-amber-500/20 transition-all transform hover:scale-105 active:scale-95 animate-pulse"
+                                        >
+                                            {myTickets.length > 0 ? <PlusCircle className="w-5 h-5 mr-2" /> : <Ticket className="w-5 h-5 mr-2" />} 
+                                            {myTickets.length > 0 ? (language === 'en' ? "Purchase Another Ticket" : "ሌላ ቲኬት ይግዙ") : t.select_ticket}
+                                        </button>
+                                    )}
+
+                                    {/* STEP 1: METHOD SELECTION */}
+                                    {paymentStep === 'METHOD' && (
+                                        <div className="animate-fade-in-up">
+                                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-3 text-center">
+                                                <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+                                                    {language === 'en' ? 'Selected Lucky Number' : 'የተመረጠው እድለኛ ቁጥር'}
+                                                </p>
+                                                <p className="text-2xl font-black text-amber-400">#{selectedTempTicket}</p>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <p className="text-stone-300 text-xs text-center mb-1">Select Payment Method</p>
+                                                <button onClick={() => { setPaymentMethod('CBE'); setPaymentStep('DETAILS'); }} className="w-full flex justify-between items-center px-4 py-3 bg-purple-900/50 hover:bg-purple-900 border border-purple-500/30 text-white rounded-lg transition-all group">
+                                                    <span className="flex items-center"><Building className="w-5 h-5 mr-3 text-purple-300" /> {t.pay_cbe}</span>
+                                                    <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
+                                                </button>
+                                                <button onClick={() => { setPaymentMethod('TELEBIRR'); setPaymentStep('DETAILS'); }} className="w-full flex justify-between items-center px-4 py-3 bg-blue-900/50 hover:bg-blue-900 border border-blue-500/30 text-white rounded-lg transition-all group">
+                                                    <span className="flex items-center"><Smartphone className="w-5 h-5 mr-3 text-blue-300" /> {t.pay_telebirr}</span>
+                                                    <ChevronRight className="w-4 h-4 text-blue-300 group-hover:translate-x-1 transition-transform" />
+                                                </button>
+                                                <button onClick={() => setPaymentStep('IDLE')} className="text-stone-400 text-xs hover:text-white mt-2">Cancel Selection</button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* STEP 2: PAYMENT DETAILS */}
+                                    {paymentStep === 'DETAILS' && (
+                                        <div className="animate-fade-in-up">
+                                            <button onClick={() => setPaymentStep('METHOD')} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white">
+                                                <ArrowLeft className="w-3 h-3 mr-1" /> {t.change_method}
                                             </button>
-                                        )}
-
-                                        {/* STEP 1: METHOD SELECTION */}
-                                        {paymentStep === 'METHOD' && (
-                                            <div className="animate-fade-in-up">
-                                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-3 text-center">
-                                                    <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
-                                                        {language === 'en' ? 'Selected Lucky Number' : 'የተመረጠው እድለኛ ቁጥር'}
-                                                    </p>
-                                                    <p className="text-2xl font-black text-amber-400">#{selectedTempTicket}</p>
+                                            {paymentMethod === 'CBE' ? (
+                                                <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
+                                                    <p className="text-stone-400 text-xs mb-1">{t.account_no}</p>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <p className="text-lg font-bold font-mono tracking-wide">1000234567890</p>
+                                                        <button onClick={() => copyToClipboard('1000234567890')} className="text-purple-300 hover:text-white p-1">
+                                                            {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Digital Equb</p>
                                                 </div>
-                                                <div className="flex flex-col gap-2">
-                                                    <p className="text-stone-300 text-xs text-center mb-1">Select Payment Method</p>
-                                                    <button onClick={() => { setPaymentMethod('CBE'); setPaymentStep('DETAILS'); }} className="w-full flex justify-between items-center px-4 py-3 bg-purple-900/50 hover:bg-purple-900 border border-purple-500/30 text-white rounded-lg transition-all group">
-                                                        <span className="flex items-center"><Building className="w-5 h-5 mr-3 text-purple-300" /> {t.pay_cbe}</span>
-                                                        <ChevronRight className="w-4 h-4 text-purple-300 group-hover:translate-x-1 transition-transform" />
-                                                    </button>
-                                                    <button onClick={() => { setPaymentMethod('TELEBIRR'); setPaymentStep('DETAILS'); }} className="w-full flex justify-between items-center px-4 py-3 bg-blue-900/50 hover:bg-blue-900 border border-blue-500/30 text-white rounded-lg transition-all group">
-                                                        <span className="flex items-center"><Smartphone className="w-5 h-5 mr-3 text-blue-300" /> {t.pay_telebirr}</span>
-                                                        <ChevronRight className="w-4 h-4 text-blue-300 group-hover:translate-x-1 transition-transform" />
-                                                    </button>
-                                                    <button onClick={() => setPaymentStep('IDLE')} className="text-stone-400 text-xs hover:text-white mt-2">Cancel Selection</button>
+                                            ) : (
+                                                <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
+                                                    <p className="text-stone-400 text-xs mb-1">{t.merchant_id}</p>
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <p className="text-lg font-bold font-mono tracking-wide">707070</p>
+                                                        <button onClick={() => copyToClipboard('707070')} className="text-blue-300 hover:text-white p-1">
+                                                            {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Equb Service</p>
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                            <button onClick={() => setPaymentStep('UPLOAD')} className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg">
+                                                <CheckCircle className="w-5 h-5 mr-2" /> {t.confirm_paid}
+                                            </button>
+                                        </div>
+                                    )}
 
-                                        {/* STEP 2: PAYMENT DETAILS */}
-                                        {paymentStep === 'DETAILS' && (
-                                            <div className="animate-fade-in-up">
-                                               <button onClick={() => setPaymentStep('METHOD')} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white">
-                                                  <ArrowLeft className="w-3 h-3 mr-1" /> {t.change_method}
-                                               </button>
-                                               {paymentMethod === 'CBE' ? (
-                                                   <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
-                                                       <p className="text-stone-400 text-xs mb-1">{t.account_no}</p>
-                                                       <div className="flex justify-between items-center mb-2">
-                                                           <p className="text-lg font-bold font-mono tracking-wide">1000234567890</p>
-                                                           <button onClick={() => copyToClipboard('1000234567890')} className="text-purple-300 hover:text-white p-1">
-                                                              {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                                           </button>
-                                                       </div>
-                                                       <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Digital Equb</p>
-                                                   </div>
-                                               ) : (
-                                                   <div className="bg-white/10 p-4 rounded-lg mb-4 border border-white/10">
-                                                       <p className="text-stone-400 text-xs mb-1">{t.merchant_id}</p>
-                                                       <div className="flex justify-between items-center mb-2">
-                                                           <p className="text-lg font-bold font-mono tracking-wide">707070</p>
-                                                           <button onClick={() => copyToClipboard('707070')} className="text-blue-300 hover:text-white p-1">
-                                                              {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                                           </button>
-                                                       </div>
-                                                        <p className="text-stone-400 text-xs">{t.acc_name}: Blessed Equb Service</p>
-                                                   </div>
-                                               )}
-                                               <button onClick={() => setPaymentStep('UPLOAD')} className="w-full flex justify-center items-center px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-all shadow-lg">
-                                                  <CheckCircle className="w-5 h-5 mr-2" /> {t.confirm_paid}
-                                               </button>
+                                    {/* STEP 3: UPLOAD & PROCESSING */}
+                                    {(paymentStep === 'UPLOAD' || paymentStep === 'PROCESSING') && (
+                                        <div className="animate-fade-in-up">
+                                            <button onClick={() => setPaymentStep('DETAILS')} disabled={paymentStep === 'PROCESSING'} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white disabled:opacity-50">
+                                                <ArrowLeft className="w-3 h-3 mr-1" /> Back to Details
+                                            </button>
+                                            <div className="bg-white/10 p-4 rounded-lg mb-4 border border-dashed border-white/30 text-center">
+                                                <Upload className="w-8 h-8 text-stone-400 mx-auto mb-2" />
+                                                <p className="text-stone-300 text-sm mb-1">Upload Receipt Screenshot</p>
+                                                <p className="text-stone-500 text-xs">For Ticket #{selectedTempTicket}</p>
                                             </div>
-                                        )}
+                                            <button onClick={handlePayment} disabled={paymentStep === 'PROCESSING'} className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg">
+                                                    {paymentStep === 'PROCESSING' ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</> : <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>}
+                                            </button>
+                                        </div>
+                                    )}
 
-                                        {/* STEP 3: UPLOAD & PROCESSING */}
-                                        {(paymentStep === 'UPLOAD' || paymentStep === 'PROCESSING') && (
-                                            <div className="animate-fade-in-up">
-                                                <button onClick={() => setPaymentStep('DETAILS')} disabled={paymentStep === 'PROCESSING'} className="text-stone-400 text-xs flex items-center mb-3 hover:text-white disabled:opacity-50">
-                                                  <ArrowLeft className="w-3 h-3 mr-1" /> Back to Details
-                                                </button>
-                                                <div className="bg-white/10 p-4 rounded-lg mb-4 border border-dashed border-white/30 text-center">
-                                                    <Upload className="w-8 h-8 text-stone-400 mx-auto mb-2" />
-                                                    <p className="text-stone-300 text-sm mb-1">Upload Receipt Screenshot</p>
-                                                    <p className="text-stone-500 text-xs">For Ticket #{selectedTempTicket}</p>
-                                                </div>
-                                                <button onClick={handlePayment} disabled={paymentStep === 'PROCESSING'} className="w-full flex justify-center items-center px-4 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-all shadow-lg">
-                                                     {paymentStep === 'PROCESSING' ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span> {t.btn_processing}</> : <><Upload className="w-5 h-5 mr-2" /> {t.upload}</>}
-                                                </button>
+                                    {/* STEP 4: SUCCESS */}
+                                    {paymentStep === 'SUCCESS' && (
+                                        <div className="animate-fade-in-up text-center py-2">
+                                            <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30">
+                                                <CheckCircle className="w-6 h-6 text-white" />
                                             </div>
-                                        )}
-
-                                        {/* STEP 4: SUCCESS */}
-                                        {paymentStep === 'SUCCESS' && (
-                                            <div className="animate-fade-in-up text-center py-2">
-                                                <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-500/30">
-                                                    <CheckCircle className="w-6 h-6 text-white" />
-                                                </div>
-                                                <h3 className="font-bold text-white text-lg">Submission Received!</h3>
-                                                <p className="text-stone-300 text-xs mb-4">Ticket #{selectedTempTicket} is reserved pending approval.</p>
-                                                <button onClick={() => setPaymentStep('IDLE')} className="text-amber-400 text-sm font-bold hover:underline">
-                                                    Close
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                            <h3 className="font-bold text-white text-lg">Submission Received!</h3>
+                                            <p className="text-stone-300 text-xs mb-4">Ticket #{selectedTempTicket} is reserved pending approval.</p>
+                                            <button onClick={() => setPaymentStep('IDLE')} className="text-amber-400 text-sm font-bold hover:underline">
+                                                Close
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                            </div>
                         </div>
                         <div className="relative w-full flex justify-center">
