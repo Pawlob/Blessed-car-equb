@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Search, 
@@ -1211,6 +1212,10 @@ const AdminView: React.FC<AdminViewProps> = ({ setView, settings, setSettings, a
                                             <div className="flex justify-between">
                                                 <span className="text-stone-600">English:</span>
                                                 <span className="font-bold text-stone-800">{localSettings.nextDrawDateEn}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-stone-600">Amharic:</span>
+                                                <span className="font-bold text-stone-800">{localSettings.nextDrawDateAm}</span>
                                             </div>
                                         </div>
                                     </div>
