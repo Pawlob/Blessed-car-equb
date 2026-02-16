@@ -207,8 +207,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
               {/* Conditional Rendering: Winner Card vs Prize Carousel */}
               {settings.winnerAnnouncementMode && settings.currentWinner ? (
                   // --- WINNER ANNOUNCEMENT CARD ---
-                  // Increased height significantly: h-96 md:h-[500px]
-                  <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-96 md:h-[500px] flex flex-col items-center justify-center text-center p-8">
+                  // Height adjusted for mobile visibility: h-[28rem] (448px)
+                  <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-[28rem] md:h-[500px] flex flex-col items-center justify-center text-center p-6 md:p-8">
                       {/* Confetti Background */}
                       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none"></div>
                       {Array.from({ length: 30 }).map((_, i) => (
@@ -224,22 +224,22 @@ const LandingPage: React.FC<LandingPageProps> = ({
                       ))}
                       
                       <div className="relative z-20 w-full">
-                          <div className="inline-flex items-center justify-center p-4 bg-white rounded-full mb-6 shadow-2xl animate-bounce">
-                              <PartyPopper className="w-12 h-12 text-amber-600" />
+                          <div className="inline-flex items-center justify-center p-3 md:p-4 bg-white rounded-full mb-4 md:mb-6 shadow-2xl animate-bounce">
+                              <PartyPopper className="w-8 h-8 md:w-12 md:h-12 text-amber-600" />
                           </div>
-                          <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-lg">
+                          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-lg">
                               {language === 'en' ? 'Winner!' : 'አሸናፊ!'}
                           </h2>
-                          <p className="text-amber-100 font-bold text-xl mb-8 uppercase tracking-widest">Cycle {settings.cycle}</p>
+                          <p className="text-amber-100 font-bold text-lg md:text-xl mb-6 md:mb-8 uppercase tracking-widest">Cycle {settings.cycle}</p>
                           
-                          <div className="bg-white/10 backdrop-blur-xl border border-white/30 rounded-2xl p-6 w-full max-w-sm mx-auto shadow-2xl transform hover:scale-105 transition-transform duration-500">
-                              <div className="text-lg font-medium text-amber-200 uppercase tracking-widest mb-2">Winning Ticket</div>
-                              <div className="text-6xl md:text-7xl font-black text-white mb-4 tracking-tighter drop-shadow-md">
+                          <div className="bg-white/10 backdrop-blur-xl border border-white/30 rounded-2xl p-4 md:p-6 w-full max-w-sm mx-auto shadow-2xl transform hover:scale-105 transition-transform duration-500">
+                              <div className="text-sm md:text-lg font-medium text-amber-200 uppercase tracking-widest mb-1 md:mb-2">Winning Ticket</div>
+                              <div className="text-5xl sm:text-6xl md:text-7xl font-black text-white mb-3 md:mb-4 tracking-tighter drop-shadow-md">
                                   #{settings.currentWinner.ticketNumber}
                               </div>
-                              <div className="text-2xl md:text-3xl font-bold text-amber-50">{settings.currentWinner.userName}</div>
-                              <div className="mt-4 pt-4 border-t border-white/20">
-                                  <div className="inline-block bg-black/30 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-inner">
+                              <div className="text-xl md:text-3xl font-bold text-amber-50 truncate">{settings.currentWinner.userName}</div>
+                              <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/20">
+                                  <div className="inline-block bg-black/30 px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-bold text-white shadow-inner">
                                       Prize: {settings.currentWinner.prizeName}
                                   </div>
                               </div>

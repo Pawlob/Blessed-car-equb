@@ -880,8 +880,8 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                             {/* Conditional Rendering: Winner Card vs Prize Carousel */}
                             {settings.winnerAnnouncementMode && settings.currentWinner ? (
                                 // --- WINNER ANNOUNCEMENT CARD ---
-                                // Increased height: h-80 (approx 320px)
-                                <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-80 flex flex-col items-center justify-center text-center p-6">
+                                // Height adjusted: h-96 generally (384px) to ensure visibility
+                                <div className="bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl overflow-hidden relative group isolate h-96 flex flex-col items-center justify-center text-center p-6">
                                     {/* Confetti Background */}
                                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 pointer-events-none"></div>
                                     {Array.from({ length: 20 }).map((_, i) => (
@@ -898,15 +898,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, setUser, language, 
                                     
                                     <div className="relative z-20 w-full">
                                         <div className="inline-flex items-center justify-center p-3 bg-white rounded-full mb-3 shadow-xl animate-bounce">
-                                            <PartyPopper className="w-8 h-8 text-amber-600" />
+                                            <PartyPopper className="w-8 h-8 md:w-10 md:h-10 text-amber-600" />
                                         </div>
-                                        <h2 className="text-2xl font-black text-white uppercase tracking-wider mb-1 drop-shadow-md">
+                                        <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-wider mb-2 drop-shadow-md">
                                             {language === 'en' ? 'Winner!' : 'አሸናፊ!'}
                                         </h2>
                                         
-                                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 w-full max-w-xs mx-auto shadow-lg mt-4">
-                                            <div className="text-4xl font-black text-white mb-2 drop-shadow-sm">#{settings.currentWinner.ticketNumber}</div>
-                                            <div className="text-lg font-bold text-amber-100">{settings.currentWinner.userName}</div>
+                                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 w-full max-w-xs mx-auto shadow-lg mt-2">
+                                            <div className="text-5xl md:text-6xl font-black text-white mb-2 drop-shadow-sm tracking-tighter">#{settings.currentWinner.ticketNumber}</div>
+                                            <div className="text-lg md:text-xl font-bold text-amber-100 truncate">{settings.currentWinner.userName}</div>
                                         </div>
                                     </div>
                                 </div>
