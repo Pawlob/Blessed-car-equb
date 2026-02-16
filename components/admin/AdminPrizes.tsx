@@ -259,21 +259,40 @@ const AdminPrizes: React.FC<AdminPrizesProps> = ({
                     </div>
                     <form onSubmit={handleSavePastWinner} className="p-6 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="col-span-2">
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Winner Name</label>
-                                <input type="text" required value={newPastWinner.name || ''} onChange={e => setNewPastWinner({...newPastWinner, name: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="English Name" />
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Name (Amharic)</label>
-                                <input type="text" value={newPastWinner.nameAm || ''} onChange={e => setNewPastWinner({...newPastWinner, nameAm: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="Amharic Name" />
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Name (En)</label>
+                                <input type="text" required value={newPastWinner.name || ''} onChange={e => setNewPastWinner({...newPastWinner, name: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="e.g. Dawit M." />
                             </div>
                             <div className="col-span-1">
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Prize</label>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Name (Am)</label>
+                                <input type="text" value={newPastWinner.nameAm || ''} onChange={e => setNewPastWinner({...newPastWinner, nameAm: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="e.g. ዳዊት መ." />
+                            </div>
+                            
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Prize (En)</label>
                                 <input type="text" required value={newPastWinner.prize || ''} onChange={e => setNewPastWinner({...newPastWinner, prize: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="Toyota Vitz" />
                             </div>
+                             <div className="col-span-1">
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Prize (Am)</label>
+                                <input type="text" value={newPastWinner.prizeAm || ''} onChange={e => setNewPastWinner({...newPastWinner, prizeAm: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="ቶዮታ ቪትዝ" />
+                            </div>
+
                             <div className="col-span-1">
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Cycle</label>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Cycle (En)</label>
                                 <input type="text" required value={newPastWinner.cycle || ''} onChange={e => setNewPastWinner({...newPastWinner, cycle: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="Jan 2024" />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Cycle (Am)</label>
+                                <input type="text" value={newPastWinner.cycleAm || ''} onChange={e => setNewPastWinner({...newPastWinner, cycleAm: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="ጥር 2016" />
+                            </div>
+
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Location (En)</label>
+                                <input type="text" value={newPastWinner.location || ''} onChange={e => setNewPastWinner({...newPastWinner, location: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="Addis Ababa" />
+                            </div>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Location (Am)</label>
+                                <input type="text" value={newPastWinner.locationAm || ''} onChange={e => setNewPastWinner({...newPastWinner, locationAm: e.target.value})} className="w-full px-4 py-2 border border-stone-300 rounded-lg" placeholder="አዲስ አበባ" />
                             </div>
                         </div>
                         <button type="submit" className="w-full py-2 bg-emerald-900 text-white font-bold rounded-lg hover:bg-emerald-800">Save Winner</button>
