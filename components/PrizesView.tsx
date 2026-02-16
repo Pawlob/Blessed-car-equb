@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Trophy, Calendar, DollarSign, ChevronRight, Car } from 'lucide-react';
 import { Language, AppSettings, ViewState } from '../types';
@@ -143,9 +144,7 @@ const PrizesView: React.FC<PrizesViewProps> = ({ language, settings, setView }) 
                  <div className="absolute top-0 right-0 p-8 opacity-10"><Trophy className="w-48 h-48" /></div>
                 <div className="relative z-10 max-w-2xl mx-auto">
                     <h2 className="text-3xl font-bold mb-4">{t.cta_title}</h2>
-                    <p className="text-emerald-100 mb-8 text-lg">
-                        Join over {settings.totalMembers.toLocaleString()} members and secure your chance to win the next {settings.prizeName}.
-                    </p>
+                    {/* Removed Join over... text */}
                     <button 
                         onClick={() => setView('login')}
                         className="px-8 py-3 bg-white text-emerald-900 rounded-full font-bold shadow-lg hover:bg-stone-100 transition-colors transform hover:scale-105"
